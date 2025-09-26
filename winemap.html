@@ -29,13 +29,13 @@
       const map = new google.maps.Map(document.getElementById("map"), {
         mapId: "a590d6c102a9d70631fc7fae",   // ⬅️ replace with your Map ID
         mapTypeId: "roadmap",
-        zoom: 11,                // set default zoom so scroll works right away
+        zoom: 11,                // default zoom for scroll/trackpad
         tilt: 0,
         heading: 0,
         gestureHandling: "greedy", // enable scroll + trackpad zoom
         scrollwheel: true,         // allow scroll wheel zoom
-        zoomControl: true,         // keep +/- buttons
-        fullscreenControl: true    // optional fullscreen button
+        zoomControl: true,         
+        fullscreenControl: true    
       });
 
       const wineries = [
@@ -80,9 +80,20 @@
           content: icon,
         });
 
-        const infoContent = winery.url
-          ? `<strong><a href="${winery.url}" target="_blank">${winery.name}</a></strong>`
-          : `<strong>${winery.name}</strong>`;
+        // Detect Apple vs Others
+        const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+        const directionsLink = isApple
+          ? `https://maps.apple.com/?daddr=${winery.lat},${winery.lng}`
+          : `https://www.google.com/maps/dir/?api=1&destination=${winery.lat},${winery.lng}`;
+
+        const infoContent = `
+          <div style="font-size:14px;line-height:1.4">
+            <strong>${winery.url 
+              ? `<a href="${winery.url}" target="_blank">${winery.name}</a>` 
+              : winery.name}</strong><br/>
+            <a href="${directionsLink}" target="_blank">Get Directions</a>
+          </div>
+        `;
 
         const infoWindow = new google.maps.InfoWindow({ content: infoContent });
 
