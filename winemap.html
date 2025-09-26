@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Columbia River Gorge Wineries Map</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: 'Montserrat', sans-serif;
+    }
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+    .wine-icon {
+      width: 28px;
+      height: 28px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+    function initMap() {
+      const map = new google.maps.Map(document.getElementById("map"), {
+        mapId: "a590d6c102a9d70631fc7fae",
+        mapTypeId: "roadmap",
+        tilt: 0,
+        heading: 0
+      });
+
+      const wineries = [
+        { name: "Analemma Wines", lat: 45.6841, lng: -121.4037, url: "https://analemmawines.com" },
+        { name: "AniChe Cellars", lat: 45.7283, lng: -121.5349, url: "https://anichecellars.com" },
+        { name: "COR Cellars", lat: 45.6889, lng: -121.3033, url: "https://www.corcellars.com" },
+        { name: "Cathedral Ridge Winery", lat: 45.7156, lng: -121.5450, url: "https://cathedralridgewinery.com" },
+        { name: "Estelbrook Farms & Vineyard", lat: 45.7259, lng: -121.4840, url: "https://www.estelbrook.com" },
+        { name: "Hawkins Cellars", lat: 45.7290, lng: -121.5358, url: "https://hawkinscellars.com" },
+        { name: "Hiyu Wine Farm", lat: 45.6195, lng: -121.5242, url: "https://hiyuwinefarm.com" },
+        { name: "Hood Crest Winery & Distillers", lat: 45.6764, lng: -121.5120, url: "https://hoodcrestwinery.com" },
+        { name: "Hood River Vineyards & Winery", lat: 45.6933, lng: -121.5311, url: "https://hoodrivervineyardsandwinery.com" },
+        { name: "Jacob Williams Winery", lat: 45.6791, lng: -121.0108, url: "" },
+        { name: "Le Doubblé Troubblé Wine Co.", lat: 45.7277, lng: -121.4855, url: "" },
+        { name: "Loop de Loop Wines", lat: 45.7282, lng: -121.5257, url: "" },
+        { name: "Marchesi Vineyards", lat: 45.6934, lng: -121.5370, url: "https://www.marchesivineyards.com" },
+        { name: "Maryhill Winery (Goldendale)", lat: 45.7081, lng: -120.8158, url: "https://maryhillwinery.com" },
+        { name: "Memaloose Wines", lat: 45.6933, lng: -121.2955, url: "" },
+        { name: "Phelps Creek Vineyards", lat: 45.7061, lng: -121.5627, url: "https://phelpscreekvineyards.com" },
+        { name: "Savage Grace Wines", lat: 45.7252, lng: -121.5328, url: "https://savagegracewines.com" },
+        { name: "South Hill Vineyards & Winery", lat: 45.7291, lng: -121.5230, url: "https://southhillvineyards.com" },
+        { name: "Stave & Stone Winery", lat: 45.7089, lng: -121.5214, url: "https://staveandstone.com" },
+        { name: "Syncline Winery", lat: 45.6958, lng: -121.2958, url: "https://synclinewine.com" },
+        { name: "Tetrahedron Wines", lat: 45.6892, lng: -121.2988, url: "https://www.tetrahedronwines.com" },
+        { name: "The Pines 1852", lat: 45.7080, lng: -121.5120, url: "https://www.thepinesvineyard.com" },
+        { name: "Viento Wines", lat: 45.6820, lng: -121.5200, url: "https://vientowines.com" },
+        { name: "Waving Tree Winery", lat: 45.7050, lng: -120.8142, url: "https://wavingtreewine.com" },
+        { name: "Wy’East Vineyards", lat: 45.6008, lng: -121.6004, url: "https://wyeastvineyards.com" },
+      ];
+
+      const bounds = new google.maps.LatLngBounds();
+
+      wineries.forEach(winery => {
+        const icon = document.createElement("img");
+        icon.src = "https://cdn-icons-png.flaticon.com/512/275/275296.png"; // wine glass icon
+        icon.classList.add("wine-icon");
+
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+          map,
+          position: { lat: winery.lat, lng: winery.lng },
+          title: winery.name,
+          content: icon,
+        });
+
+        const infoContent = winery.url
+          ? `<strong><a href="${winery.url}" target="_blank">${winery.name}</a></strong>`
+          : `<strong>${winery.name}</strong>`;
+
+        const infoWindow = new google.maps.InfoWindow({ content: infoContent });
+
+        marker.addListener("click", () => {
+          infoWindow.open(map, marker);
+        });
+
+        bounds.extend(marker.position);
+      });
+
+      map.fitBounds(bounds);
+
+      // Keep Gorge zoomed in but not too far
+      google.maps.event.addListenerOnce(map, "idle", function() {
+        if (map.getZoom() < 10.8) {
+          map.setZoom(10.8);
+        }
+      });
+    }
+  </script>
+
+  <script 
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap&loading=async&libraries=marker">
+  </script>
+</body>
+</html>
