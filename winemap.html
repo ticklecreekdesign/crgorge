@@ -27,7 +27,7 @@
   <script>
     function initMap() {
       const map = new google.maps.Map(document.getElementById("map"), {
-        mapId: "a590d6c102a9d70631fc7fae",
+        mapId: "a590d6c102a9d70631fc7fae",   // ⬅️ replace with your Map ID
         mapTypeId: "roadmap",
         tilt: 0,
         heading: 0
@@ -65,7 +65,7 @@
 
       wineries.forEach(winery => {
         const icon = document.createElement("img");
-        icon.src = "https://cdn-icons-png.flaticon.com/512/275/275296.png"; // wine glass icon
+        icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 wine glass emoji
         icon.classList.add("wine-icon");
 
         const marker = new google.maps.marker.AdvancedMarkerElement({
