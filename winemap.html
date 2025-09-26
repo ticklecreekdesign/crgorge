@@ -2,20 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Winery Map</title>
+  <title>Columbia River Gorge Wineries Map</title>
   <style>
-    html, body { height: 100%; margin: 0; padding: 0; }
-    #map { height: 100%; width: 100%; }
-    .gm-style-iw {
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
       font-family: 'Montserrat', sans-serif;
-      font-size: 14px;
-      line-height: 1.4;
     }
-    .gm-style-iw a {
-      color: #800020;
-      font-weight: 600;
-      text-decoration: none;
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+    .wine-icon {
+      width: 28px;
+      height: 28px;
     }
   </style>
 </head>
@@ -23,82 +25,87 @@
   <div id="map"></div>
 
   <script>
-    const wineries = [
-      {
-        name: "Cathedral Ridge Winery",
-        lat: 45.725, lng: -121.55,
-        website: "https://cathedralridgewinery.com",
-        address: "4200 Post Canyon Dr, Hood River, OR 97031"
-      },
-      {
-        name: "Wy’East Vineyards",
-        lat: 45.658, lng: -121.589,
-        website: "https://wyeastvineyards.com",
-        address: "3189 Hwy 35, Hood River, OR 97031"
-      }
-    ];
-
-    function devicePrefersAppleMaps() {
-      const ua = navigator.userAgent || navigator.vendor || "";
-      return /(iPad|iPhone|iPod|Macintosh)/.test(ua);
-    }
-
-    function getDirectionsUrl(address, lat, lng) {
-      const label = address || `${lat},${lng}`;
-      const encoded = encodeURIComponent(label);
-      return devicePrefersAppleMaps()
-        ? `https://maps.apple.com/?daddr=${encoded}`
-        : `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
-    }
-
     function initMap() {
       const map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 45.7, lng: -121.5 },
-        zoom: 10.8,
-        gestureHandling: "greedy",
-        scrollwheel: true
+        mapId: "a590d6c102a9d70631fc7fae",
+        mapTypeId: "roadmap",
+        zoom: 11,                // set default zoom so scroll works right away
+        tilt: 0,
+        heading: 0,
+        gestureHandling: "greedy", // enable scroll + trackpad zoom
+        scrollwheel: true,         // allow scroll wheel zoom
+        zoomControl: true,         // keep +/- buttons
+        fullscreenControl: true    // optional fullscreen button
       });
 
-      const infoWindow = new google.maps.InfoWindow();
+      const wineries = [
+        { name: "Analemma Wines", lat: 45.6841, lng: -121.4037, url: "https://analemmawines.com" },
+        { name: "AniChe Cellars", lat: 45.7283, lng: -121.5349, url: "https://anichecellars.com" },
+        { name: "COR Cellars", lat: 45.6889, lng: -121.3033, url: "https://www.corcellars.com" },
+        { name: "Cathedral Ridge Winery", lat: 45.7156, lng: -121.5450, url: "https://cathedralridgewinery.com" },
+        { name: "Estelbrook Farms & Vineyard", lat: 45.7259, lng: -121.4840, url: "https://www.estelbrook.com" },
+        { name: "Hawkins Cellars", lat: 45.7290, lng: -121.5358, url: "https://hawkinscellars.com" },
+        { name: "Hiyu Wine Farm", lat: 45.6195, lng: -121.5242, url: "https://hiyuwinefarm.com" },
+        { name: "Hood Crest Winery & Distillers", lat: 45.6764, lng: -121.5120, url: "https://hoodcrestwinery.com" },
+        { name: "Hood River Vineyards & Winery", lat: 45.6933, lng: -121.5311, url: "https://hoodrivervineyardsandwinery.com" },
+        { name: "Jacob Williams Winery", lat: 45.6791, lng: -121.0108, url: "" },
+        { name: "Le Doubblé Troubblé Wine Co.", lat: 45.7277, lng: -121.4855, url: "" },
+        { name: "Loop de Loop Wines", lat: 45.7282, lng: -121.5257, url: "" },
+        { name: "Marchesi Vineyards", lat: 45.6934, lng: -121.5370, url: "https://www.marchesivineyards.com" },
+        { name: "Maryhill Winery (Goldendale)", lat: 45.7081, lng: -120.8158, url: "https://maryhillwinery.com" },
+        { name: "Memaloose Wines", lat: 45.6933, lng: -121.2955, url: "" },
+        { name: "Phelps Creek Vineyards", lat: 45.7061, lng: -121.5627, url: "https://phelpscreekvineyards.com" },
+        { name: "Savage Grace Wines", lat: 45.7252, lng: -121.5328, url: "https://savagegracewines.com" },
+        { name: "South Hill Vineyards & Winery", lat: 45.7291, lng: -121.5230, url: "https://southhillvineyards.com" },
+        { name: "Stave & Stone Winery", lat: 45.7089, lng: -121.5214, url: "https://staveandstone.com" },
+        { name: "Syncline Winery", lat: 45.6958, lng: -121.2958, url: "https://synclinewine.com" },
+        { name: "Tetrahedron Wines", lat: 45.6892, lng: -121.2988, url: "https://www.tetrahedronwines.com" },
+        { name: "The Pines 1852", lat: 45.7080, lng: -121.5120, url: "https://www.thepinesvineyard.com" },
+        { name: "Viento Wines", lat: 45.6820, lng: -121.5200, url: "https://vientowines.com" },
+        { name: "Waving Tree Winery", lat: 45.7050, lng: -120.8142, url: "https://wavingtreewine.com" },
+        { name: "Wy’East Vineyards", lat: 45.6008, lng: -121.6004, url: "https://wyeastvineyards.com" },
+      ];
+
       const bounds = new google.maps.LatLngBounds();
 
-      wineries.forEach((w) => {
-        const marker = new google.maps.Marker({
-          position: { lat: w.lat, lng: w.lng },
+      wineries.forEach(winery => {
+        const icon = document.createElement("img");
+        icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 SVG wine glass
+        icon.classList.add("wine-icon");
+
+        const marker = new google.maps.marker.AdvancedMarkerElement({
           map,
-          title: w.name,
-          label: { text: "🍷", fontSize: "20px" } // emoji marker
+          position: { lat: winery.lat, lng: winery.lng },
+          title: winery.name,
+          content: icon,
         });
 
-        bounds.extend(marker.getPosition());
+        const infoContent = winery.url
+          ? `<strong><a href="${winery.url}" target="_blank">${winery.name}</a></strong>`
+          : `<strong>${winery.name}</strong>`;
+
+        const infoWindow = new google.maps.InfoWindow({ content: infoContent });
 
         marker.addListener("click", () => {
-          const nameHtml = w.website
-            ? `<a href="${w.website}" target="_blank">${w.name}</a>`
-            : w.name;
-
-          const directionsUrl = getDirectionsUrl(w.address, w.lat, w.lng);
-
-          infoWindow.setContent(`
-            <div>
-              <strong>${nameHtml}</strong><br>
-              <a href="${directionsUrl}" target="_blank">${w.address}</a>
-            </div>
-          `);
-
           infoWindow.open(map, marker);
         });
+
+        bounds.extend(marker.position);
       });
 
       map.fitBounds(bounds);
-      google.maps.event.addListenerOnce(map, "bounds_changed", () => {
-        if (map.getZoom() < 10.8) map.setZoom(10.8);
+
+      // Keep Gorge zoomed in but not too far
+      google.maps.event.addListenerOnce(map, "idle", function() {
+        if (map.getZoom() < 10.8) {
+          map.setZoom(10.8);
+        }
       });
     }
-
-    window.initMap = initMap;
   </script>
 
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap&v=weekly&loading=async" async></script>
+  <script 
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap&loading=async&libraries=marker">
+  </script>
 </body>
 </html>
