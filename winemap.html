@@ -30,7 +30,11 @@
         mapId: "a590d6c102a9d70631fc7fae",   // ⬅️ replace with your Map ID
         mapTypeId: "roadmap",
         tilt: 0,
-        heading: 0
+        heading: 0,
+        gestureHandling: "greedy", // enable mouse + trackpad zoom
+        scrollwheel: true,         // allow classic scroll wheel zoom
+        fullscreenControl: true,   // optional: keep fullscreen button
+        zoomControl: true          // keep zoom +/- buttons
       });
 
       const wineries = [
@@ -65,7 +69,7 @@
 
       wineries.forEach(winery => {
         const icon = document.createElement("img");
-        icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 wine glass emoji
+        icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 SVG wine glass
         icon.classList.add("wine-icon");
 
         const marker = new google.maps.marker.AdvancedMarkerElement({
