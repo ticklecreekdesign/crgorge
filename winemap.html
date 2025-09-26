@@ -7,13 +7,22 @@
   <style>
     html, body { height: 100%; margin: 0; padding: 0; }
     #map { height: 100%; width: 100%; }
+    .gm-style-iw {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .gm-style-iw a {
+      color: #800020;
+      font-weight: 600;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
   <script>
-    // Example wineries
     const wineries = [
       {
         name: "Cathedral Ridge Winery",
@@ -54,20 +63,14 @@
       const bounds = new google.maps.LatLngBounds();
 
       wineries.forEach((w) => {
-        // 🍷 Emoji marker
-        const markerDiv = document.createElement("div");
-        markerDiv.textContent = "🍷";
-        markerDiv.style.fontSize = "24px";
-        markerDiv.style.lineHeight = "24px";
-
-        const marker = new google.maps.marker.AdvancedMarkerElement({
-          map,
+        const marker = new google.maps.Marker({
           position: { lat: w.lat, lng: w.lng },
-          content: markerDiv,
-          title: w.name
+          map,
+          title: w.name,
+          label: { text: "🍷", fontSize: "20px" } // emoji marker
         });
 
-        bounds.extend(marker.position);
+        bounds.extend(marker.getPosition());
 
         marker.addListener("click", () => {
           const nameHtml = w.website
@@ -77,13 +80,13 @@
           const directionsUrl = getDirectionsUrl(w.address, w.lat, w.lng);
 
           infoWindow.setContent(`
-            <div style="font-family:Montserrat,sans-serif;line-height:1.4">
+            <div>
               <strong>${nameHtml}</strong><br>
               <a href="${directionsUrl}" target="_blank">${w.address}</a>
             </div>
           `);
 
-          infoWindow.open({ anchor: marker, map, shouldFocus: false });
+          infoWindow.open(map, marker);
         });
       });
 
@@ -96,7 +99,6 @@
     window.initMap = initMap;
   </script>
 
-  <!-- Load Maps JS API with marker library -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&libraries=marker&callback=initMap&v=weekly&loading=async" async></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap&v=weekly&loading=async" async></script>
 </body>
 </html>
