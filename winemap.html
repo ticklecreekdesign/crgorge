@@ -3,34 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Columbia River Gorge Wineries Map</title>
+  <title>Winery Map</title>
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    #map {
-      height: 100%;
-      width: 100%;
-    }
-    .gm-style-iw {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-    .gm-style-iw a {
-      color: #800020;
-      font-weight: 600;
-      text-decoration: none;
-    }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    #map { height: 100%; width: 100%; }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
   <script>
-    // Example winery dataset
+    // Example wineries
     const wineries = [
       {
         name: "Cathedral Ridge Winery",
@@ -43,24 +26,16 @@
         lat: 45.658, lng: -121.589,
         website: "https://wyeastvineyards.com",
         address: "3189 Hwy 35, Hood River, OR 97031"
-      },
-      {
-        name: "Marchesi Vineyards",
-        lat: 45.693, lng: -121.566,
-        website: "https://marchesivineyards.com",
-        address: "3955 Belmont Dr, Hood River, OR 97031"
       }
-      // ➕ Add more wineries here
     ];
 
-    // Device detection
     function devicePrefersAppleMaps() {
       const ua = navigator.userAgent || navigator.vendor || "";
       return /(iPad|iPhone|iPod|Macintosh)/.test(ua);
     }
 
     function getDirectionsUrl(address, lat, lng) {
-      const label = address && address.trim() ? address : `${lat},${lng}`;
+      const label = address || `${lat},${lng}`;
       const encoded = encodeURIComponent(label);
       return devicePrefersAppleMaps()
         ? `https://maps.apple.com/?daddr=${encoded}`
@@ -72,24 +47,23 @@
         center: { lat: 45.7, lng: -121.5 },
         zoom: 10.8,
         gestureHandling: "greedy",
-        scrollwheel: true,
-        zoomControl: true,
-        fullscreenControl: false,
-        mapTypeControl: false
+        scrollwheel: true
       });
 
       const infoWindow = new google.maps.InfoWindow();
       const bounds = new google.maps.LatLngBounds();
 
       wineries.forEach((w) => {
-        const markerEl = document.createElement("div");
-        markerEl.style.fontSize = "24px";
-        markerEl.textContent = "🍷";
+        // 🍷 Emoji marker
+        const markerDiv = document.createElement("div");
+        markerDiv.textContent = "🍷";
+        markerDiv.style.fontSize = "24px";
+        markerDiv.style.lineHeight = "24px";
 
         const marker = new google.maps.marker.AdvancedMarkerElement({
           map,
           position: { lat: w.lat, lng: w.lng },
-          content: markerEl,
+          content: markerDiv,
           title: w.name
         });
 
@@ -113,7 +87,6 @@
         });
       });
 
-      // Fit to all wineries, but enforce min zoom
       map.fitBounds(bounds);
       google.maps.event.addListenerOnce(map, "bounds_changed", () => {
         if (map.getZoom() < 10.8) map.setZoom(10.8);
@@ -123,7 +96,7 @@
     window.initMap = initMap;
   </script>
 
-  <!-- Load Maps JS API (no Map ID for now) -->
+  <!-- Load Maps JS API with marker library -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&libraries=marker&callback=initMap&v=weekly&loading=async" async></script>
 </body>
 </html>
