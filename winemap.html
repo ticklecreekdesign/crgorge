@@ -41,7 +41,7 @@
     }
 
     function getDirectionsUrl(address, lat, lng) {
-      const label = address || `${lat},${lng}`;
+      const label = address && address.trim() ? address : `${lat},${lng}`;
       const encoded = encodeURIComponent(label);
       return devicePrefersAppleMaps()
         ? `https://maps.apple.com/?daddr=${encoded}`
@@ -59,37 +59,37 @@
       });
 
       const wineries = [
-        { 
-          name: "Analemma Wines", 
-          lat: 45.6841, lng: -121.4037, 
-          url: "https://analemmawines.com", 
-          address: "1120 State Rd, Mosier, OR 97040"
+        {
+          name: "Analemma Wines",
+          lat: 45.6841, lng: -121.4037,
+          url: "https://analemmawines.com",
+          address: "1120 State Road, Mosier, OR 97040"
         },
-        { 
-          name: "AniChe Cellars", 
-          lat: 45.7283, lng: -121.5349, 
-          url: "https://anichecellars.com", 
-          address: "71 Little Buck Creek Rd, Underwood, WA 98651"
+        {
+          name: "AniChe Cellars",
+          lat: 45.7283, lng: -121.5349,
+          url: "https://anichecellars.com",
+          address: "71 Little Buck Creek Road, Underwood, WA 98651"
         },
-        { 
-          name: "Cathedral Ridge Winery", 
-          lat: 45.7156, lng: -121.5450, 
-          url: "https://cathedralridgewinery.com", 
+        {
+          name: "Cathedral Ridge Winery",
+          lat: 45.7156, lng: -121.5450,
+          url: "https://cathedralridgewinery.com",
           address: "4200 Post Canyon Dr, Hood River, OR 97031"
         },
-        { 
-          name: "Marchesi Vineyards", 
-          lat: 45.6934, lng: -121.5370, 
-          url: "https://www.marchesivineyards.com", 
+        {
+          name: "Marchesi Vineyards",
+          lat: 45.6934, lng: -121.5370,
+          url: "https://www.marchesivineyards.com",
           address: "3955 Belmont Dr, Hood River, OR 97031"
         },
-        { 
-          name: "Wy’East Vineyards", 
-          lat: 45.6008, lng: -121.6004, 
-          url: "https://wyeastvineyards.com", 
+        {
+          name: "Wy’East Vineyards",
+          lat: 45.6008, lng: -121.6004,
+          url: "https://wyeastvineyards.com",
           address: "3189 Hwy 35, Hood River, OR 97031"
         }
-        // ➕ Add the rest with addresses
+        // ➕ add more wineries here
       ];
 
       const bounds = new google.maps.LatLngBounds();
@@ -97,35 +97,41 @@
 
       wineries.forEach(winery => {
         const icon = document.createElement("img");
-        icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 SVG
+        icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 wine glass SVG
         icon.classList.add("wine-icon");
 
-        const marker = new google.maps.marker.AdvancedMarkerElement({
+        const marker = new google.maps.Marker({
           map,
           position: { lat: winery.lat, lng: winery.lng },
           title: winery.name,
-          content: icon,
+          icon: {
+            url: icon.src,
+            scaledSize: new google.maps.Size(28, 28)
+          }
         });
 
-        const nameHtml = winery.url
-          ? `<a href="${winery.url}" target="_blank">${winery.name}</a>`
-          : winery.name;
-
-        const directionsUrl = getDirectionsUrl(winery.address, winery.lat, winery.lng);
-
-        const infoContent = `
-          <div>
-            <strong>${nameHtml}</strong><br>
-            <a href="${directionsUrl}" target="_blank">${winery.address}</a>
-          </div>
-        `;
-
         marker.addListener("click", () => {
-          infoWindow.setContent(infoContent);
+          const nameHtml = winery.url
+            ? `<a href="${winery.url}" target="_blank">${winery.name}</a>`
+            : winery.name;
+
+          const addressText = winery.address && winery.address.trim()
+            ? winery.address
+            : `${winery.lat.toFixed(5)}, ${winery.lng.toFixed(5)}`;
+
+          const directionsUrl = getDirectionsUrl(addressText, winery.lat, winery.lng);
+
+          infoWindow.setContent(`
+            <div>
+              <strong>${nameHtml}</strong><br>
+              <a href="${directionsUrl}" target="_blank">${addressText}</a>
+            </div>
+          `);
+
           infoWindow.open(map, marker);
         });
 
-        bounds.extend(marker.position);
+        bounds.extend(marker.getPosition());
       });
 
       map.fitBounds(bounds);
@@ -138,7 +144,7 @@
   </script>
 
   <script 
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap&loading=async&libraries=marker">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap&loading=async">
   </script>
 </body>
 </html>
