@@ -143,49 +143,102 @@
 
                 const bounds = new google.maps.LatLngBounds();
                 let openInfoWindow = null; // Track currently open info window
+                let markersCreated = 0; // Track how many markers are created
 
-                wineries.forEach(winery => {
-                    // Create wine glass icon
-                    const icon = document.createElement("img");
-                    icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 SVG wine glass
-                    icon.classList.add("wine-icon");
-                    
-                    // Create marker
-                    const marker = new google.maps.marker.AdvancedMarkerElement({
-                        map,
-                        position: { lat: winery.lat, lng: winery.lng },
-                        title: winery.name,
-                        content: icon,
-                    });
+                wineries.forEach((winery, index) => {
+                    try {
+                        // Try to use AdvancedMarkerElement if available
+                        if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+                            // Create wine glass icon
+                            const icon = document.createElement("img");
+                            icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 SVG wine glass
+                            icon.classList.add("wine-icon");
+                            
+                            // Create advanced marker
+                            const marker = new google.maps.marker.AdvancedMarkerElement({
+                                map,
+                                position: { lat: winery.lat, lng: winery.lng },
+                                title: winery.name,
+                                content: icon,
+                            });
 
-                    // Create info window content with proper template literals
-                    const infoContent = winery.url ? 
-                        `<div class="info-window">
-                            <strong><a href="${winery.url}" target="_blank" rel="noopener">${winery.name}</a></strong>
-                        </div>` : 
-                        `<div class="info-window">
-                            <strong>${winery.name}</strong>
-                        </div>`;
-                    
-                    // Create info window
-                    const infoWindow = new google.maps.InfoWindow({
-                        content: infoContent,
-                        pixelOffset: new google.maps.Size(0, -10)
-                    });
+                            // Create info window content with proper template literals
+                            const infoContent = winery.url ? 
+                                `<div class="info-window">
+                                    <strong><a href="${winery.url}" target="_blank" rel="noopener">${winery.name}</a></strong>
+                                </div>` : 
+                                `<div class="info-window">
+                                    <strong>${winery.name}</strong>
+                                </div>`;
+                            
+                            // Create info window
+                            const infoWindow = new google.maps.InfoWindow({
+                                content: infoContent,
+                                pixelOffset: new google.maps.Size(0, -10)
+                            });
 
-                    // Add click listener
-                    marker.addListener("click", () => {
-                        // Close any open info window
-                        if (openInfoWindow) {
-                            openInfoWindow.close();
+                            // Add click listener
+                            marker.addListener("click", () => {
+                                // Close any open info window
+                                if (openInfoWindow) {
+                                    openInfoWindow.close();
+                                }
+                                infoWindow.open(map, marker);
+                                openInfoWindow = infoWindow;
+                            });
+
+                            // Extend bounds to include this marker
+                            bounds.extend(marker.position);
+                            markersCreated++;
+                        } else {
+                            // Fallback to regular markers if AdvancedMarkerElement is not available
+                            const marker = new google.maps.Marker({
+                                map,
+                                position: { lat: winery.lat, lng: winery.lng },
+                                title: winery.name,
+                                icon: {
+                                    url: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg",
+                                    scaledSize: new google.maps.Size(28, 28),
+                                    origin: new google.maps.Point(0, 0),
+                                    anchor: new google.maps.Point(14, 14)
+                                },
+                                animation: google.maps.Animation.DROP
+                            });
+
+                            // Create info window content
+                            const infoContent = winery.url ? 
+                                `<div class="info-window">
+                                    <strong><a href="${winery.url}" target="_blank" rel="noopener">${winery.name}</a></strong>
+                                </div>` : 
+                                `<div class="info-window">
+                                    <strong>${winery.name}</strong>
+                                </div>`;
+                            
+                            // Create info window
+                            const infoWindow = new google.maps.InfoWindow({
+                                content: infoContent
+                            });
+
+                            // Add click listener
+                            marker.addListener("click", () => {
+                                // Close any open info window
+                                if (openInfoWindow) {
+                                    openInfoWindow.close();
+                                }
+                                infoWindow.open(map, marker);
+                                openInfoWindow = infoWindow;
+                            });
+
+                            // Extend bounds to include this marker
+                            bounds.extend(marker.position);
+                            markersCreated++;
                         }
-                        infoWindow.open(map, marker);
-                        openInfoWindow = infoWindow;
-                    });
-
-                    // Extend bounds to include this marker
-                    bounds.extend(marker.position);
+                    } catch (markerError) {
+                        console.error(`Failed to create marker for ${winery.name}:`, markerError);
+                    }
                 });
+
+                console.log(`Created ${markersCreated} of ${wineries.length} markers`);
 
                 // Fit map to show all markers
                 map.fitBounds(bounds);
