@@ -10,48 +10,26 @@
     .gm-style-iw { font-family: 'Montserrat', sans-serif; font-size: 14px; line-height: 1.4; }
     .gm-style-iw a { color: #800020; font-weight: 600; text-decoration: none; }
   </style>
-
-  <!-- Google Maps JS API: include marker library + callback -->
-  <script
-    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&map_ids=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&libraries=marker&callback=initMap"
-    async defer></script>
+</head>
+<body>
+  <div id="map"></div>
 
   <script>
-    // --- Example dataset (addresses OPTIONAL) ---
+    // Example dataset (addresses optional)
     const wineries = [
       {
         name: "Cathedral Ridge Winery",
         lat: 45.725, lng: -121.55,
         website: "https://cathedralridgewinery.com",
-        // address: "4200 Post Canyon Dr, Hood River, OR 97031" // optional
+        address: "4200 Post Canyon Dr, Hood River, OR 97031"
       },
       {
         name: "Wy’East Vineyards",
         lat: 45.658, lng: -121.589,
         website: "https://wyeastvineyards.com",
-        // address: "3189 Hwy 35, Hood River, OR 97031" // optional
-      },
-      {
-        name: "Marchesi Vineyards",
-        lat: 45.693, lng: -121.566,
-        website: "https://marchesivineyards.com",
-        address: "3955 Belmont Dr, Hood River, OR 97031"
+        address: "3189 Hwy 35, Hood River, OR 97031"
       }
-      // ➕ Add more wineries
     ];
-
-    // --- Helpers ---
-    const geocodeCache = new Map(); // key: "lat,lng" -> formatted address
-    let geocoder;
-
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
 
     function devicePrefersAppleMaps() {
       const ua = navigator.userAgent || navigator.vendor || "";
@@ -61,120 +39,65 @@
     function getDirectionsUrl(address, lat, lng) {
       const label = address && address.trim() ? address : `${lat},${lng}`;
       const encoded = encodeURIComponent(label);
-      if (devicePrefersAppleMaps()) {
-        return `https://maps.apple.com/?daddr=${encoded}`;
-      } else {
-        return `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
-      }
+      return devicePrefersAppleMaps()
+        ? `https://maps.apple.com/?daddr=${encoded}`
+        : `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
     }
 
-    function infoHtml({ name, website, address, lat, lng }) {
-      const safeName = escapeHtml(name);
-      const nameHtml = website
-        ? `<a href="${website}" target="_blank" rel="noopener">${safeName}</a>`
-        : safeName;
-
-      const directionsUrl = getDirectionsUrl(address, lat, lng);
-      const addressLabel = address && address.trim()
-        ? escapeHtml(address)
-        : `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-
-      return `
-        <div style="font-family:Montserrat,sans-serif;line-height:1.4">
-          <strong>${nameHtml}</strong><br>
-          <a href="${directionsUrl}" target="_blank" rel="noopener">${addressLabel}</a>
-        </div>
-      `;
-    }
-
-    async function reverseGeocode(lat, lng) {
-      const key = `${lat},${lng}`;
-      if (geocodeCache.has(key)) return geocodeCache.get(key);
-
-      if (!geocoder) geocoder = new google.maps.Geocoder();
-      try {
-        const { results } = await geocoder.geocode({ location: { lat, lng } });
-        const addr = results && results[0] ? results[0].formatted_address : "";
-        geocodeCache.set(key, addr);
-        return addr;
-      } catch {
-        return ""; // fallback to coords label
-      }
-    }
-
-    // --- Map init ---
     function initMap() {
       const map = new google.maps.Map(document.getElementById("map"), {
-        mapId: "a590d6c102a9d70631fc7fae",
+        mapId: "a590d6c102a9d70631fc7fae",   // Replace with your Map ID
         center: { lat: 45.7, lng: -121.5 },
         zoom: 10.8,
         gestureHandling: "greedy",
-        scrollwheel: true,
-        zoomControl: true,
-        fullscreenControl: false,
-        mapTypeControl: false
+        scrollwheel: true
       });
 
       const infoWindow = new google.maps.InfoWindow();
       const bounds = new google.maps.LatLngBounds();
 
       wineries.forEach((w) => {
-        const position = { lat: w.lat, lng: w.lng };
-
-        // 🍷 Emoji marker via AdvancedMarkerElement
         const el = document.createElement("div");
         el.style.fontSize = "24px";
-        el.style.lineHeight = "24px";
         el.textContent = "🍷";
 
         const marker = new google.maps.marker.AdvancedMarkerElement({
           map,
-          position,
+          position: { lat: w.lat, lng: w.lng },
           content: el,
           title: w.name
         });
 
-        bounds.extend(position);
+        bounds.extend(marker.position);
 
-        marker.addListener("click", async () => {
-          // Initial content: shows coords or provided address immediately
-          infoWindow.setContent(infoHtml({
-            name: w.name,
-            website: w.website || "",
-            address: w.address || "",
-            lat: w.lat, lng: w.lng
-          }));
+        marker.addListener("click", () => {
+          const nameHtml = w.website
+            ? `<a href="${w.website}" target="_blank">${w.name}</a>`
+            : w.name;
+
+          const directionsUrl = getDirectionsUrl(w.address, w.lat, w.lng);
+
+          infoWindow.setContent(`
+            <div style="font-family:Montserrat,sans-serif;line-height:1.4">
+              <strong>${nameHtml}</strong><br>
+              <a href="${directionsUrl}" target="_blank">${w.address}</a>
+            </div>
+          `);
+
           infoWindow.open({ anchor: marker, map, shouldFocus: false });
-
-          // If no address in data, fetch via reverse geocoding, then update window
-          if (!w.address || !w.address.trim()) {
-            const addr = await reverseGeocode(w.lat, w.lng);
-            if (addr) {
-              w.address = addr; // cache on object
-              // Update the same InfoWindow (only if it's still anchored here)
-              infoWindow.setContent(infoHtml({
-                name: w.name,
-                website: w.website || "",
-                address: w.address,
-                lat: w.lat, lng: w.lng
-              }));
-            }
-          }
         });
       });
 
-      // Fit to all wineries, but enforce minimum zoom 10.8
       map.fitBounds(bounds);
       google.maps.event.addListenerOnce(map, "bounds_changed", () => {
         if (map.getZoom() < 10.8) map.setZoom(10.8);
       });
     }
 
-    // Expose initMap globally for the API callback
     window.initMap = initMap;
   </script>
-</head>
-<body>
-  <div id="map"></div>
+
+  <!-- Important: load Maps API LAST, with marker library + callback -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&map_ids=YOUR_MAP_ID&libraries=marker&callback=initMap" async defer></script>
 </body>
 </html>
