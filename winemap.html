@@ -3,101 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Columbia River Gorge Wineries Map</title>
+  <title>Map Test</title>
   <style>
     html, body { height: 100%; margin: 0; padding: 0; }
-    #map { width: 100%; height: 100%; }
-    .gm-style-iw { font-family: 'Montserrat', sans-serif; font-size: 14px; line-height: 1.4; }
-    .gm-style-iw a { color: #800020; font-weight: 600; text-decoration: none; }
+    #map { height: 100%; width: 100%; }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
   <script>
-    // Example dataset (addresses optional)
-    const wineries = [
-      {
-        name: "Cathedral Ridge Winery",
-        lat: 45.725, lng: -121.55,
-        website: "https://cathedralridgewinery.com",
-        address: "4200 Post Canyon Dr, Hood River, OR 97031"
-      },
-      {
-        name: "Wy’East Vineyards",
-        lat: 45.658, lng: -121.589,
-        website: "https://wyeastvineyards.com",
-        address: "3189 Hwy 35, Hood River, OR 97031"
-      }
-    ];
-
-    function devicePrefersAppleMaps() {
-      const ua = navigator.userAgent || navigator.vendor || "";
-      return /(iPad|iPhone|iPod|Macintosh)/.test(ua);
-    }
-
-    function getDirectionsUrl(address, lat, lng) {
-      const label = address && address.trim() ? address : `${lat},${lng}`;
-      const encoded = encodeURIComponent(label);
-      return devicePrefersAppleMaps()
-        ? `https://maps.apple.com/?daddr=${encoded}`
-        : `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
-    }
-
     function initMap() {
       const map = new google.maps.Map(document.getElementById("map"), {
-        mapId: "a590d6c102a9d70631fc7fae",   // Replace with your Map ID
         center: { lat: 45.7, lng: -121.5 },
         zoom: 10.8,
-        gestureHandling: "greedy",
-        scrollwheel: true
-      });
-
-      const infoWindow = new google.maps.InfoWindow();
-      const bounds = new google.maps.LatLngBounds();
-
-      wineries.forEach((w) => {
-        const el = document.createElement("div");
-        el.style.fontSize = "24px";
-        el.textContent = "🍷";
-
-        const marker = new google.maps.marker.AdvancedMarkerElement({
-          map,
-          position: { lat: w.lat, lng: w.lng },
-          content: el,
-          title: w.name
-        });
-
-        bounds.extend(marker.position);
-
-        marker.addListener("click", () => {
-          const nameHtml = w.website
-            ? `<a href="${w.website}" target="_blank">${w.name}</a>`
-            : w.name;
-
-          const directionsUrl = getDirectionsUrl(w.address, w.lat, w.lng);
-
-          infoWindow.setContent(`
-            <div style="font-family:Montserrat,sans-serif;line-height:1.4">
-              <strong>${nameHtml}</strong><br>
-              <a href="${directionsUrl}" target="_blank">${w.address}</a>
-            </div>
-          `);
-
-          infoWindow.open({ anchor: marker, map, shouldFocus: false });
-        });
-      });
-
-      map.fitBounds(bounds);
-      google.maps.event.addListenerOnce(map, "bounds_changed", () => {
-        if (map.getZoom() < 10.8) map.setZoom(10.8);
+        mapId: "a590d6c102a9d70631fc7fae" // Replace with your real Map ID
       });
     }
-
     window.initMap = initMap;
   </script>
 
-  <!-- Important: load Maps API LAST, with marker library + callback -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&map_ids=YOUR_MAP_ID&libraries=marker&callback=initMap" async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap" async defer></script>
 </body>
 </html>
