@@ -52,24 +52,24 @@
         }
         
         .info-window {
-            padding: 8px;
+            padding: 4px 6px;
             font-size: 14px;
-            line-height: 1.5;
-            min-width: 200px;
+            line-height: 1.3;
+            min-width: 180px;
         }
         
         .info-window strong {
-            font-size: 15px;
+            font-size: 14px;
             color: #333;
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
         }
         
         .info-window a {
             color: #0066cc;
             text-decoration: none;
             display: block;
-            padding: 2px 0;
+            padding: 1px 0;
         }
         
         .info-window a:hover {
@@ -177,17 +177,17 @@
                             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winery.address || winery.name)}`;
                             
                             let infoContent = `<div class="info-window">
-                                <strong style="display: block; margin-bottom: 4px;">${winery.name}</strong>`;
+                                <div style="font-weight: 600; font-size: 14px; color: #333; margin-bottom: 2px;">${winery.name}</div>`;
                             
                             if (winery.address) {
-                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px; display: block;">
+                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 12px; display: block; line-height: 1.3;">
                                     📍 ${winery.address}
                                 </a>`;
                             }
                             
                             if (winery.url) {
-                                infoContent += `<div style="margin-top: 8px;">
-                                    <a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px;">
+                                infoContent += `<div style="margin-top: 4px;">
+                                    <a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 12px; line-height: 1.3;">
                                         🌐 Visit Website
                                     </a>
                                 </div>`;
@@ -233,17 +233,17 @@
                             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winery.address || winery.name)}`;
                             
                             let infoContent = `<div class="info-window">
-                                <strong style="display: block; margin-bottom: 4px;">${winery.name}</strong>`;
+                                <div style="font-weight: 600; font-size: 14px; color: #333; margin-bottom: 2px;">${winery.name}</div>`;
                             
                             if (winery.address) {
-                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px; display: block;">
+                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 12px; display: block; line-height: 1.3;">
                                     📍 ${winery.address}
                                 </a>`;
                             }
                             
                             if (winery.url) {
-                                infoContent += `<div style="margin-top: 8px;">
-                                    <a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px;">
+                                infoContent += `<div style="margin-top: 4px;">
+                                    <a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 12px; line-height: 1.3;">
                                         🌐 Visit Website
                                     </a>
                                 </div>`;
