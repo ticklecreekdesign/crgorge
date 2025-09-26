@@ -177,18 +177,20 @@
                             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winery.address || winery.name)}`;
                             
                             let infoContent = `<div class="info-window">
-                                <strong>${winery.name}</strong><br>`;
+                                <strong style="display: block; margin-bottom: 4px;">${winery.name}</strong>`;
                             
                             if (winery.address) {
-                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px;">
+                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px; display: block;">
                                     📍 ${winery.address}
-                                </a><br>`;
+                                </a>`;
                             }
                             
                             if (winery.url) {
-                                infoContent += `<a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px;">
-                                    🌐 Visit Website
-                                </a>`;
+                                infoContent += `<div style="margin-top: 8px;">
+                                    <a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px;">
+                                        🌐 Visit Website
+                                    </a>
+                                </div>`;
                             }
                             
                             infoContent += `</div>`;
@@ -231,18 +233,20 @@
                             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winery.address || winery.name)}`;
                             
                             let infoContent = `<div class="info-window">
-                                <strong>${winery.name}</strong><br>`;
+                                <strong style="display: block; margin-bottom: 4px;">${winery.name}</strong>`;
                             
                             if (winery.address) {
-                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px;">
+                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px; display: block;">
                                     📍 ${winery.address}
-                                </a><br>`;
+                                </a>`;
                             }
                             
                             if (winery.url) {
-                                infoContent += `<a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px;">
-                                    🌐 Visit Website
-                                </a>`;
+                                infoContent += `<div style="margin-top: 8px;">
+                                    <a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 13px;">
+                                        🌐 Visit Website
+                                    </a>
+                                </div>`;
                             }
                             
                             infoContent += `</div>`;
