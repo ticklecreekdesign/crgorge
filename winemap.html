@@ -1,150 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Columbia River Gorge Wineries Map</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      font-family: 'Montserrat', sans-serif;
-    }
-    #map {
-      height: 100%;
-      width: 100%;
-    }
-    .wine-icon {
-      width: 28px;
-      height: 28px;
-    }
-    .gm-style-iw {
-      font-family: 'Montserrat', sans-serif;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-    .gm-style-iw a {
-      color: #800020;
-      font-weight: 600;
-      text-decoration: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <title>Columbia River Gorge Wineries Map</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+        }
+        
+        .loading-message, .error-message {
+            text-align: center;
+            padding: 20px;
+            color: #696969;
+            font-size: 16px;
+        }
+        
+        .error-message {
+            color: #d32f2f;
+        }
+        
+        .wine-icon {
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .wine-icon:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Custom info window styling */
+        .gm-style-iw {
+            font-family: 'Montserrat', sans-serif !important;
+        }
+        
+        .info-window {
+            padding: 5px;
+            font-size: 14px;
+        }
+        
+        .info-window a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        
+        .info-window a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Optional: Custom map controls positioning for mobile */
+        @media (max-width: 768px) {
+            .gm-bundled-control {
+                margin: 10px !important;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="map"></div>
+    <div id="map">
+        <div class="loading-message">Loading map...</div>
+    </div>
 
-  <script>
-    function devicePrefersAppleMaps() {
-      const ua = navigator.userAgent || navigator.vendor || "";
-      return /(iPad|iPhone|iPod|Macintosh)/.test(ua);
-    }
+    <script>
+        function initMap() {
+            try {
+                // Clear loading message
+                document.getElementById('map').innerHTML = '';
+                
+                // Initialize map with custom styling
+                const map = new google.maps.Map(document.getElementById("map"), {
+                    mapId: "a590d6c102a9d70631fc7fae", // ⬅️ Replace with your Map ID
+                    mapTypeId: "roadmap",
+                    zoom: 11,
+                    tilt: 0,
+                    heading: 0,
+                    gestureHandling: "greedy", // Enable scroll + trackpad zoom
+                    scrollwheel: true, // Allow scroll wheel zoom
+                    zoomControl: true, // Keep +/- buttons
+                    fullscreenControl: true, // Fullscreen button
+                    mapTypeControl: false, // Hide map/satellite toggle for cleaner look
+                    streetViewControl: false, // Hide street view pegman
+                    // Optional: Custom map styling for better aesthetics
+                    styles: [
+                        {
+                            featureType: "poi",
+                            elementType: "labels",
+                            stylers: [{ visibility: "off" }]
+                        },
+                        {
+                            featureType: "transit",
+                            elementType: "labels",
+                            stylers: [{ visibility: "off" }]
+                        }
+                    ]
+                });
 
-    function getDirectionsUrl(address, lat, lng) {
-      const label = address && address.trim() ? address : `${lat},${lng}`;
-      const encoded = encodeURIComponent(label);
-      return devicePrefersAppleMaps()
-        ? `https://maps.apple.com/?daddr=${encoded}`
-        : `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
-    }
+                // Winery data
+                const wineries = [
+                    { name: "Analemma Wines", lat: 45.6841, lng: -121.4037, url: "https://analemmawines.com" },
+                    { name: "AniChe Cellars", lat: 45.7283, lng: -121.5349, url: "https://anichecellars.com" },
+                    { name: "COR Cellars", lat: 45.6889, lng: -121.3033, url: "https://www.corcellars.com" },
+                    { name: "Cathedral Ridge Winery", lat: 45.7156, lng: -121.5450, url: "https://cathedralridgewinery.com" },
+                    { name: "Estelbrook Farms & Vineyard", lat: 45.7259, lng: -121.4840, url: "https://www.estelbrook.com" },
+                    { name: "Hawkins Cellars", lat: 45.7290, lng: -121.5358, url: "https://hawkinscellars.com" },
+                    { name: "Hiyu Wine Farm", lat: 45.6195, lng: -121.5242, url: "https://hiyuwinefarm.com" },
+                    { name: "Hood Crest Winery & Distillers", lat: 45.6764, lng: -121.5120, url: "https://hoodcrestwinery.com" },
+                    { name: "Hood River Vineyards & Winery", lat: 45.6933, lng: -121.5311, url: "https://hoodrivervineyardsandwinery.com" },
+                    { name: "Jacob Williams Winery", lat: 45.6791, lng: -121.0108, url: "" },
+                    { name: "Le Doubblé Troubblé Wine Co.", lat: 45.7277, lng: -121.4855, url: "" },
+                    { name: "Loop de Loop Wines", lat: 45.7282, lng: -121.5257, url: "" },
+                    { name: "Marchesi Vineyards", lat: 45.6934, lng: -121.5370, url: "https://www.marchesivineyards.com" },
+                    { name: "Maryhill Winery (Goldendale)", lat: 45.7081, lng: -120.8158, url: "https://maryhillwinery.com" },
+                    { name: "Memaloose Wines", lat: 45.6933, lng: -121.2955, url: "" },
+                    { name: "Phelps Creek Vineyards", lat: 45.7061, lng: -121.5627, url: "https://phelpscreekvineyards.com" },
+                    { name: "Savage Grace Wines", lat: 45.7252, lng: -121.5328, url: "https://savagegracewines.com" },
+                    { name: "South Hill Vineyards & Winery", lat: 45.7291, lng: -121.5230, url: "https://southhillvineyards.com" },
+                    { name: "Stave & Stone Winery", lat: 45.7089, lng: -121.5214, url: "https://staveandstone.com" },
+                    { name: "Syncline Winery", lat: 45.6958, lng: -121.2958, url: "https://synclinewine.com" },
+                    { name: "Tetrahedron Wines", lat: 45.6892, lng: -121.2988, url: "https://www.tetrahedronwines.com" },
+                    { name: "The Pines 1852", lat: 45.7080, lng: -121.5120, url: "https://www.thepinesvineyard.com" },
+                    { name: "Viento Wines", lat: 45.6820, lng: -121.5200, url: "https://vientowines.com" },
+                    { name: "Waving Tree Winery", lat: 45.7050, lng: -120.8142, url: "https://wavingtreewine.com" },
+                    { name: "Wy'East Vineyards", lat: 45.6008, lng: -121.6004, url: "https://wyeastvineyards.com" },
+                ];
 
-    function initMap() {
-      const map = new google.maps.Map(document.getElementById("map"), {
-        mapTypeId: "roadmap",
-        zoom: 11,
-        gestureHandling: "greedy",
-        scrollwheel: true,
-        zoomControl: true,
-        fullscreenControl: true
-      });
+                const bounds = new google.maps.LatLngBounds();
+                let openInfoWindow = null; // Track currently open info window
 
-      const wineries = [
-        {
-          name: "Analemma Wines",
-          lat: 45.6841, lng: -121.4037,
-          url: "https://analemmawines.com",
-          address: "1120 State Road, Mosier, OR 97040"
-        },
-        {
-          name: "AniChe Cellars",
-          lat: 45.7283, lng: -121.5349,
-          url: "https://anichecellars.com",
-          address: "71 Little Buck Creek Road, Underwood, WA 98651"
-        },
-        {
-          name: "Cathedral Ridge Winery",
-          lat: 45.7156, lng: -121.5450,
-          url: "https://cathedralridgewinery.com",
-          address: "4200 Post Canyon Dr, Hood River, OR 97031"
-        },
-        {
-          name: "Marchesi Vineyards",
-          lat: 45.6934, lng: -121.5370,
-          url: "https://www.marchesivineyards.com",
-          address: "3955 Belmont Dr, Hood River, OR 97031"
-        },
-        {
-          name: "Wy’East Vineyards",
-          lat: 45.6008, lng: -121.6004,
-          url: "https://wyeastvineyards.com",
-          address: "3189 Hwy 35, Hood River, OR 97031"
+                wineries.forEach(winery => {
+                    // Create wine glass icon
+                    const icon = document.createElement("img");
+                    icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 SVG wine glass
+                    icon.classList.add("wine-icon");
+                    
+                    // Create marker
+                    const marker = new google.maps.marker.AdvancedMarkerElement({
+                        map,
+                        position: { lat: winery.lat, lng: winery.lng },
+                        title: winery.name,
+                        content: icon,
+                    });
+
+                    // Create info window content with proper template literals
+                    const infoContent = winery.url ? 
+                        `<div class="info-window">
+                            <strong><a href="${winery.url}" target="_blank" rel="noopener">${winery.name}</a></strong>
+                        </div>` : 
+                        `<div class="info-window">
+                            <strong>${winery.name}</strong>
+                        </div>`;
+                    
+                    // Create info window
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: infoContent,
+                        pixelOffset: new google.maps.Size(0, -10)
+                    });
+
+                    // Add click listener
+                    marker.addListener("click", () => {
+                        // Close any open info window
+                        if (openInfoWindow) {
+                            openInfoWindow.close();
+                        }
+                        infoWindow.open(map, marker);
+                        openInfoWindow = infoWindow;
+                    });
+
+                    // Extend bounds to include this marker
+                    bounds.extend(marker.position);
+                });
+
+                // Fit map to show all markers
+                map.fitBounds(bounds);
+
+                // Keep Gorge zoomed in but not too far
+                google.maps.event.addListenerOnce(map, "idle", function() {
+                    if (map.getZoom() < 10.8) {
+                        map.setZoom(10.8);
+                    }
+                    if (map.getZoom() > 13) {
+                        map.setZoom(13);
+                    }
+                });
+
+                // Optional: Add current location button for mobile users
+                if (navigator.geolocation) {
+                    const locationButton = document.createElement("button");
+                    locationButton.textContent = "📍 My Location";
+                    locationButton.style.cssText = `
+                        background: white;
+                        border: 2px solid #fff;
+                        border-radius: 3px;
+                        box-shadow: 0 2px 6px rgba(0,0,0,.3);
+                        color: rgb(25,25,25);
+                        cursor: pointer;
+                        font-family: 'Montserrat', sans-serif;
+                        font-size: 14px;
+                        margin: 10px;
+                        padding: 8px 12px;
+                        text-align: center;
+                    `;
+                    
+                    locationButton.addEventListener("click", () => {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const pos = {
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude,
+                                };
+                                map.setCenter(pos);
+                                map.setZoom(12);
+                            },
+                            () => {
+                                console.log("Location access denied");
+                            }
+                        );
+                    });
+                    
+                    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
+                }
+
+                // Close info windows when clicking on the map
+                map.addListener("click", () => {
+                    if (openInfoWindow) {
+                        openInfoWindow.close();
+                        openInfoWindow = null;
+                    }
+                });
+
+            } catch (error) {
+                console.error('Map initialization failed:', error);
+                document.getElementById('map').innerHTML = 
+                    '<div class="error-message">Map could not be loaded. Please check your connection and try again.</div>';
+            }
         }
-        // ➕ add more wineries here
-      ];
 
-      const bounds = new google.maps.LatLngBounds();
-      const infoWindow = new google.maps.InfoWindow();
-
-      wineries.forEach(winery => {
-        const icon = document.createElement("img");
-        icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 wine glass SVG
-        icon.classList.add("wine-icon");
-
-        const marker = new google.maps.Marker({
-          map,
-          position: { lat: winery.lat, lng: winery.lng },
-          title: winery.name,
-          icon: {
-            url: icon.src,
-            scaledSize: new google.maps.Size(28, 28)
-          }
-        });
-
-        marker.addListener("click", () => {
-          const nameHtml = winery.url
-            ? `<a href="${winery.url}" target="_blank">${winery.name}</a>`
-            : winery.name;
-
-          const addressText = winery.address && winery.address.trim()
-            ? winery.address
-            : `${winery.lat.toFixed(5)}, ${winery.lng.toFixed(5)}`;
-
-          const directionsUrl = getDirectionsUrl(addressText, winery.lat, winery.lng);
-
-          infoWindow.setContent(`
-            <div>
-              <strong>${nameHtml}</strong><br>
-              <a href="${directionsUrl}" target="_blank">${addressText}</a>
-            </div>
-          `);
-
-          infoWindow.open(map, marker);
-        });
-
-        bounds.extend(marker.getPosition());
-      });
-
-      map.fitBounds(bounds);
-      google.maps.event.addListenerOnce(map, "idle", function() {
-        if (map.getZoom() < 10.8) {
-          map.setZoom(10.8);
-        }
-      });
-    }
-  </script>
-
-  <script 
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap&loading=async">
-  </script>
+        // Error handler for script loading
+        window.gm_authFailure = function() {
+            document.getElementById('map').innerHTML = 
+                '<div class="error-message">Google Maps authentication failed. Please check API key configuration.</div>';
+        };
+    </script>
+    
+    <script 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap&loading=async&libraries=marker"
+        onerror="document.getElementById('map').innerHTML = '<div class=\'error-message\'>Failed to load Google Maps. Please try again later.</div>';">
+    </script>
 </body>
 </html>
