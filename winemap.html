@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Map Test</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Google Maps Test</title>
   <style>
-    html, body { height: 100%; margin: 0; padding: 0; }
-    #map { height: 100%; width: 100%; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      height: 100%;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -16,13 +23,13 @@
     function initMap() {
       const map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 45.7, lng: -121.5 },
-        zoom: 10.8,
-        mapId: "a590d6c102a9d70631fc7fae" // Replace with your real Map ID
+        zoom: 10.8
       });
     }
     window.initMap = initMap;
   </script>
 
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap" async defer></script>
+  <!-- Load Maps JS API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap&v=weekly&loading=async" async></script>
 </body>
 </html>
