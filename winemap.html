@@ -29,12 +29,13 @@
       const map = new google.maps.Map(document.getElementById("map"), {
         mapId: "a590d6c102a9d70631fc7fae",   // ⬅️ replace with your Map ID
         mapTypeId: "roadmap",
+        zoom: 11,                // set default zoom so scroll works right away
         tilt: 0,
         heading: 0,
-        gestureHandling: "greedy", // enable mouse + trackpad zoom
-        scrollwheel: true,         // allow classic scroll wheel zoom
-        fullscreenControl: true,   // optional: keep fullscreen button
-        zoomControl: true          // keep zoom +/- buttons
+        gestureHandling: "greedy", // enable scroll + trackpad zoom
+        scrollwheel: true,         // allow scroll wheel zoom
+        zoomControl: true,         // keep +/- buttons
+        fullscreenControl: true    // optional fullscreen button
       });
 
       const wineries = [
