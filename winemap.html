@@ -176,18 +176,18 @@
                             // Create info window content with address and website
                             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winery.address || winery.name)}`;
                             
-                            let infoContent = `<div class="info-window">
-                                <div style="font-weight: 600; font-size: 14px; color: #333; margin-bottom: 2px;">${winery.name}</div>`;
+                            let infoContent = `<div class="info-window" style="padding: 2px 4px;">
+                                <div style="font-weight: 600; font-size: 13px; color: #333; margin-bottom: 1px;">${winery.name}</div>`;
                             
                             if (winery.address) {
-                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 12px; display: block; line-height: 1.3;">
+                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 11px; display: block; line-height: 1.2;">
                                     📍 ${winery.address}
                                 </a>`;
                             }
                             
                             if (winery.url) {
-                                infoContent += `<div style="margin-top: 4px;">
-                                    <a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 12px; line-height: 1.3;">
+                                infoContent += `<div style="margin-top: 3px;">
+                                    <a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 11px; line-height: 1.2;">
                                         🌐 Visit Website
                                     </a>
                                 </div>`;
@@ -232,18 +232,18 @@
                             // Create info window content with address and website
                             const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winery.address || winery.name)}`;
                             
-                            let infoContent = `<div class="info-window">
-                                <div style="font-weight: 600; font-size: 14px; color: #333; margin-bottom: 2px;">${winery.name}</div>`;
+                            let infoContent = `<div class="info-window" style="padding: 2px 4px;">
+                                <div style="font-weight: 600; font-size: 13px; color: #333; margin-bottom: 1px;">${winery.name}</div>`;
                             
                             if (winery.address) {
-                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 12px; display: block; line-height: 1.3;">
+                                infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 11px; display: block; line-height: 1.2;">
                                     📍 ${winery.address}
                                 </a>`;
                             }
                             
                             if (winery.url) {
-                                infoContent += `<div style="margin-top: 4px;">
-                                    <a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 12px; line-height: 1.3;">
+                                infoContent += `<div style="margin-top: 3px;">
+                                    <a href="${winery.url}" target="_blank" rel="noopener" style="color: #0066cc; text-decoration: none; font-size: 11px; line-height: 1.2;">
                                         🌐 Visit Website
                                     </a>
                                 </div>`;
@@ -289,43 +289,6 @@
                         map.setZoom(13);
                     }
                 });
-
-                // Optional: Add current location button for mobile users
-                if (navigator.geolocation) {
-                    const locationButton = document.createElement("button");
-                    locationButton.textContent = "📍 My Location";
-                    locationButton.style.cssText = `
-                        background: white;
-                        border: 2px solid #fff;
-                        border-radius: 3px;
-                        box-shadow: 0 2px 6px rgba(0,0,0,.3);
-                        color: rgb(25,25,25);
-                        cursor: pointer;
-                        font-family: 'Montserrat', sans-serif;
-                        font-size: 14px;
-                        margin: 10px;
-                        padding: 8px 12px;
-                        text-align: center;
-                    `;
-                    
-                    locationButton.addEventListener("click", () => {
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => {
-                                const pos = {
-                                    lat: position.coords.latitude,
-                                    lng: position.coords.longitude,
-                                };
-                                map.setCenter(pos);
-                                map.setZoom(12);
-                            },
-                            () => {
-                                console.log("Location access denied");
-                            }
-                        );
-                    });
-                    
-                    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(locationButton);
-                }
 
                 // Close info windows when clicking on the map
                 map.addListener("click", () => {
