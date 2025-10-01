@@ -46,7 +46,6 @@
             transform: scale(1.1);
         }
         
-        /* Custom info window styling */
         .gm-style-iw {
             font-family: 'Montserrat', sans-serif !important;
         }
@@ -76,7 +75,6 @@
             text-decoration: underline;
         }
         
-        /* Optional: Custom map controls positioning for mobile */
         @media (max-width: 768px) {
             .gm-bundled-control {
                 margin: 10px !important;
@@ -90,25 +88,35 @@
     </div>
 
     <script>
+        function isAppleDevice() {
+            return /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+        }
+
+        function getMapUrl(address, name) {
+            const query = encodeURIComponent(address || name);
+            if (isAppleDevice()) {
+                return `https://maps.apple.com/?q=${query}`;
+            } else {
+                return `https://www.google.com/maps/search/?api=1&query=${query}`;
+            }
+        }
+
         function initMap() {
             try {
-                // Clear loading message
                 document.getElementById('map').innerHTML = '';
                 
-                // Initialize map with custom styling
                 const map = new google.maps.Map(document.getElementById("map"), {
-                    mapId: "a590d6c102a9d70631fc7fae", // ⬅️ Replace with your Map ID
+                    mapId: "a590d6c102a9d70631fc7fae",
                     mapTypeId: "roadmap",
                     zoom: 11,
                     tilt: 0,
                     heading: 0,
-                    gestureHandling: "greedy", // Enable scroll + trackpad zoom
-                    scrollwheel: true, // Allow scroll wheel zoom
-                    zoomControl: true, // Keep +/- buttons
-                    fullscreenControl: true, // Fullscreen button
-                    mapTypeControl: false, // Hide map/satellite toggle for cleaner look
-                    streetViewControl: false, // Hide street view pegman
-                    // Optional: Custom map styling for better aesthetics
+                    gestureHandling: "greedy",
+                    scrollwheel: true,
+                    zoomControl: true,
+                    fullscreenControl: true,
+                    mapTypeControl: false,
+                    streetViewControl: false,
                     styles: [
                         {
                             featureType: "poi",
@@ -123,52 +131,48 @@
                     ]
                 });
 
-                // Winery data with addresses
                 const wineries = [
-    { name: "Analemma Wines", lat: 45.6841, lng: -121.4037, url: "https://analemmawines.com", address: "1710 1st St, Mosier, OR 97040" },
-    { name: "AniChe Cellars", lat: 45.7283, lng: -121.5349, url: "https://anichecellars.com", address: "71 Little Buck Creek Rd, Underwood, WA 98651" },
-    { name: "Cascade Cliffs Vineyard & Winery", lat: 45.6795, lng: -121.5215, url: "https://cascadecliffs.com", address: "211 Oak St, Hood River, OR 97031" },
-    { name: "Cathedral Ridge Winery", lat: 45.7156, lng: -121.5450, url: "https://cathedralridgewinery.com", address: "4200 Post Canyon Dr, Hood River, OR 97031" },
-    { name: "COR Cellars", lat: 45.6889, lng: -121.3033, url: "https://www.corcellars.com", address: "151 Old Highway 8, Lyle, WA 98635" },
-    { name: "Double Strand Wine", lat: 45.6733, lng: -121.4065, url: "https://doublestrandwine.com", address: "953 Quartz Dr, Mosier, OR 97040" },
-    { name: "Estelbrook Farms & Vineyard", lat: 45.7259, lng: -121.4840, url: "https://www.estelbrook.com", address: "3640 Post Canyon Dr, Hood River, OR 97031" },
-    { name: "Hawkins Cellars", lat: 45.7290, lng: -121.5358, url: "https://hawkinscellars.com", address: "92 Little Buck Creek Rd, Underwood, WA 98651" },
-    { name: "Hiyu Wine Farm", lat: 45.6195, lng: -121.5242, url: "https://hiyuwinefarm.com", address: "4555 Belmont Dr, Hood River, OR 97031" },
-    { name: "Hood Crest Winery & Distillers", lat: 45.6764, lng: -121.5120, url: "https://hoodcrestwinery.com", address: "1900 Orchard Rd, Hood River, OR 97031" },
-    { name: "Hood River Vineyards & Winery", lat: 45.6933, lng: -121.5311, url: "https://hoodrivervineyardsandwinery.com", address: "4693 Westwood Dr, Hood River, OR 97031" },
-    { name: "Jacob Williams Winery", lat: 45.6791, lng: -121.0108, url: "", address: "10 Balch Rd, Lyle, WA 98635" },
-    { name: "Le Doubblé Troubblé Wine Co.", lat: 45.7277, lng: -121.4855, url: "", address: "3636 Post Canyon Dr, Hood River, OR 97031" },
-    { name: "Loop de Loop Wines", lat: 45.7282, lng: -121.5257, url: "", address: "4080 Barrett Dr, Hood River, OR 97031" },
-    { name: "Marchesi Vineyards", lat: 45.6934, lng: -121.5370, url: "https://www.marchesivineyards.com", address: "3955 Belmont Dr, Hood River, OR 97031" },
-    { name: "Maryhill Winery (Goldendale)", lat: 45.7081, lng: -120.8158, url: "https://maryhillwinery.com", address: "9774 Hwy 14, Goldendale, WA 98620" },
-    { name: "Memaloose Wines", lat: 45.6933, lng: -121.2955, url: "", address: "40 Lyle-Snowden Rd, Lyle, WA 98635" },
-    { name: "Mt. Hood Winery", lat: 45.6546, lng: -121.5102, url: "https://mthoodwinery.com", address: "2882 Van Horn Dr, Hood River, OR 97031" },
-    { name: "Phelps Creek Vineyards", lat: 45.7061, lng: -121.5627, url: "https://phelpscreekvineyards.com", address: "1850 Country Club Rd, Hood River, OR 97031" },
-    { name: "Savage Grace Wines", lat: 45.7252, lng: -121.5328, url: "https://savagegracewines.com", address: "70 Little Buck Creek Rd, Underwood, WA 98651" },
-    { name: "South Hill Vineyards & Winery", lat: 45.7291, lng: -121.5230, url: "https://southhillvineyards.com", address: "101 Reservoir Rd, Hood River, OR 97031" },
-    { name: "Stave & Stone Winery", lat: 45.7089, lng: -121.5214, url: "https://staveandstone.com", address: "3827 Fletcher Dr, Hood River, OR 97031" },
-    { name: "Syncline Winery", lat: 45.6958, lng: -121.2958, url: "https://synclinewine.com", address: "111 Balch Rd, Lyle, WA 98635" },
-    { name: "Tetrahedron Wines", lat: 45.6892, lng: -121.2988, url: "https://www.tetrahedronwines.com", address: "151 Old Highway 8, Lyle, WA 98635" },
-    { name: "The Pines 1852", lat: 45.7080, lng: -121.5120, url: "https://www.thepinesvineyard.com", address: "202 Cascade Ave, Hood River, OR 97031" },
-    { name: "Viento Wines", lat: 45.6820, lng: -121.5200, url: "https://vientowines.com", address: "301 Country Club Rd, Hood River, OR 97031" },
-    { name: "Waving Tree Winery", lat: 45.7050, lng: -120.8142, url: "https://wavingtreewine.com", address: "9900 Hwy 14, Goldendale, WA 98620" },
-    { name: "Wy'East Vineyards", lat: 45.6008, lng: -121.6004, url: "https://wyeastvineyards.com", address: "3189 Hwy 35, Hood River, OR 97031" },
+                    { name: "Analemma Wines", lat: 45.6841, lng: -121.4037, url: "https://analemmawines.com", address: "1710 1st St, Mosier, OR 97040" },
+                    { name: "AniChe Cellars", lat: 45.7283, lng: -121.5349, url: "https://anichecellars.com", address: "71 Little Buck Creek Rd, Underwood, WA 98651" },
+                    { name: "Cascade Cliffs Vineyard & Winery", lat: 45.6795, lng: -121.5215, url: "https://cascadecliffs.com", address: "211 Oak St, Hood River, OR 97031" },
+                    { name: "Cathedral Ridge Winery", lat: 45.7156, lng: -121.5450, url: "https://cathedralridgewinery.com", address: "4200 Post Canyon Dr, Hood River, OR 97031" },
+                    { name: "COR Cellars", lat: 45.6889, lng: -121.3033, url: "https://www.corcellars.com", address: "151 Old Highway 8, Lyle, WA 98635" },
+                    { name: "Double Strand Wine", lat: 45.6733, lng: -121.4065, url: "https://doublestrandwine.com", address: "953 Quartz Dr, Mosier, OR 97040" },
+                    { name: "Estelbrook Farms & Vineyard", lat: 45.7259, lng: -121.4840, url: "https://www.estelbrook.com", address: "3640 Post Canyon Dr, Hood River, OR 97031" },
+                    { name: "Hawkins Cellars", lat: 45.7290, lng: -121.5358, url: "https://hawkinscellars.com", address: "92 Little Buck Creek Rd, Underwood, WA 98651" },
+                    { name: "Hiyu Wine Farm", lat: 45.6195, lng: -121.5242, url: "https://hiyuwinefarm.com", address: "4555 Belmont Dr, Hood River, OR 97031" },
+                    { name: "Hood Crest Winery & Distillers", lat: 45.6764, lng: -121.5120, url: "https://hoodcrestwinery.com", address: "1900 Orchard Rd, Hood River, OR 97031" },
+                    { name: "Hood River Vineyards & Winery", lat: 45.6933, lng: -121.5311, url: "https://hoodrivervineyardsandwinery.com", address: "4693 Westwood Dr, Hood River, OR 97031" },
+                    { name: "Jacob Williams Winery", lat: 45.6791, lng: -121.0108, url: "", address: "10 Balch Rd, Lyle, WA 98635" },
+                    { name: "Le Doubblé Troubblé Wine Co.", lat: 45.7277, lng: -121.4855, url: "", address: "3636 Post Canyon Dr, Hood River, OR 97031" },
+                    { name: "Loop de Loop Wines", lat: 45.7282, lng: -121.5257, url: "", address: "4080 Barrett Dr, Hood River, OR 97031" },
+                    { name: "Marchesi Vineyards", lat: 45.6934, lng: -121.5370, url: "https://www.marchesivineyards.com", address: "3955 Belmont Dr, Hood River, OR 97031" },
+                    { name: "Maryhill Winery (Goldendale)", lat: 45.7081, lng: -120.8158, url: "https://maryhillwinery.com", address: "9774 Hwy 14, Goldendale, WA 98620" },
+                    { name: "Memaloose Wines", lat: 45.6933, lng: -121.2955, url: "", address: "40 Lyle-Snowden Rd, Lyle, WA 98635" },
+                    { name: "Mt. Hood Winery", lat: 45.6546, lng: -121.5102, url: "https://mthoodwinery.com", address: "2882 Van Horn Dr, Hood River, OR 97031" },
+                    { name: "Phelps Creek Vineyards", lat: 45.7061, lng: -121.5627, url: "https://phelpscreekvineyards.com", address: "1850 Country Club Rd, Hood River, OR 97031" },
+                    { name: "Savage Grace Wines", lat: 45.7252, lng: -121.5328, url: "https://savagegracewines.com", address: "70 Little Buck Creek Rd, Underwood, WA 98651" },
+                    { name: "South Hill Vineyards & Winery", lat: 45.7291, lng: -121.5230, url: "https://southhillvineyards.com", address: "101 Reservoir Rd, Hood River, OR 97031" },
+                    { name: "Stave & Stone Winery", lat: 45.7089, lng: -121.5214, url: "https://staveandstone.com", address: "3827 Fletcher Dr, Hood River, OR 97031" },
+                    { name: "Syncline Winery", lat: 45.6958, lng: -121.2958, url: "https://synclinewine.com", address: "111 Balch Rd, Lyle, WA 98635" },
+                    { name: "Tetrahedron Wines", lat: 45.6892, lng: -121.2988, url: "https://www.tetrahedronwines.com", address: "151 Old Highway 8, Lyle, WA 98635" },
+                    { name: "The Pines 1852", lat: 45.7080, lng: -121.5120, url: "https://www.thepinesvineyard.com", address: "202 Cascade Ave, Hood River, OR 97031" },
+                    { name: "Viento Wines", lat: 45.6820, lng: -121.5200, url: "https://vientowines.com", address: "301 Country Club Rd, Hood River, OR 97031" },
+                    { name: "Waving Tree Winery", lat: 45.7050, lng: -120.8142, url: "https://wavingtreewine.com", address: "9900 Hwy 14, Goldendale, WA 98620" },
+                    { name: "Wy'East Vineyards", lat: 45.6008, lng: -121.6004, url: "https://wyeastvineyards.com", address: "3189 Hwy 35, Hood River, OR 97031" },
                 ];
 
                 const bounds = new google.maps.LatLngBounds();
-                let openInfoWindow = null; // Track currently open info window
-                let markersCreated = 0; // Track how many markers are created
+                let openInfoWindow = null;
+                let markersCreated = 0;
 
                 wineries.forEach((winery, index) => {
                     try {
-                        // Try to use AdvancedMarkerElement if available
                         if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
-                            // Create wine glass icon
                             const icon = document.createElement("img");
-                            icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg"; // 🍷 SVG wine glass
+                            icon.src = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f377.svg";
                             icon.classList.add("wine-icon");
                             
-                            // Create advanced marker
                             const marker = new google.maps.marker.AdvancedMarkerElement({
                                 map,
                                 position: { lat: winery.lat, lng: winery.lng },
@@ -176,8 +180,7 @@
                                 content: icon,
                             });
 
-                            // Create info window content with address and website
-                            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winery.address || winery.name)}`;
+                            const mapsUrl = getMapUrl(winery.address, winery.name);
                             
                             let infoContent = `<div class="info-window">
                                 <div style="font-weight: 600; font-size: 14px; color: #333; margin-bottom: 2px;">${winery.name}</div>`;
@@ -198,15 +201,12 @@
                             
                             infoContent += `</div>`;
                             
-                            // Create info window
                             const infoWindow = new google.maps.InfoWindow({
                                 content: infoContent,
                                 pixelOffset: new google.maps.Size(0, -10)
                             });
 
-                            // Add click listener
                             marker.addListener("click", () => {
-                                // Close any open info window
                                 if (openInfoWindow) {
                                     openInfoWindow.close();
                                 }
@@ -214,11 +214,9 @@
                                 openInfoWindow = infoWindow;
                             });
 
-                            // Extend bounds to include this marker
                             bounds.extend(marker.position);
                             markersCreated++;
                         } else {
-                            // Fallback to regular markers if AdvancedMarkerElement is not available
                             const marker = new google.maps.Marker({
                                 map,
                                 position: { lat: winery.lat, lng: winery.lng },
@@ -232,8 +230,7 @@
                                 animation: google.maps.Animation.DROP
                             });
 
-                            // Create info window content with address and website
-                            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(winery.address || winery.name)}`;
+                            const mapsUrl = getMapUrl(winery.address, winery.name);
                             
                             let infoContent = `<div class="info-window">
                                 <div style="font-weight: 600; font-size: 14px; color: #333; margin-bottom: 2px;">${winery.name}</div>`;
@@ -254,14 +251,11 @@
                             
                             infoContent += `</div>`;
                             
-                            // Create info window
                             const infoWindow = new google.maps.InfoWindow({
                                 content: infoContent
                             });
 
-                            // Add click listener
                             marker.addListener("click", () => {
-                                // Close any open info window
                                 if (openInfoWindow) {
                                     openInfoWindow.close();
                                 }
@@ -269,7 +263,6 @@
                                 openInfoWindow = infoWindow;
                             });
 
-                            // Extend bounds to include this marker
                             bounds.extend(marker.position);
                             markersCreated++;
                         }
@@ -280,10 +273,8 @@
 
                 console.log(`Created ${markersCreated} of ${wineries.length} markers`);
 
-                // Fit map to show all markers
                 map.fitBounds(bounds);
 
-                // Keep Gorge zoomed in but not too far
                 google.maps.event.addListenerOnce(map, "idle", function() {
                     if (map.getZoom() < 10.8) {
                         map.setZoom(10.8);
@@ -293,7 +284,6 @@
                     }
                 });
 
-                // Add Reset View button
                 const resetButton = document.createElement("button");
                 resetButton.textContent = "🔄 Reset View";
                 resetButton.style.cssText = `
@@ -320,10 +310,8 @@
                 });
                 
                 resetButton.addEventListener("click", () => {
-                    // Reset to show all wineries
                     map.fitBounds(bounds);
                     
-                    // After bounds are set, check zoom level
                     setTimeout(() => {
                         const currentZoom = map.getZoom();
                         if (currentZoom < 10.8) {
@@ -334,7 +322,6 @@
                         }
                     }, 100);
                     
-                    // Close any open info window
                     if (openInfoWindow) {
                         openInfoWindow.close();
                         openInfoWindow = null;
@@ -343,7 +330,6 @@
                 
                 map.controls[google.maps.ControlPosition.TOP_RIGHT].push(resetButton);
 
-                // Close info windows when clicking on the map
                 map.addListener("click", () => {
                     if (openInfoWindow) {
                         openInfoWindow.close();
@@ -358,7 +344,6 @@
             }
         }
 
-        // Error handler for script loading
         window.gm_authFailure = function() {
             document.getElementById('map').innerHTML = 
                 '<div class="error-message">Google Maps authentication failed. Please check API key configuration.</div>';
