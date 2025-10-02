@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: *.googleapis.com *.gstatic.com cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://maps.googleapis.com https://*.googleapis.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://maps.gstatic.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: *.googleapis.com *.gstatic.com *.twimg.com cdn.jsdelivr.net unpkg.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://maps.googleapis.com https://*.googleapis.com;">
     <title>Columbia River Gorge Wineries Map</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -33,17 +33,6 @@
         
         .error-message {
             color: #d32f2f;
-        }
-        
-        .wine-icon {
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .wine-icon:hover {
-            transform: scale(1.1);
         }
         
         .gm-style-iw {
@@ -81,7 +70,7 @@
     </div>
 
     <script>
-        let mapTimeout = setTimeout(() => {
+        let mapTimeout = setTimeout(function() {
             if (!window.google) {
                 document.getElementById('map').innerHTML = 
                     '<div class="error-message">Map is taking too long to load. Please refresh the page.</div>';
@@ -93,20 +82,20 @@
         }
 
         function getMapUrl(address, name) {
-            const query = encodeURIComponent(address || name);
+            var query = encodeURIComponent(address || name);
             if (isAppleDevice()) {
-                return `https://maps.apple.com/?q=${query}`;
+                return 'https://maps.apple.com/?q=' + query;
             } else {
-                return `https://www.google.com/maps/search/?api=1&query=${query}`;
+                return 'https://www.google.com/maps/search/?api=1&query=' + query;
             }
         }
 
         function formatPhoneDisplay(phone) {
-            const cleaned = phone.replace(/\D/g, '');
+            var cleaned = phone.replace(/\D/g, '');
             if (cleaned.length === 10) {
-                return `(${cleaned.slice(0,3)}) ${cleaned.slice(3,6)}-${cleaned.slice(6)}`;
+                return '(' + cleaned.slice(0,3) + ') ' + cleaned.slice(3,6) + '-' + cleaned.slice(6);
             } else if (cleaned.length === 11 && cleaned[0] === '1') {
-                return `+1 (${cleaned.slice(1,4)}) ${cleaned.slice(4,7)}-${cleaned.slice(7)}`;
+                return '+1 (' + cleaned.slice(1,4) + ') ' + cleaned.slice(4,7) + '-' + cleaned.slice(7);
             }
             return phone;
         }
@@ -116,12 +105,9 @@
                 clearTimeout(mapTimeout);
                 document.getElementById('map').innerHTML = '';
                 
-                const map = new google.maps.Map(document.getElementById("map"), {
-                    mapId: "a590d6c102a9d70631fc7fae",
-                    mapTypeId: "roadmap",
+                var map = new google.maps.Map(document.getElementById("map"), {
+                    center: { lat: 45.7, lng: -121.5 },
                     zoom: 11,
-                    tilt: 0,
-                    heading: 0,
                     gestureHandling: "greedy",
                     scrollwheel: true,
                     zoomControl: true,
@@ -144,7 +130,7 @@
                     ]
                 });
 
-                const wineries = [
+                var wineries = [
                     { name: "Analemma Wines", lat: 45.6841, lng: -121.4037, url: "https://analemmawines.com", address: "1710 1st St, Mosier, OR 97040", phone: "541-478-2873" },
                     { name: "AniChe Cellars", lat: 45.7283, lng: -121.5349, url: "https://anichecellars.com", address: "71 Little Buck Creek Rd, Underwood, WA 98651", phone: "360-624-6531" },
                     { name: "Cascade Cliffs Vineyard & Winery", lat: 45.6795, lng: -121.5215, url: "https://cascadecliffs.com", address: "211 Oak St, Hood River, OR 97031", phone: "541-436-4215" },
@@ -175,67 +161,68 @@
                     { name: "Wy'East Vineyards", lat: 45.6008, lng: -121.6004, url: "https://wyeastvineyards.com", address: "3189 Hwy 35, Hood River, OR 97031", phone: "" },
                 ];
 
-                const bounds = new google.maps.LatLngBounds();
-                let openInfoWindow = null;
-                let markersCreated = 0;
+                var bounds = new google.maps.LatLngBounds();
+                var openInfoWindow = null;
 
-                wineries.forEach((winery) => {
-                    try {
-                        const marker = new google.maps.Marker({
-                            map,
-                            position: { lat: winery.lat, lng: winery.lng },
-                            title: winery.name,
-                            icon: {
-                                url: "https://cdn.jsdelivr.net/npm/twemoji@latest/assets/svg/1f377.svg",
-                                scaledSize: new google.maps.Size(28, 28),
-                                origin: new google.maps.Point(0, 0),
-                                anchor: new google.maps.Point(14, 14)
-                            },
-                            animation: google.maps.Animation.DROP,
-                            optimized: true
-                        });
+                for (var i = 0; i < wineries.length; i++) {
+                    (function(winery) {
+                        try {
+                            var marker = new google.maps.Marker({
+                                map: map,
+                                position: { lat: winery.lat, lng: winery.lng },
+                                title: winery.name,
+                                icon: {
+                                    path: google.maps.SymbolPath.CIRCLE,
+                                    fillColor: '#8B0000',
+                                    fillOpacity: 1,
+                                    strokeColor: '#ffffff',
+                                    strokeWeight: 2,
+                                    scale: 8
+                                }
+                            });
 
-                        const mapsUrl = getMapUrl(winery.address, winery.name);
-                        
-                        let infoContent = `<div class="info-window"><div style="font-weight: 600; font-size: 14px; color: #333; margin-bottom: 4px;">${winery.name}</div>`;
-                        
-                        if (winery.phone && winery.phone !== "") {
-                            infoContent += `<a href="tel:${winery.phone}" style="color: #0066cc; text-decoration: none; font-size: 12px; display: block; line-height: 1.3; margin-bottom: 2px;">📞 ${formatPhoneDisplay(winery.phone)}</a>`;
-                        }
-                        
-                        if (winery.address) {
-                            infoContent += `<a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: none; font-size: 12px; display: block; line-height: 1.3; margin-bottom: 2px;">📍 ${winery.address}</a>`;
-                        }
-                        
-                        if (winery.url) {
-                            infoContent += `<a href="${winery.url}" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: none; font-size: 12px; line-height: 1.3;">🌐 Visit Website</a>`;
-                        }
-                        
-                        infoContent += `</div>`;
-                        
-                        const infoWindow = new google.maps.InfoWindow({
-                            content: infoContent
-                        });
-
-                        marker.addListener("click", () => {
-                            if (openInfoWindow) {
-                                openInfoWindow.close();
+                            var mapsUrl = getMapUrl(winery.address, winery.name);
+                            
+                            var infoHTML = '<div class="info-window">';
+                            infoHTML += '<div style="font-weight: 600; font-size: 14px; color: #333; margin-bottom: 4px;">' + winery.name + '</div>';
+                            
+                            if (winery.phone && winery.phone !== "") {
+                                infoHTML += '<a href="tel:' + winery.phone + '" style="color: #0066cc; text-decoration: none; font-size: 12px; display: block; line-height: 1.3; margin-bottom: 2px;">&#128222; ' + formatPhoneDisplay(winery.phone) + '</a>';
                             }
-                            infoWindow.open(map, marker);
-                            openInfoWindow = infoWindow;
-                        });
+                            
+                            if (winery.address) {
+                                infoHTML += '<a href="' + mapsUrl + '" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: none; font-size: 12px; display: block; line-height: 1.3; margin-bottom: 2px;">&#128205; ' + winery.address + '</a>';
+                            }
+                            
+                            if (winery.url) {
+                                infoHTML += '<a href="' + winery.url + '" target="_blank" rel="noopener noreferrer" style="color: #0066cc; text-decoration: none; font-size: 12px; line-height: 1.3;">&#127760; Visit Website</a>';
+                            }
+                            
+                            infoHTML += '</div>';
+                            
+                            var infoWindow = new google.maps.InfoWindow({
+                                content: infoHTML
+                            });
 
-                        bounds.extend(marker.position);
-                        markersCreated++;
-                    } catch (markerError) {
-                        console.error(`Failed to create marker for ${winery.name}:`, markerError);
-                    }
-                });
+                            marker.addListener("click", function() {
+                                if (openInfoWindow) {
+                                    openInfoWindow.close();
+                                }
+                                infoWindow.open(map, marker);
+                                openInfoWindow = infoWindow;
+                            });
+
+                            bounds.extend(marker.position);
+                        } catch (markerError) {
+                            console.error('Failed to create marker for ' + winery.name + ':', markerError);
+                        }
+                    })(wineries[i]);
+                }
 
                 map.fitBounds(bounds);
 
                 google.maps.event.addListenerOnce(map, "idle", function() {
-                    const currentZoom = map.getZoom();
+                    var currentZoom = map.getZoom();
                     if (currentZoom < 10.8) {
                         map.setZoom(10.8);
                     }
@@ -244,36 +231,23 @@
                     }
                 });
 
-                const resetButton = document.createElement("button");
+                var resetButton = document.createElement("button");
                 resetButton.textContent = "🔄 Reset View";
                 resetButton.setAttribute('aria-label', 'Reset map view');
-                resetButton.style.cssText = `
-                    background: white;
-                    border: 2px solid #fff;
-                    border-radius: 3px;
-                    box-shadow: 0 2px 6px rgba(0,0,0,.3);
-                    color: rgb(25,25,25);
-                    cursor: pointer;
-                    font-family: 'Montserrat', sans-serif;
-                    font-size: 14px;
-                    margin: 10px;
-                    padding: 8px 12px;
-                    text-align: center;
-                    transition: background 0.2s;
-                `;
+                resetButton.style.cssText = 'background: white; border: 2px solid #fff; border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,.3); color: rgb(25,25,25); cursor: pointer; font-family: Montserrat, sans-serif; font-size: 14px; margin: 10px; padding: 8px 12px; text-align: center; transition: background 0.2s;';
                 
-                resetButton.addEventListener("mouseover", () => {
+                resetButton.addEventListener("mouseover", function() {
                     resetButton.style.background = "#f5f5f5";
                 });
                 
-                resetButton.addEventListener("mouseout", () => {
+                resetButton.addEventListener("mouseout", function() {
                     resetButton.style.background = "white";
                 });
                 
-                resetButton.addEventListener("click", () => {
+                resetButton.addEventListener("click", function() {
                     map.fitBounds(bounds);
-                    setTimeout(() => {
-                        const currentZoom = map.getZoom();
+                    setTimeout(function() {
+                        var currentZoom = map.getZoom();
                         if (currentZoom < 10.8) {
                             map.setZoom(10.8);
                         }
@@ -289,7 +263,7 @@
                 
                 map.controls[google.maps.ControlPosition.TOP_RIGHT].push(resetButton);
 
-                map.addListener("click", () => {
+                map.addListener("click", function() {
                     if (openInfoWindow) {
                         openInfoWindow.close();
                         openInfoWindow = null;
@@ -313,8 +287,7 @@
     <script 
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap&loading=async&v=weekly"
         async
-        defer
-        onerror="document.getElementById('map').innerHTML = '<div class=\'error-message\'>Failed to load Google Maps. Please try again later.</div>';">
+        defer>
     </script>
 </body>
 </html>
