@@ -163,13 +163,12 @@
                             position: { lat: winery.lat, lng: winery.lng },
                             title: winery.name,
                             icon: {
-                                url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                                scaledSize: new google.maps.Size(32, 32)
-                            },
-                            label: {
-                                text: '🍷',
-                                fontSize: '20px',
-                                color: '#722F37'
+                                path: google.maps.SymbolPath.CIRCLE,
+                                fillColor: '#722F37',
+                                fillOpacity: 1,
+                                strokeColor: '#ffffff',
+                                strokeWeight: 2,
+                                scale: 10
                             }
                         });
 
