@@ -70,6 +70,16 @@
             }
         }, 10000);
 
+        // Wine glass SVG embedded as data URI
+        var wineGlassIcon = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">' +
+            '<path fill="#77B255" d="M30.935 14.813c0 6.906-4.399 12.78-10.538 14.953v3.234h4c.553 0 1 .447 1 1s-.447 1-1 1h-12c-.553 0-1-.447-1-1s.447-1 1-1h4v-3.234C9.856 27.594 5.457 21.72 5.457 14.813c0-.828.672-1.5 1.5-1.5h22.478c.828 0 1.5.672 1.5 1.5z"/>' +
+            '<path fill="#5C913B" d="M28.435 13.313H7.957c-.828 0-1.5.672-1.5 1.5 0 5.719 3.019 10.709 7.539 13.5h8.4c4.52-2.791 7.539-7.781 7.539-13.5 0-.828-.672-1.5-1.5-1.5z"/>' +
+            '<ellipse fill="#77B255" cx="18.196" cy="4" rx="13.5" ry="4"/>' +
+            '<path fill="#5C913B" d="M29.696 6.5c0 2.209-5.149 4-11.5 4s-11.5-1.791-11.5-4c0-.441.253-.859.696-1.232C8.764 4.321 13.027 3.5 18.196 3.5s9.432.821 10.804 1.768c.443.373.696.791.696 1.232z"/>' +
+            '</svg>'
+        );
+
         function isAppleDevice() {
             return /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
         }
@@ -163,12 +173,9 @@
                             position: { lat: winery.lat, lng: winery.lng },
                             title: winery.name,
                             icon: {
-                                path: google.maps.SymbolPath.CIRCLE,
-                                fillColor: '#8B0000',
-                                fillOpacity: 1,
-                                strokeColor: '#ffffff',
-                                strokeWeight: 2,
-                                scale: 8
+                                url: wineGlassIcon,
+                                scaledSize: new google.maps.Size(32, 32),
+                                anchor: new google.maps.Point(16, 32)
                             }
                         });
 
