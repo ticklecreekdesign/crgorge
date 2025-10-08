@@ -8,108 +8,29 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      font-family: 'Montserrat', sans-serif;
-      color: #333;
-      background: #fff;
-      overflow: hidden;
-    }
-    body {
-      display: flex;
-      flex-direction: row;
-      width: 100%;
-      height: 100%;
-    }
-
-    #map {
-      flex: 1 1 auto;
-      width: 100%;
-      height: 100%;
-      border: 1px solid #ddd;
-      box-sizing: border-box;
-      position: relative;
-    }
-    .map-title {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      z-index: 1000;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 8px 14px;
-      font-weight: 600;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .leaflet-bottom.leaflet-right {
-      margin-right: 8px;
-      margin-bottom: 8px;
-    }
-
-    .legend {
-      flex: 0 0 320px;
-      height: 100%;
-      background: #fff;
-      border-left: 1px solid #ddd;
-      box-shadow: -2px 0 8px rgba(0,0,0,.1);
-      padding: 0 16px 16px 16px;
-      box-sizing: border-box;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .legend h3 {
-      margin: 0;
-      padding: 8px 0 0 0;
-      font-size: 16px;
-      font-weight: 600;
-      line-height: 1;
-    }
-
-    .row {
-      display: grid;
-      grid-template-columns: 20px 1fr;
-      gap: 8px;
-      padding: 8px 0;
-      align-items: start;
-    }
-
-    .swatch {
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
-      border: 1px solid rgba(0,0,0,.15);
-      cursor: pointer;
-      transition: transform 0.15s ease;
-    }
-    .swatch:hover { transform: scale(1.1); }
-
-    .name { font-weight: 600; font-size: 14px; cursor: pointer; transition: color 0.2s; }
-    .meta { font-size: 12px; color: #555; margin-top: 2px; line-height: 1.3; }
-
-    .name.active { color: #111; text-decoration: underline; }
-    .swatch.active { box-shadow: 0 0 0 2px #0002, 0 0 6px rgba(0,0,0,0.3); }
-
-    .popup h4 { margin: 0 0 6px; font-size: 15px; }
-    .popup .small { font-size: 12px; color: #555; margin-bottom: 6px; }
-    .trail-list { font-size: 13px; margin-top: 4px; }
-    .trail-list div { padding: 2px 0; border-bottom: 1px solid #eee; }
-
-    @media (max-width: 900px) {
-      body { flex-direction: column; height: auto; }
-      #map { height: 70vh; width: 100%; }
-      .legend {
-        flex: 0 0 auto;
-        height: auto;
-        border-left: none;
-        border-top: 1px solid #ddd;
-        box-shadow: none;
-      }
+    html, body { margin:0; padding:0; width:100%; height:100%; font-family:'Montserrat',sans-serif; background:#fff; color:#333; overflow:hidden; }
+    body { display:flex; flex-direction:row; height:100%; }
+    #map { flex:1 1 auto; width:100%; height:100%; border:1px solid #ddd; box-sizing:border-box; position:relative; }
+    .map-title { position:absolute; top:12px; left:12px; z-index:1000; background:#fff; border:1px solid #ddd; border-radius:12px;
+                 padding:8px 14px; font-weight:600; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    .legend { flex:0 0 320px; height:100%; background:#fff; border-left:1px solid #ddd; box-shadow:-2px 0 8px rgba(0,0,0,.1);
+              padding:0 16px 16px 16px; overflow-y:auto; box-sizing:border-box; }
+    .legend h3 { margin:0; padding:8px 0 0 0; font-size:16px; font-weight:600; line-height:1; }
+    .row { display:grid; grid-template-columns:20px 1fr; gap:8px; padding:8px 0; align-items:start; }
+    .swatch { width:20px; height:20px; border-radius:6px; border:1px solid rgba(0,0,0,.15); cursor:pointer; transition:transform .15s ease; }
+    .swatch:hover { transform:scale(1.1); }
+    .name { font-weight:600; font-size:14px; cursor:pointer; transition:color .2s; }
+    .meta { font-size:12px; color:#555; margin-top:2px; line-height:1.3; }
+    .name.active { color:#111; text-decoration:underline; }
+    .swatch.active { box-shadow:0 0 0 2px #0002,0 0 6px rgba(0,0,0,0.3); }
+    .popup h4 { margin:0 0 6px; font-size:15px; }
+    .popup .small { font-size:12px; color:#555; margin-bottom:6px; }
+    .trail-list { font-size:13px; margin-top:4px; }
+    .trail-list div { padding:2px 0; border-bottom:1px solid #eee; }
+    @media (max-width:900px){
+      body{flex-direction:column;}
+      #map{height:70vh;}
+      .legend{border-left:none;border-top:1px solid #ddd;box-shadow:none;}
     }
   </style>
 </head>
@@ -119,8 +40,7 @@
   <div class="legend" id="legend"></div>
 
   <script>
-    // ✅ Region data (truncated here for brevity, identical to your previous version)
-    const regions = [
+    const regions=[
       {name:"West",color:"#3b82f6",exits:"Up to Exit 28",area:"Portland metro → Bridal Veil",lngMin:-122.50,lngMax:-122.18,
        trails:["Angels Rest to Devil’s Rest","Angels' Rest","Bridal Veil Falls","Bridal Veil Loop","Gillette Lake","Latourell Falls Trail","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Steigerwald Lake Trail"]},
       {name:"Central West",color:"#22c55e",exits:"Exit 28–40/44",area:"Bridal Veil → Bonneville/Cascade Locks",lngMin:-122.18,lngMax:-121.94,
@@ -133,101 +53,85 @@
        trails:["Catherine Creek Arch Loop","Chetwoot Loop Hike","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Rowena Plateau","The Dalles Mountain","Tom McCall Point"]}
     ];
 
-    const map = L.map('map', { scrollWheelZoom:true, zoomControl:false }).setView([45.68, -121.9], 9.5);
-    L.control.zoom({ position:'bottomright' }).addTo(map);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:18, attribution:'&copy; OpenStreetMap' }).addTo(map);
+    const map=L.map('map',{scrollWheelZoom:true,zoomControl:false}).setView([45.68,-121.9],9.2;
+    L.control.zoom({position:'bottomright'}).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(map);
 
-    function bandPolygon(lngMin, lngMax, latMin = 45.48, latMax = 45.77) {
-      return [[latMin, lngMin],[latMin, lngMax],[latMax, lngMax],[latMax, lngMin]];
+    function bandPolygon(lngMin,lngMax,latMin=45.48,latMax=45.77){
+      return[[latMin,lngMin],[latMin,lngMax],[latMax,lngMax],[latMax,lngMin]];
     }
 
-    const group = L.layerGroup().addTo(map);
-    let activeRegion = null;
+    const group=L.layerGroup().addTo(map);
+    let activeRegion=null;
 
-    regions.forEach(r => {
-      const poly = L.polygon(bandPolygon(r.lngMin, r.lngMax), {
-        color:r.color, weight:2, fillColor:r.color, fillOpacity:0.18
+    regions.forEach(r=>{
+      const poly=L.polygon(bandPolygon(r.lngMin,r.lngMax),{
+        color:r.color,weight:2,fillColor:r.color,fillOpacity:0.18
       })
-      .on('mouseover', () => poly.setStyle({ fillOpacity:0.3, weight:3 }))
-      .on('mouseout', () => { if (activeRegion !== r) poly.setStyle({ fillOpacity:0.18, weight:2 }); })
+      .on('mouseover',()=>poly.setStyle({fillOpacity:0.3,weight:3}))
+      .on('mouseout',()=>{if(activeRegion!==r)poly.setStyle({fillOpacity:0.18,weight:2});})
       .bindPopup(`
         <div class="popup">
           <h4>${r.name}</h4>
           <div class="small"><strong>Area:</strong> ${r.area}</div>
           <div class="small"><strong>Exits:</strong> ${r.exits}</div>
           <div class="small"><strong>Trails</strong></div>
-          <div class="trail-list">
-            ${r.trails.map(t => `<div>${t}</div>`).join('')}
-          </div>
+          <div class="trail-list">${r.trails.map(t=>`<div>${t}</div>`).join('')}</div>
         </div>
       `);
       poly.addTo(group);
-      r.layer = poly;
+      r.layer=poly;
     });
 
-    const bounds = L.latLngBounds([[45.48, -122.5], [45.78, -121.1]]);
-    map.setMaxBounds(bounds.pad(0.02));
-
-    const legend = document.getElementById('legend');
-    legend.innerHTML = `
+    const legend=document.getElementById('legend');
+    legend.innerHTML=`
       <h3>Region Guide</h3>
-      ${regions.map((r, idx) => `
+      ${regions.map((r,i)=>`
         <div class="row">
-          <div class="swatch" data-index="${idx}" style="background:${r.color}20;border-color:${r.color}55"></div>
+          <div class="swatch" data-index="${i}" style="background:${r.color}20;border-color:${r.color}55"></div>
           <div>
-            <div class="name" data-index="${idx}">${r.name}</div>
+            <div class="name" data-index="${i}">${r.name}</div>
             <div class="meta"><strong>Area:</strong> ${r.area}</div>
             <div class="meta"><strong>Exits:</strong> ${r.exits}</div>
           </div>
-        </div>
-      `).join('')}
+        </div>`).join('')}
     `;
 
-    // ✅ Vertically center popup itself, not region
-    function handleRegionClick(i) {
-      const region = regions[i];
-      const nameEl = document.querySelector(`.name[data-index="${i}"]`);
-      const swatchEl = document.querySelector(`.swatch[data-index="${i}"]`);
+    function handleRegionClick(i){
+      const region=regions[i];
+      const nameEl=document.querySelector(`.name[data-index="${i}"]`);
+      const swatchEl=document.querySelector(`.swatch[data-index="${i}"]`);
 
-      if (activeRegion === region) {
-        region.layer.setStyle({ weight:2, fillOpacity:0.18 });
-        nameEl.classList.remove('active');
-        swatchEl.classList.remove('active');
-        activeRegion = null;
-        map.closePopup();
-        return;
+      if(activeRegion===region){
+        region.layer.setStyle({weight:2,fillOpacity:0.18});
+        nameEl.classList.remove('active');swatchEl.classList.remove('active');
+        activeRegion=null;map.closePopup();return;
       }
 
-      regions.forEach(r => r.layer.setStyle({ weight:2, fillOpacity:0.18 }));
-      document.querySelectorAll('.legend .name').forEach(n => n.classList.remove('active'));
-      document.querySelectorAll('.legend .swatch').forEach(s => s.classList.remove('active'));
+      regions.forEach(r=>r.layer.setStyle({weight:2,fillOpacity:0.18}));
+      document.querySelectorAll('.name').forEach(n=>n.classList.remove('active'));
+      document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
 
-      region.layer.setStyle({ weight:5, fillOpacity:0.35 });
-      nameEl.classList.add('active');
-      swatchEl.classList.add('active');
-      activeRegion = region;
-
+      region.layer.setStyle({weight:5,fillOpacity:0.35});
+      nameEl.classList.add('active');swatchEl.classList.add('active');
+      activeRegion=region;
       region.layer.openPopup();
 
-      // 👇 Wait for popup to fully render before centering
-      setTimeout(() => {
-        const popupContainer = document.querySelector('.leaflet-popup-content-wrapper');
-        if (!popupContainer) return;
-
-        const popupHeight = popupContainer.offsetHeight;
-        const popup = region.layer.getPopup();
-        if (popup && popup._latlng) {
-          const point = map.latLngToContainerPoint(popup._latlng);
-          const centerY = map.getSize().y / 2;
-          const offsetY = (point.y - centerY) + (popupHeight / 2);
-          map.panBy([0, offsetY], { animate: true });
-        }
-      }, 150);
+      // ✅ Center the popup itself after it renders
+      setTimeout(()=>{
+        const popupEl=document.querySelector('.leaflet-popup');
+        if(!popupEl)return;
+        const rect=popupEl.getBoundingClientRect();
+        const popupCenterY=rect.top+rect.height/2;
+        const mapCenterY=map.getContainer().getBoundingClientRect().height/2;
+        const offsetY=popupCenterY-mapCenterY;
+        map.panBy([0,offsetY],{animate:true});
+      },200);
     }
 
-    document.querySelectorAll('.legend .name, .legend .swatch').forEach(el => {
-      el.addEventListener('click', () => {
-        const i = parseInt(el.getAttribute('data-index'));
+    document.querySelectorAll('.legend .name, .legend .swatch').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const i=parseInt(el.getAttribute('data-index'));
         handleRegionClick(i);
       });
     });
