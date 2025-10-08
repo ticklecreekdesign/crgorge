@@ -63,7 +63,7 @@
     ];
 
     const defaultCenter = [45.68, -121.9];
-    const defaultZoom = 9.4;
+    const defaultZoom = 9.45;
 
     const map = L.map('map',{scrollWheelZoom:true,zoomControl:false}).setView(defaultCenter, defaultZoom);
     L.control.zoom({position:'bottomright'}).addTo(map);
@@ -76,6 +76,7 @@
       return [[latMin,lngMin],[latMin,lngMax],[latMax,lngMax],[latMax,lngMin]];
     }
 
+    // Create polygons + popups
     regions.forEach(r=>{
       const poly = L.polygon(bandPolygon(r.lngMin,r.lngMax,r.latMin,r.latMax),{
         color:r.color,weight:2,fillColor:r.color,fillOpacity:0.18
@@ -95,6 +96,7 @@
       r.layer = poly;
     });
 
+    // Build legend
     const legend = document.getElementById('legend');
     legend.innerHTML = `
       <h3>Region Guide</h3>
@@ -109,13 +111,14 @@
         </div>`).join('')}
     `;
 
+    // Main click logic
     function handleRegionClick(i){
-      const region=regions[i];
-      const nameEl=document.querySelector(`.name[data-index="${i}"]`);
-      const swatchEl=document.querySelector(`.swatch[data-index="${i}"]`);
+      const region = regions[i];
+      const nameEl = document.querySelector(`.name[data-index="${i}"]`);
+      const swatchEl = document.querySelector(`.swatch[data-index="${i}"]`);
 
-      // deactivate region
-      if(activeRegion===region){
+      // deactivate if already active
+      if(activeRegion === region){
         resetMap();
         return;
       }
@@ -125,36 +128,38 @@
       document.querySelectorAll('.name').forEach(n=>n.classList.remove('active'));
       document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
 
-      // highlight
+      // activate region
       region.layer.setStyle({weight:5,fillOpacity:0.35});
       nameEl.classList.add('active');
       swatchEl.classList.add('active');
-      activeRegion=region;
+      activeRegion = region;
       region.layer.openPopup();
 
-      // pan so southern border aligns near bottom and popup aligns to top
+      // Compute vertical offset to align southern border bottom & popup top
       setTimeout(()=>{
-        const bounds=region.layer.getBounds();
-        const southLat=bounds.getSouth();
-        const northLat=bounds.getNorth();
-        const centerLng=bounds.getCenter().lng;
-        const offset=(northLat-southLat)*0.3;
-        const targetLat=southLat-offset;
-        map.panTo([targetLat,centerLng],{animate:true});
-      },300);
+        const bounds = region.layer.getBounds();
+        const south = bounds.getSouth();
+        const north = bounds.getNorth();
+        const centerLng = bounds.getCenter().lng;
+
+        // Pan so the region’s southern edge is near bottom, popup appears top
+        const verticalOffset = (north - south) * 0.5; 
+        const newLat = south - verticalOffset;
+        map.flyTo([newLat, centerLng], defaultZoom, {animate:true, duration:0.8});
+      }, 300);
     }
 
-    // ✅ Reset function for full consistency
+    // Reset function
     function resetMap(){
       map.closePopup();
       regions.forEach(r=>r.layer.setStyle({weight:2,fillOpacity:0.18}));
       document.querySelectorAll('.name').forEach(n=>n.classList.remove('active'));
       document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
-      activeRegion=null;
-      map.setView(defaultCenter, defaultZoom, {animate:true});
+      activeRegion = null;
+      map.flyTo(defaultCenter, defaultZoom, {animate:true, duration:0.8});
     }
 
-    // ✅ Legend click
+    // Legend click
     document.querySelectorAll('.legend .name, .legend .swatch').forEach(el=>{
       el.addEventListener('click',()=>{
         const i=parseInt(el.getAttribute('data-index'));
@@ -162,10 +167,12 @@
       });
     });
 
-    // ✅ Map background click resets
-    map.on('click', e=>{
-      if(!activeRegion) return;
-      resetMap();
+    // ✅ Map background click → reset
+    map.on('click', function(e){
+      // If user clicked directly on base map (not polygon)
+      if(!e.originalEvent.target.closest('.leaflet-interactive') && activeRegion){
+        resetMap();
+      }
     });
   </script>
 </body>
