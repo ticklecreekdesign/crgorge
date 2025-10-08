@@ -70,7 +70,6 @@
       flex-direction: column;
     }
 
-    /* ✅ Title styling (no underline, with top padding) */
     .legend h3 {
       margin: 0;
       padding: 8px 0 0 0;
@@ -79,13 +78,12 @@
       line-height: 1;
     }
 
-    /* ✅ Row layout — top-aligned */
     .row {
       display: grid;
       grid-template-columns: 20px 1fr;
       gap: 8px;
       padding: 8px 0;
-      align-items: start; /* 👈 top-aligns swatch with region name */
+      align-items: start; /* top align */
     }
 
     .swatch {
@@ -100,15 +98,14 @@
 
     .name { font-weight: 600; font-size: 14px; cursor: pointer; transition: color 0.2s; }
     .meta { font-size: 12px; color: #555; margin-top: 2px; line-height: 1.3; }
-    .chips { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
-    .chip { font-size: 11px; padding: 3px 6px; border-radius: 999px; background: #f2f2f2; border: 1px solid #ddd; }
 
-    /* Highlighted legend name */
     .name.active { color: #111; text-decoration: underline; }
     .swatch.active { box-shadow: 0 0 0 2px #0002, 0 0 6px rgba(0,0,0,0.3); }
 
     .popup h4 { margin: 0 0 6px; font-size: 15px; }
-    .popup .small { font-size: 12px; color: #555; }
+    .popup .small { font-size: 12px; color: #555; margin-bottom: 4px; }
+    .popup ul { margin: 6px 0 0 16px; padding: 0; font-size: 13px; color: #333; }
+    .popup li { line-height: 1.4; }
 
     @media (max-width: 900px) {
       body { flex-direction: column; height: auto; }
@@ -129,7 +126,7 @@
   <div class="legend" id="legend"></div>
 
   <script>
-    // ✅ Dynamically size map for Hostinger container
+    // ✅ Resize map dynamically (fix for Hostinger)
     function resizeMapToParent() {
       const parent = document.body.parentElement || document.documentElement;
       const h = parent.clientHeight || window.innerHeight;
@@ -142,7 +139,7 @@
     const map = L.map('map', {
       scrollWheelZoom: true,
       zoomControl: false
-    }).setView([45.68, -121.9], 10); // 👈 Default zoom here
+    }).setView([45.68, -121.9], 11.8);
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -162,20 +159,19 @@
 
     const regions = [
       {name:'West', color:'#3b82f6', exits:'Up to Exit 28', area:'Portland metro → Bridal Veil',
-       lngMin:-122.50, lngMax:-122.18, markers:['Troutdale','Corbett','Crown Point']},
+       lngMin:-122.50, lngMax:-122.18, trails:['Troutdale','Corbett','Crown Point']},
       {name:'Central West', color:'#22c55e', exits:'Exit 28–40/44', area:'Bridal Veil → Bonneville/Cascade Locks',
-       lngMin:-122.18, lngMax:-121.94, markers:['Multnomah Falls','Wahkeena Falls','Horsetail Falls','Oneonta Gorge']},
+       lngMin:-122.18, lngMax:-121.94, trails:['Multnomah Falls','Wahkeena Falls','Horsetail Falls','Oneonta Gorge']},
       {name:'Central', color:'#f59e0b', exits:'Exit 40–44', area:'Cascade Locks / Bonneville Dam',
-       lngMin:-121.94, lngMax:-121.83, markers:['Bridge of the Gods','Eagle Creek','Cascade Locks','Stevenson (WA)']},
+       lngMin:-121.94, lngMax:-121.83, trails:['Bridge of the Gods','Eagle Creek','Cascade Locks','Stevenson (WA)']},
       {name:'Central East', color:'#ef4444', exits:'Exit 44–69', area:'Cascade Locks → Mosier',
-       lngMin:-121.83, lngMax:-121.45, markers:['Hood River','Starvation Creek','Mosier Twin Tunnels']},
+       lngMin:-121.83, lngMax:-121.45, trails:['Hood River','Starvation Creek','Mosier Twin Tunnels']},
       {name:'East', color:'#a855f7', exits:'Exit 69+', area:'Mosier → The Dalles / Lyle (WA)',
-       lngMin:-121.45, lngMax:-121.1, markers:['Rowena Crest','Tom McCall Point','The Dalles','Lyle (WA)']}
+       lngMin:-121.45, lngMax:-121.1, trails:['Rowena Crest','Tom McCall Point','The Dalles','Lyle (WA)']}
     ];
 
     const group = L.layerGroup().addTo(map);
 
-    // ✅ Create polygons and attach to regions
     regions.forEach(r => {
       const poly = L.polygon(bandPolygon(r.lngMin, r.lngMax), {
         color: r.color,
@@ -188,12 +184,16 @@
         if (activeRegion !== r)
           poly.setStyle({ fillOpacity: 0.18, weight: 2 });
       })
+      .on('click', () => {
+        map.fitBounds(poly.getBounds(), { maxZoom: 12.5, animate: true });
+      })
       .bindPopup(`
         <div class="popup">
           <h4>${r.name}</h4>
           <div class="small"><strong>Area:</strong> ${r.area}</div>
           <div class="small"><strong>Exits:</strong> ${r.exits}</div>
-          <div class="chips">${r.markers.map(m => `<span class="chip">${m}</span>`).join('')}</div>
+          <div class="small"><strong>Trails & Landmarks:</strong></div>
+          <ul>${r.trails.map(t => `<li>${t}</li>`).join('')}</ul>
         </div>
       `);
       poly.addTo(group);
@@ -203,7 +203,7 @@
     const bounds = L.latLngBounds([[45.48, -122.5], [45.78, -121.1]]);
     map.setMaxBounds(bounds.pad(0.02));
 
-    // ✅ Build legend
+    // ✅ Build simplified legend (no trail list)
     const legend = document.getElementById('legend');
     legend.innerHTML = `
       <h3>Region Guide</h3>
@@ -214,13 +214,12 @@
             <div class="name" data-index="${regions.indexOf(r)}">${r.name}</div>
             <div class="meta"><strong>Area:</strong> ${r.area}</div>
             <div class="meta"><strong>Exits:</strong> ${r.exits}</div>
-            <div class="chips">${r.markers.map(m => `<span class="chip">${m}</span>`).join('')}</div>
           </div>
         </div>
       `).join('')}
     `;
 
-    // ✅ Interactive highlighting for both name and swatch
+    // ✅ Interactive highlighting
     let activeRegion = null;
 
     function handleRegionClick(i) {
@@ -228,12 +227,12 @@
       const nameEl = document.querySelector(`.name[data-index="${i}"]`);
       const swatchEl = document.querySelector(`.swatch[data-index="${i}"]`);
 
-      // If clicking the same region again → unhighlight
       if (activeRegion === region) {
         region.layer.setStyle({ weight: 2, fillOpacity: 0.18 });
         nameEl.classList.remove('active');
         swatchEl.classList.remove('active');
         activeRegion = null;
+        map.closePopup();
         return;
       }
 
@@ -242,14 +241,15 @@
       document.querySelectorAll('.legend .name').forEach(n => n.classList.remove('active'));
       document.querySelectorAll('.legend .swatch').forEach(s => s.classList.remove('active'));
 
-      // Highlight this one
+      // Highlight
       region.layer.setStyle({ weight: 5, fillOpacity: 0.35 });
       nameEl.classList.add('active');
       swatchEl.classList.add('active');
       activeRegion = region;
 
-      // Center and zoom to it
+      // Center, zoom, and open popup
       map.fitBounds(region.layer.getBounds(), { maxZoom: 12.5, animate: true });
+      region.layer.openPopup();
     }
 
     document.querySelectorAll('.legend .name, .legend .swatch').forEach(el => {
