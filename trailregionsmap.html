@@ -1,96 +1,76 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Columbia River Gorge Regions Map</title>
-  <style>
-    html, body {
-      height: 100%;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: 'Montserrat', sans-serif;
-    }
+<script>
+  // Create map container without initial zoom
+  const map = L.map('map', {
+    scrollWheelZoom: true,
+    zoomControl: false
+  });
 
-    #map {
-      height: 100%;
-      width: 100%;
-    }
+  // Move zoom buttons to bottom right
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    /* Legend box (no border, subtle shadow) */
-    #legend {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #fff;
-      padding: 10px 12px;
-      margin: 0;
-      border: none !important;
-      border-radius: 0 !important;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      font-size: 14px;
-      line-height: 1.4;
-      color: #333;
-      z-index: 9999;
-    }
+  // Tile layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
 
-    #legend h3 {
-      margin: 0 0 6px 0;
-      padding: 0 0 4px 0;
-      font-size: 15px;
-      font-weight: 600;
-      color: #333;
-      border-bottom: 1px solid #ddd;
-    }
+  // Define Gorge bounds (approx Troutdale → The Dalles)
+  const gorgeBounds = L.latLngBounds([
+    [45.48, -122.50],  // SW corner
+    [45.78, -121.10]   // NE corner
+  ]);
 
-    /* Ensure anything inside legend never gets borders */
-    #legend * {
-      border: none !important;
-      outline: none !important;
-      box-shadow: none !important;
-    }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <div id="legend">
-    <h3>Regions Guide</h3>
-    <p><strong>West Gorge:</strong> Troutdale to Multnomah Falls</p>
-    <p><strong>Central Gorge:</strong> Cascade Locks to Hood River</p>
-    <p><strong>East Gorge:</strong> Mosier to The Dalles</p>
-  </div>
+  // ✅ Fix: Fit bounds after map initializes
+  map.whenReady(() => {
+    map.fitBounds(gorgeBounds, { padding: [10, 10] }); // small buffer for better view
+    map.setMaxBounds(gorgeBounds.pad(0.02));           // keep panning limited to Gorge
+  });
 
-  <script>
-    function initMap() {
-      const map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 45.7, lng: -121.8 },
-        zoom: 10.4,
-        mapTypeId: "terrain",
-        fullscreenControl: true,
-        streetViewControl: false,
-      });
+  // Region polygons (same as before)
+  const regions = [
+    {name:'West', color:'#3b82f6', exits:'Up to Exit 28', area:'Portland metro → Bridal Veil',
+     lngMin:-122.50, lngMax:-122.18, markers:['Troutdale','Corbett','Crown Point']},
+    {name:'Central West', color:'#22c55e', exits:'Exit 28–40/44', area:'Bridal Veil → Bonneville/Cascade Locks',
+     lngMin:-122.18, lngMax:-121.94, markers:['Multnomah Falls','Wahkeena Falls','Horsetail Falls','Oneonta Gorge']},
+    {name:'Central', color:'#f59e0b', exits:'Exit 40–44', area:'Cascade Locks / Bonneville Dam',
+     lngMin:-121.94, lngMax:-121.83, markers:['Bridge of the Gods','Eagle Creek','Cascade Locks','Stevenson (WA)']},
+    {name:'Central East', color:'#ef4444', exits:'Exit 44–69', area:'Cascade Locks → Mosier',
+     lngMin:-121.83, lngMax:-121.45, markers:['Hood River','Starvation Creek','Mosier Twin Tunnels']},
+    {name:'East', color:'#a855f7', exits:'Exit 69+', area:'Mosier → The Dalles / Lyle (WA)',
+     lngMin:-121.45, lngMax:-121.1, markers:['Rowena Crest','Tom McCall Point','The Dalles','Lyle (WA)']}
+  ];
 
-      // Example region markers
-      const regions = [
-        { name: "West Gorge", position: { lat: 45.55, lng: -122.25 } },
-        { name: "Central Gorge", position: { lat: 45.68, lng: -121.72 } },
-        { name: "East Gorge", position: { lat: 45.69, lng: -121.35 } }
-      ];
+  const group = L.layerGroup().addTo(map);
 
-      regions.forEach(region => {
-        const marker = new google.maps.Marker({
-          position: region.position,
-          map: map,
-          title: region.name,
-        });
-      });
+  regions.forEach(r => {
+    const poly = L.polygon([
+      [45.48, r.lngMin],
+      [45.48, r.lngMax],
+      [45.77, r.lngMax],
+      [45.77, r.lngMin]
+    ], {
+      color: r.color,
+      weight: 2,
+      fillColor: r.color,
+      fillOpacity: 0.18
+    })
+    .on('mouseover', () => poly.setStyle({ fillOpacity: 0.3, weight: 3 }))
+    .on('mouseout', () => poly.setStyle({ fillOpacity: 0.18, weight: 2 }))
+    .bindPopup(`
+      <div class="popup">
+        <h4>${r.name}</h4>
+        <div class="small"><strong>Area:</strong> ${r.area}</div>
+        <div class="small"><strong>Exits:</strong> ${r.exits}</div>
+        <div class="chips">${r.markers.map(m => `<span class="chip">${m}</span>`).join('')}</div>
+      </div>
+    `);
+    poly.addTo(group);
+  });
 
-      map.controls[google.maps.ControlPosition.RIGHT_TOP].push(document.getElementById("legend"));
-    }
-  </script>
-
-  <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBD8JvHV2ALs6AbnHom5SjJQQ6cC0v-g7A&callback=initMap">
-  </script>
-</body>
-</html>
+  // ✅ Optional: gently ease into view for smoother loading
+  map.once('load', () => {
+    setTimeout(() => {
+      map.flyToBounds(gorgeBounds, { padding: [20, 20], duration: 1.2 });
+    }, 300);
+  });
+</script>
