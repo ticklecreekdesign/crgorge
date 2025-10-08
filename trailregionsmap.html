@@ -44,6 +44,14 @@
       display: inline-block;
     }
     .back-link:hover { text-decoration: underline; }
+    .region-header {
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin: 4px 0 10px 0;
+      font-weight: 600;
+      font-size: 16px;
+    }
     @media (max-width:900px){
       body { flex-direction: column; height: auto; }
       #map { height: 70vh; width: 100%; }
@@ -129,32 +137,31 @@
       setTimeout(()=>{
         legend.innerHTML = `
           <span class="back-link" id="backLink">← Back to Region Guide</span>
-          <h3>${region.name}</h3>
+          <div class="region-header" style="background:${region.color};">${region.name}</div>
           <div class="meta"><strong>Area:</strong> ${region.area}</div>
           <div class="meta"><strong>Exits:</strong> ${region.exits}</div>
           <div class="meta"><strong>Trails:</strong></div>
           <div class="trail-list">${region.trails.map(t=>`<div>${t}</div>`).join('')}</div>
         `;
         legend.classList.remove('fade');
-        document.getElementById('backLink').addEventListener('click',()=>resetView());
+        document.getElementById('backLink').addEventListener('click',()=>{
+          activeRegion=null;
+          regions.forEach(r=>r.layer.setStyle({weight:2,fillOpacity:0.18}));
+          renderDefaultLegend();
+        });
       },200);
     }
 
-    function resetView(){
-      activeRegion = null;
-      regions.forEach(r=>r.layer.setStyle({weight:2,fillOpacity:0.18}));
-      renderDefaultLegend();
-      map.flyTo(defaultCenter, defaultZoom, {animate:true, duration:0.8});
-    }
-
-    // Clicking empty map resets legend
+    // Clicking empty map resets everything
     map.on('click', e=>{
       if(!e.originalEvent.target.closest('.leaflet-interactive') && activeRegion){
-        resetView();
+        activeRegion=null;
+        regions.forEach(r=>r.layer.setStyle({weight:2,fillOpacity:0.18}));
+        renderDefaultLegend();
+        map.flyTo(defaultCenter, defaultZoom, {animate:true, duration:0.8});
       }
     });
 
-    // Initial render
     renderDefaultLegend();
   </script>
 </body>
