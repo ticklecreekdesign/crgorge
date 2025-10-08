@@ -16,24 +16,27 @@
     [45.48, -122.50],  // SW corner
     [45.78, -121.10]   // NE corner
   ]);
-  // ✅ Fix: Single bounds initialization with smooth animation
+  // ✅ Fix: Fit bounds after map initializes
   map.whenReady(() => {
-    map.setMaxBounds(gorgeBounds.pad(0.02));
-    setTimeout(() => {
-      map.flyToBounds(gorgeBounds, { padding: [20, 20], duration: 1.2 });
-    }, 100);
+    map.fitBounds(gorgeBounds, { padding: [10, 10] }); // small buffer for better view
+    map.setMaxBounds(gorgeBounds.pad(0.02));           // keep panning limited to Gorge
   });
-  // Region polygons
+  // Region polygons (same as before)
   const regions = [
-    {name:'West', color:'#3b82f6', exits:'Up to Exit 28', area:'Portland metro → Bridal Veil',
+    {name:'West', color:'
+#3b82f6', exits:'Up to Exit 28', area:'Portland metro → Bridal Veil',
      lngMin:-122.50, lngMax:-122.18, markers:['Troutdale','Corbett','Crown Point']},
-    {name:'Central West', color:'#22c55e', exits:'Exit 28–40/44', area:'Bridal Veil → Bonneville/Cascade Locks',
+    {name:'Central West', color:'
+#22c55e', exits:'Exit 28–40/44', area:'Bridal Veil → Bonneville/Cascade Locks',
      lngMin:-122.18, lngMax:-121.94, markers:['Multnomah Falls','Wahkeena Falls','Horsetail Falls','Oneonta Gorge']},
-    {name:'Central', color:'#f59e0b', exits:'Exit 40–44', area:'Cascade Locks / Bonneville Dam',
+    {name:'Central', color:'
+#f59e0b', exits:'Exit 40–44', area:'Cascade Locks / Bonneville Dam',
      lngMin:-121.94, lngMax:-121.83, markers:['Bridge of the Gods','Eagle Creek','Cascade Locks','Stevenson (WA)']},
-    {name:'Central East', color:'#ef4444', exits:'Exit 44–69', area:'Cascade Locks → Mosier',
+    {name:'Central East', color:'
+#ef4444', exits:'Exit 44–69', area:'Cascade Locks → Mosier',
      lngMin:-121.83, lngMax:-121.45, markers:['Hood River','Starvation Creek','Mosier Twin Tunnels']},
-    {name:'East', color:'#a855f7', exits:'Exit 69+', area:'Mosier → The Dalles / Lyle (WA)',
+    {name:'East', color:'
+#a855f7', exits:'Exit 69+', area:'Mosier → The Dalles / Lyle (WA)',
      lngMin:-121.45, lngMax:-121.1, markers:['Rowena Crest','Tom McCall Point','The Dalles','Lyle (WA)']}
   ];
   const group = L.layerGroup().addTo(map);
@@ -51,14 +54,20 @@
     })
     .on('mouseover', () => poly.setStyle({ fillOpacity: 0.3, weight: 3 }))
     .on('mouseout', () => poly.setStyle({ fillOpacity: 0.18, weight: 2 }))
-    .bindPopup(`
+    .bindPopup(
       <div class="popup">
         <h4>${r.name}</h4>
         <div class="small"><strong>Area:</strong> ${r.area}</div>
         <div class="small"><strong>Exits:</strong> ${r.exits}</div>
-        <div class="chips">${r.markers.map(m => `<span class="chip">${m}</span>`).join('')}</div>
+        <div class="chips">${r.markers.map(m => <span class="chip">${m}</span>).join('')}</div>
       </div>
-    `);
+    );
     poly.addTo(group);
+  });
+  // ✅ Optional: gently ease into view for smoother loading
+  map.once('load', () => {
+    setTimeout(() => {
+      map.flyToBounds(gorgeBounds, { padding: [20, 20], duration: 1.2 });
+    }, 300);
   });
 </script>
