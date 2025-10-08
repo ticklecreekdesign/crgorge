@@ -79,13 +79,15 @@
       line-height: 1;
     }
 
+    /* ✅ Row layout — top-aligned */
     .row {
       display: grid;
       grid-template-columns: 20px 1fr;
       gap: 8px;
       padding: 8px 0;
-      align-items: center;
+      align-items: start; /* 👈 top-aligns swatch with region name */
     }
+
     .swatch {
       width: 20px;
       height: 20px;
@@ -140,7 +142,7 @@
     const map = L.map('map', {
       scrollWheelZoom: true,
       zoomControl: false
-    }).setView([45.68, -121.9], 11.8); // 👈 Default zoom here
+    }).setView([45.68, -121.9], 10); // 👈 Default zoom here
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
