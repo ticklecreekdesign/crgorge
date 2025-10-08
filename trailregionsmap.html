@@ -79,15 +79,31 @@
       line-height: 1;
     }
 
-    .row { display: grid; grid-template-columns: 20px 1fr; gap: 8px; padding: 8px 0; }
-    .swatch { width: 20px; height: 20px; border-radius: 6px; border: 1px solid rgba(0,0,0,.15); }
-    .name { font-weight: 600; font-size: 14px; transition: color 0.2s; }
+    .row {
+      display: grid;
+      grid-template-columns: 20px 1fr;
+      gap: 8px;
+      padding: 8px 0;
+      align-items: center;
+    }
+    .swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,.15);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .swatch:hover { transform: scale(1.1); }
+
+    .name { font-weight: 600; font-size: 14px; cursor: pointer; transition: color 0.2s; }
     .meta { font-size: 12px; color: #555; margin-top: 2px; line-height: 1.3; }
     .chips { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
     .chip { font-size: 11px; padding: 3px 6px; border-radius: 999px; background: #f2f2f2; border: 1px solid #ddd; }
 
     /* Highlighted legend name */
     .name.active { color: #111; text-decoration: underline; }
+    .swatch.active { box-shadow: 0 0 0 2px #0002, 0 0 6px rgba(0,0,0,0.3); }
 
     .popup h4 { margin: 0 0 6px; font-size: 15px; }
     .popup .small { font-size: 12px; color: #555; }
@@ -191,9 +207,9 @@
       <h3>Region Guide</h3>
       ${regions.map(r => `
         <div class="row">
-          <div class="swatch" style="background:${r.color}20;border-color:${r.color}55"></div>
+          <div class="swatch" data-index="${regions.indexOf(r)}" style="background:${r.color}20;border-color:${r.color}55"></div>
           <div>
-            <div class="name">${r.name}</div>
+            <div class="name" data-index="${regions.indexOf(r)}">${r.name}</div>
             <div class="meta"><strong>Area:</strong> ${r.area}</div>
             <div class="meta"><strong>Exits:</strong> ${r.exits}</div>
             <div class="chips">${r.markers.map(m => `<span class="chip">${m}</span>`).join('')}</div>
@@ -202,34 +218,42 @@
       `).join('')}
     `;
 
-    // ✅ Interactive highlighting
+    // ✅ Interactive highlighting for both name and swatch
     let activeRegion = null;
 
-    document.querySelectorAll('.legend .name').forEach((el, i) => {
-      el.style.cursor = 'pointer';
+    function handleRegionClick(i) {
+      const region = regions[i];
+      const nameEl = document.querySelector(`.name[data-index="${i}"]`);
+      const swatchEl = document.querySelector(`.swatch[data-index="${i}"]`);
 
+      // If clicking the same region again → unhighlight
+      if (activeRegion === region) {
+        region.layer.setStyle({ weight: 2, fillOpacity: 0.18 });
+        nameEl.classList.remove('active');
+        swatchEl.classList.remove('active');
+        activeRegion = null;
+        return;
+      }
+
+      // Reset all
+      regions.forEach(r => r.layer.setStyle({ weight: 2, fillOpacity: 0.18 }));
+      document.querySelectorAll('.legend .name').forEach(n => n.classList.remove('active'));
+      document.querySelectorAll('.legend .swatch').forEach(s => s.classList.remove('active'));
+
+      // Highlight this one
+      region.layer.setStyle({ weight: 5, fillOpacity: 0.35 });
+      nameEl.classList.add('active');
+      swatchEl.classList.add('active');
+      activeRegion = region;
+
+      // Center and zoom to it
+      map.fitBounds(region.layer.getBounds(), { maxZoom: 12.5, animate: true });
+    }
+
+    document.querySelectorAll('.legend .name, .legend .swatch').forEach(el => {
       el.addEventListener('click', () => {
-        const region = regions[i];
-
-        // If clicking the same region again → unhighlight
-        if (activeRegion === region) {
-          region.layer.setStyle({ weight: 2, fillOpacity: 0.18 });
-          el.classList.remove('active');
-          activeRegion = null;
-          return;
-        }
-
-        // Reset all
-        regions.forEach(r => r.layer.setStyle({ weight: 2, fillOpacity: 0.18 }));
-        document.querySelectorAll('.legend .name').forEach(n => n.classList.remove('active'));
-
-        // Highlight this one
-        region.layer.setStyle({ weight: 5, fillOpacity: 0.35 });
-        el.classList.add('active');
-        activeRegion = region;
-
-        // Center and zoom to it
-        map.fitBounds(region.layer.getBounds(), { maxZoom: 12.5, animate: true });
+        const i = parseInt(el.getAttribute('data-index'));
+        handleRegionClick(i);
       });
     });
   </script>
