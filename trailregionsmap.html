@@ -119,45 +119,21 @@
   <div class="legend" id="legend"></div>
 
   <script>
-    // ✅ Injected region & trail data
+    // ✅ Region data (truncated here for brevity, identical to your previous version)
     const regions = [
-      {
-        name:"West", color:"#3b82f6", exits:"Up to Exit 28", area:"Portland metro → Bridal Veil",
-        lngMin:-122.50, lngMax:-122.18,
-        trails:["Angels Rest to Devil’s Rest","Angels' Rest","Bridal Veil Falls","Bridal Veil Loop","Gillette Lake","Latourell Falls Trail","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Steigerwald Lake Trail"]
-      },
-      {
-        name:"Central West", color:"#22c55e", exits:"Exit 28–40/44", area:"Bridal Veil → Bonneville/Cascade Locks",
-        lngMin:-122.18, lngMax:-121.94,
-        trails:["Bell Creek Trail","Bonneville Dam Trail","Fairy Falls","Horsetail Falls Loop","John B. Yeon Trailhead","Lancaster Falls","Larch Mt via Multnomah Falls","Lower Starvation Loop","Multnomah Falls","Multnomah–Wahkeena Loop","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Pool Of The Winds","Punchbowl Falls","Triple Falls Trail","Upper McCord Creek Falls","Wahkeena Falls"]
-      },
-      {
-        name:"Central", color:"#f59e0b", exits:"Exit 40–44", area:"Cascade Locks / Bonneville Dam",
-        lngMin:-121.94, lngMax:-121.83,
-        trails:["Augspurger Mountain Trail","Beacon Rock Trail","Bridge Of The Gods Trailhead","Cape Horn Loop Trail","Cascade Locks Trail","Dry Creek Falls","Eagle Creek Trail","Elowah Falls","Hamilton Mountain Loop","Hardy Ridge Loop","Indian Point Loop","Mark O. Hatfield Trailhead","Munra Point","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Starvation Ridge","Table Mountain Loop","Tooth Rock Loop","Tunnel Falls","Wahclella Falls","Wauna Point"]
-      },
-      {
-        name:"Central East", color:"#ef4444", exits:"Exit 44–69", area:"Cascade Locks → Mosier",
-        lngMin:-121.83, lngMax:-121.45,
-        trails:["Dog Mountain","Herman Creek Pinnacles","Memaloose Hills","Mitchell Point Trail","Mosier Twin Tunnels","Mt. Defiance Loop","Sevenmile Hill","Starvation Creek Trail","Wind Mountain","Wygant Peak"]
-      },
-      {
-        name:"East", color:"#a855f7", exits:"Exit 69+", area:"Mosier → The Dalles / Lyle (WA)",
-        lngMin:-121.45, lngMax:-121.10,
-        trails:["Catherine Creek Arch Loop","Chetwoot Loop Hike","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Rowena Plateau","The Dalles Mountain","Tom McCall Point"]
-      }
+      {name:"West",color:"#3b82f6",exits:"Up to Exit 28",area:"Portland metro → Bridal Veil",lngMin:-122.50,lngMax:-122.18,
+       trails:["Angels Rest to Devil’s Rest","Angels' Rest","Bridal Veil Falls","Bridal Veil Loop","Gillette Lake","Latourell Falls Trail","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Steigerwald Lake Trail"]},
+      {name:"Central West",color:"#22c55e",exits:"Exit 28–40/44",area:"Bridal Veil → Bonneville/Cascade Locks",lngMin:-122.18,lngMax:-121.94,
+       trails:["Bell Creek Trail","Bonneville Dam Trail","Fairy Falls","Horsetail Falls Loop","John B. Yeon Trailhead","Lancaster Falls","Larch Mt via Multnomah Falls","Lower Starvation Loop","Multnomah Falls","Multnomah–Wahkeena Loop","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Pool Of The Winds","Punchbowl Falls","Triple Falls Trail","Upper McCord Creek Falls","Wahkeena Falls"]},
+      {name:"Central",color:"#f59e0b",exits:"Exit 40–44",area:"Cascade Locks / Bonneville Dam",lngMin:-121.94,lngMax:-121.83,
+       trails:["Augspurger Mountain Trail","Beacon Rock Trail","Bridge Of The Gods Trailhead","Cape Horn Loop Trail","Cascade Locks Trail","Dry Creek Falls","Eagle Creek Trail","Elowah Falls","Hamilton Mountain Loop","Hardy Ridge Loop","Indian Point Loop","Mark O. Hatfield Trailhead","Munra Point","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Starvation Ridge","Table Mountain Loop","Tooth Rock Loop","Tunnel Falls","Wahclella Falls","Wauna Point"]},
+      {name:"Central East",color:"#ef4444",exits:"Exit 44–69",area:"Cascade Locks → Mosier",lngMin:-121.83,lngMax:-121.45,
+       trails:["Dog Mountain","Herman Creek Pinnacles","Memaloose Hills","Mitchell Point Trail","Mosier Twin Tunnels","Mt. Defiance Loop","Sevenmile Hill","Starvation Creek Trail","Wind Mountain","Wygant Peak"]},
+      {name:"East",color:"#a855f7",exits:"Exit 69+",area:"Mosier → The Dalles / Lyle (WA)",lngMin:-121.45,lngMax:-121.10,
+       trails:["Catherine Creek Arch Loop","Chetwoot Loop Hike","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Rowena Plateau","The Dalles Mountain","Tom McCall Point"]}
     ];
 
-    function resizeMapToParent() {
-      const parent = document.body.parentElement || document.documentElement;
-      const h = parent.clientHeight || window.innerHeight;
-      document.body.style.height = h + 'px';
-      document.getElementById('map').style.height = h + 'px';
-    }
-    window.addEventListener('load', resizeMapToParent);
-    window.addEventListener('resize', resizeMapToParent);
-
-    const map = L.map('map', { scrollWheelZoom:true, zoomControl:false }).setView([45.68, -121.9], 9.3);
+    const map = L.map('map', { scrollWheelZoom:true, zoomControl:false }).setView([45.68, -121.9], 9.5);
     L.control.zoom({ position:'bottomright' }).addTo(map);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:18, attribution:'&copy; OpenStreetMap' }).addTo(map);
 
@@ -168,7 +144,6 @@
     const group = L.layerGroup().addTo(map);
     let activeRegion = null;
 
-    // Create polygons
     regions.forEach(r => {
       const poly = L.polygon(bandPolygon(r.lngMin, r.lngMax), {
         color:r.color, weight:2, fillColor:r.color, fillOpacity:0.18
@@ -193,7 +168,6 @@
     const bounds = L.latLngBounds([[45.48, -122.5], [45.78, -121.1]]);
     map.setMaxBounds(bounds.pad(0.02));
 
-    // Build legend
     const legend = document.getElementById('legend');
     legend.innerHTML = `
       <h3>Region Guide</h3>
@@ -209,7 +183,7 @@
       `).join('')}
     `;
 
-    // ✅ Highlight and center popup vertically on click
+    // ✅ Vertically center popup itself, not region
     function handleRegionClick(i) {
       const region = regions[i];
       const nameEl = document.querySelector(`.name[data-index="${i}"]`);
@@ -224,12 +198,10 @@
         return;
       }
 
-      // Reset all
       regions.forEach(r => r.layer.setStyle({ weight:2, fillOpacity:0.18 }));
       document.querySelectorAll('.legend .name').forEach(n => n.classList.remove('active'));
       document.querySelectorAll('.legend .swatch').forEach(s => s.classList.remove('active'));
 
-      // Highlight and open popup
       region.layer.setStyle({ weight:5, fillOpacity:0.35 });
       nameEl.classList.add('active');
       swatchEl.classList.add('active');
@@ -237,16 +209,20 @@
 
       region.layer.openPopup();
 
-      // 👇 Center the popup vertically
+      // 👇 Wait for popup to fully render before centering
       setTimeout(() => {
+        const popupContainer = document.querySelector('.leaflet-popup-content-wrapper');
+        if (!popupContainer) return;
+
+        const popupHeight = popupContainer.offsetHeight;
         const popup = region.layer.getPopup();
         if (popup && popup._latlng) {
           const point = map.latLngToContainerPoint(popup._latlng);
           const centerY = map.getSize().y / 2;
-          const offsetY = point.y - centerY;
+          const offsetY = (point.y - centerY) + (popupHeight / 2);
           map.panBy([0, offsetY], { animate: true });
         }
-      }, 100);
+      }, 150);
     }
 
     document.querySelectorAll('.legend .name, .legend .swatch').forEach(el => {
