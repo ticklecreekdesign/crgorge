@@ -108,90 +108,81 @@
   <div class="legend" id="legend"></div>
 
   <script>
-    // ✅ Dynamically size the map to its parent height (fix for Hostinger)
-    function resizeMapToParent() {
-      const parent = document.body.parentElement || document.documentElement;
-      const h = parent.clientHeight || window.innerHeight;
-      document.body.style.height = h + 'px';
-      document.getElementById('map').style.height = h + 'px';
-    }
-    window.addEventListener('load', resizeMapToParent);
-    window.addEventListener('resize', resizeMapToParent);
+  // Create map container without initial zoom
+  const map = L.map('map', {
+    scrollWheelZoom: true,
+    zoomControl: false
+  });
 
-    const map = L.map('map', {
-      scrollWheelZoom: true,
-      zoomControl: false
-    }).setView([45.68, -121.9], 11.8);
+  // Move zoom buttons to bottom right
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
+  // Tile layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
+  // Define Gorge bounds (approx Troutdale → The Dalles)
+  const gorgeBounds = L.latLngBounds([
+    [45.48, -122.50],  // SW corner
+    [45.78, -121.10]   // NE corner
+  ]);
 
-    function bandPolygon(lngMin, lngMax, latMin = 45.48, latMax = 45.77) {
-      return [
-        [latMin, lngMin],
-        [latMin, lngMax],
-        [latMax, lngMax],
-        [latMax, lngMin]
-      ];
-    }
+  // ✅ Fix: Fit bounds after map initializes
+  map.whenReady(() => {
+    map.fitBounds(gorgeBounds, { padding: [10, 10] }); // small buffer for better view
+    map.setMaxBounds(gorgeBounds.pad(0.02));           // keep panning limited to Gorge
+  });
 
-    const regions = [
-      {name:'West', color:'#3b82f6', exits:'Up to Exit 28', area:'Portland metro → Bridal Veil',
-       lngMin:-122.50, lngMax:-122.18, markers:['Troutdale','Corbett','Crown Point']},
-      {name:'Central West', color:'#22c55e', exits:'Exit 28–40/44', area:'Bridal Veil → Bonneville/Cascade Locks',
-       lngMin:-122.18, lngMax:-121.94, markers:['Multnomah Falls','Wahkeena Falls','Horsetail Falls','Oneonta Gorge']},
-      {name:'Central', color:'#f59e0b', exits:'Exit 40–44', area:'Cascade Locks / Bonneville Dam',
-       lngMin:-121.94, lngMax:-121.83, markers:['Bridge of the Gods','Eagle Creek','Cascade Locks','Stevenson (WA)']},
-      {name:'Central East', color:'#ef4444', exits:'Exit 44–69', area:'Cascade Locks → Mosier',
-       lngMin:-121.83, lngMax:-121.45, markers:['Hood River','Starvation Creek','Mosier Twin Tunnels']},
-      {name:'East', color:'#a855f7', exits:'Exit 69+', area:'Mosier → The Dalles / Lyle (WA)',
-       lngMin:-121.45, lngMax:-121.1, markers:['Rowena Crest','Tom McCall Point','The Dalles','Lyle (WA)']}
-    ];
+  // Region polygons (same as before)
+  const regions = [
+    {name:'West', color:'#3b82f6', exits:'Up to Exit 28', area:'Portland metro → Bridal Veil',
+     lngMin:-122.50, lngMax:-122.18, markers:['Troutdale','Corbett','Crown Point']},
+    {name:'Central West', color:'#22c55e', exits:'Exit 28–40/44', area:'Bridal Veil → Bonneville/Cascade Locks',
+     lngMin:-122.18, lngMax:-121.94, markers:['Multnomah Falls','Wahkeena Falls','Horsetail Falls','Oneonta Gorge']},
+    {name:'Central', color:'#f59e0b', exits:'Exit 40–44', area:'Cascade Locks / Bonneville Dam',
+     lngMin:-121.94, lngMax:-121.83, markers:['Bridge of the Gods','Eagle Creek','Cascade Locks','Stevenson (WA)']},
+    {name:'Central East', color:'#ef4444', exits:'Exit 44–69', area:'Cascade Locks → Mosier',
+     lngMin:-121.83, lngMax:-121.45, markers:['Hood River','Starvation Creek','Mosier Twin Tunnels']},
+    {name:'East', color:'#a855f7', exits:'Exit 69+', area:'Mosier → The Dalles / Lyle (WA)',
+     lngMin:-121.45, lngMax:-121.1, markers:['Rowena Crest','Tom McCall Point','The Dalles','Lyle (WA)']}
+  ];
 
-    const group = L.layerGroup().addTo(map);
+  const group = L.layerGroup().addTo(map);
 
-    regions.forEach(r => {
-      const poly = L.polygon(bandPolygon(r.lngMin, r.lngMax), {
-        color: r.color,
-        weight: 2,
-        fillColor: r.color,
-        fillOpacity: 0.18
-      })
-      .on('mouseover', () => poly.setStyle({ fillOpacity: 0.3, weight: 3 }))
-      .on('mouseout', () => poly.setStyle({ fillOpacity: 0.18, weight: 2 }))
-      .bindPopup(`
-        <div class="popup">
-          <h4>${r.name}</h4>
-          <div class="small"><strong>Area:</strong> ${r.area}</div>
-          <div class="small"><strong>Exits:</strong> ${r.exits}</div>
-          <div class="chips">${r.markers.map(m => `<span class="chip">${m}</span>`).join('')}</div>
-        </div>
-      `);
-      poly.addTo(group);
-    });
+  regions.forEach(r => {
+    const poly = L.polygon([
+      [45.48, r.lngMin],
+      [45.48, r.lngMax],
+      [45.77, r.lngMax],
+      [45.77, r.lngMin]
+    ], {
+      color: r.color,
+      weight: 2,
+      fillColor: r.color,
+      fillOpacity: 0.18
+    })
+    .on('mouseover', () => poly.setStyle({ fillOpacity: 0.3, weight: 3 }))
+    .on('mouseout', () => poly.setStyle({ fillOpacity: 0.18, weight: 2 }))
+    .bindPopup(`
+      <div class="popup">
+        <h4>${r.name}</h4>
+        <div class="small"><strong>Area:</strong> ${r.area}</div>
+        <div class="small"><strong>Exits:</strong> ${r.exits}</div>
+        <div class="chips">${r.markers.map(m => `<span class="chip">${m}</span>`).join('')}</div>
+      </div>
+    `);
+    poly.addTo(group);
+  });
 
-    const bounds = L.latLngBounds([[45.48, -122.5], [45.78, -121.1]]);
-    map.setMaxBounds(bounds.pad(0.02));
+  // ✅ Optional: gently ease into view for smoother loading
+  map.once('load', () => {
+    setTimeout(() => {
+      map.flyToBounds(gorgeBounds, { padding: [20, 20], duration: 1.2 });
+    }, 300);
+  });
+</script>
 
-    const legend = document.getElementById('legend');
-    legend.innerHTML = `
-      <h3>Region Guide</h3>
-      ${regions.map(r => `
-        <div class="row">
-          <div class="swatch" style="background:${r.color}20;border-color:${r.color}55"></div>
-          <div>
-            <div class="name">${r.name}</div>
-            <div class="meta"><strong>Area:</strong> ${r.area}</div>
-            <div class="meta"><strong>Exits:</strong> ${r.exits}</div>
-            <div class="chips">${r.markers.map(m => `<span class="chip">${m}</span>`).join('')}</div>
-          </div>
-        </div>
-      `).join('')}
-    `;
-  </script>
 </body>
 </html>
