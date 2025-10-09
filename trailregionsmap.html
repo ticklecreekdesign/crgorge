@@ -1,168 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Columbia River Gorge — Regions Map</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <meta charset="utf-8">
+  <title>Columbia River Gorge — Region Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     html, body {
-      margin: 0; padding: 0;
-      width: 100%; height: 100%;
-      font-family: 'Montserrat', sans-serif;
-      color: #333; background: #fff;
-      overflow: hidden;
+      height: 100%;
+      margin: 0;
+      font-family: Montserrat, sans-serif;
+      color: #333;
     }
-    body { display: flex; flex-direction: row; width: 100%; height: 100%; }
-
-    #map { flex: 1 1 auto; width: 100%; height: 100%; border: 1px solid #ddd; box-sizing: border-box; position: relative; }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
     .legend {
-      flex: 0 0 320px; height: 100%; background: #fff;
-      border-left: 1px solid #ddd; box-shadow: -2px 0 8px rgba(0,0,0,.1);
-      padding: 0 16px 16px 16px; box-sizing: border-box; overflow-y: auto;
-      display: flex; flex-direction: column;
-      transition: opacity 0.3s ease;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px 14px;
+      max-height: 90%;
+      width: 240px;
+      overflow-y: auto; /* entire legend scrolls as one block */
+      box-shadow: 0 1px 6px rgba(0,0,0,0.15);
+      line-height: 1.5;
     }
-    .legend.fade { opacity: 0; pointer-events: none; }
-    .legend h3 { margin: 0; padding: 8px 0 12px 0; font-size: 16px; font-weight: 600; line-height: 1; border-bottom: none; }
-    .row { display: grid; grid-template-columns: 20px 1fr; gap: 8px; padding: 8px 0; align-items: start; }
-    .swatch { width: 20px; height: 20px; border-radius: 6px; border: 1px solid rgba(0,0,0,.15);
-              cursor: pointer; transition: transform 0.15s ease; }
-    .swatch:hover { transform: scale(1.1); }
-    .name { font-weight: 600; font-size: 14px; cursor: pointer; transition: color 0.2s; }
-    .meta { font-size: 12px; color: #555; margin-top: 2px; line-height: 1.3; }
-    .trail-list { font-size: 12px; margin-top: 8px; line-height: 1.5; padding-left: 2px; text-align: left; }
-    .trail-list div { padding: 2px 0; text-align: left; }
-    .back-link {
-      font-size: 13px;
-      color: #3b82f6;
-      cursor: pointer;
-      font-weight: 500;
-      margin-bottom: 8px;
-      display: inline-block;
-    }
-    .back-link:hover { text-decoration: underline; }
-    .region-header {
-      color: #fff;
-      border-radius: 8px;
-      padding: 8px 10px;
-      margin: 4px 0 10px 0;
-      font-weight: 600;
+    .legend h3 {
       font-size: 16px;
+      margin: 0 0 8px 0;
+      font-weight: 600;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 6px;
     }
-    @media (max-width:900px){
-      body { flex-direction: column; height: auto; }
-      #map { height: 70vh; width: 100%; }
-      .legend { border-left: none; border-top: 1px solid #ddd; box-shadow: none; }
+    .legend a {
+      display: block;
+      color: #0066cc;
+      text-decoration: none;
+      margin: 3px 0;
+    }
+    .legend a:hover {
+      text-decoration: underline;
+    }
+    .highlights {
+      margin-top: 12px;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+      font-size: 13px;
+    }
+    .highlights p {
+      margin: 10px 0;
+    }
+    .highlights strong {
+      font-weight: 600;
+    }
+    .highlights em {
+      color: #666;
+    }
+    .highlights span {
+      color: #555;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
-  <div class="legend" id="legend"></div>
 
+  <div class="legend" id="legend">
+    <h3>Region Guide</h3>
+    <a href="#" onclick="zoomToRegion('west'); return false;">West</a>
+    <a href="#" onclick="zoomToRegion('centralwest'); return false;">Central West</a>
+    <a href="#" onclick="zoomToRegion('central'); return false;">Central</a>
+    <a href="#" onclick="zoomToRegion('centraleast'); return false;">Central East</a>
+    <a href="#" onclick="zoomToRegion('east'); return false;">East</a>
+
+    <div class="highlights">
+      <h4 style="margin:0 0 6px 0;font-size:14px;font-weight:600;">Region Highlights</h4>
+
+      <p><strong>West</strong><br>
+      <em>Troutdale → Bridal Veil area</em><br>
+      <span>I-84 Mile Markers (approx): 17–28</span><br>
+      Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.</p>
+
+      <p><strong>Central West</strong><br>
+      <em>Wahkeena → Cascade Locks</em><br>
+      <span>I-84 Mile Markers (approx): 28–41</span><br>
+      Iconic waterfall corridor (Multnomah, Wahkeena, Horsetail); steep canyon hikes with sweeping vistas; Benson Bridge photo stops; Gorge Trail 400 connections; picnic areas and visitor centers.</p>
+
+      <p><strong>Central</strong><br>
+      <em>Cascade Locks → Starvation Creek</em><br>
+      <span>I-84 Mile Markers (approx): 41–55</span><br>
+      Forest climbs and summit routes (Hamilton Mountain, Table Mountain, Dog Mountain); panoramic viewpoints; Pacific Crest Trail crossings; windsurfing at Bridge of the Gods; spring wildflowers.</p>
+
+      <p><strong>Central East</strong><br>
+      <em>Starvation Creek → Mosier</em><br>
+      <span>I-84 Mile Markers (approx): 55–67</span><br>
+      Steep basalt cliffs and open hillsides; scenic drives with river overlooks; lesser-traveled trails like McCall Point and Coyote Wall; spring wildflowers; transition zone between rainforest and grassland.</p>
+
+      <p><strong>East</strong><br>
+      <em>Mosier → The Dalles and beyond</em><br>
+      <span>I-84 Mile Markers (approx): 60–90</span><br>
+      Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.</p>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const regions = [
-      {name:"West",color:"#3b82f6",exits:"Up to Exit 28",area:"Portland metro → Bridal Veil",lngMin:-122.50,lngMax:-122.18,latMin:45.48,latMax:45.77,
-       trails:["Angels Rest to Devil’s Rest","Angels' Rest","Bridal Veil Falls","Bridal Veil Loop","Gillette Lake","Latourell Falls Trail","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Steigerwald Lake Trail"]},
-      {name:"Central West",color:"#22c55e",exits:"Exit 28–40/44",area:"Bridal Veil → Bonneville/Cascade Locks",lngMin:-122.18,lngMax:-121.94,latMin:45.48,latMax:45.77,
-       trails:["Bell Creek Trail","Bonneville Dam Trail","Fairy Falls","Horsetail Falls Loop","John B. Yeon Trailhead","Lancaster Falls","Larch Mt via Multnomah Falls","Lower Starvation Loop","Multnomah Falls","Multnomah–Wahkeena Loop","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Pool Of The Winds","Punchbowl Falls","Triple Falls Trail","Upper McCord Creek Falls","Wahkeena Falls"]},
-      {name:"Central",color:"#f59e0b",exits:"Exit 40–44",area:"Cascade Locks / Bonneville Dam",lngMin:-121.94,lngMax:-121.83,latMin:45.48,latMax:45.77,
-       trails:["Augspurger Mountain Trail","Beacon Rock Trail","Bridge Of The Gods Trailhead","Cape Horn Loop Trail","Cascade Locks Trail","Dry Creek Falls","Eagle Creek Trail","Elowah Falls","Hamilton Mountain Loop","Hardy Ridge Loop","Indian Point Loop","Mark O. Hatfield Trailhead","Munra Point","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Starvation Ridge","Table Mountain Loop","Tooth Rock Loop","Tunnel Falls","Wahclella Falls","Wauna Point"]},
-      {name:"Central East",color:"#ef4444",exits:"Exit 44–69",area:"Cascade Locks → Mosier",lngMin:-121.83,lngMax:-121.45,latMin:45.48,latMax:45.77,
-       trails:["Dog Mountain","Herman Creek Pinnacles","Memaloose Hills","Mitchell Point Trail","Mosier Twin Tunnels","Mt. Defiance Loop","Sevenmile Hill","Starvation Creek Trail","Wind Mountain","Wygant Peak"]},
-      {name:"East",color:"#a855f7",exits:"Exit 69+",area:"Mosier → The Dalles / Lyle (WA)",lngMin:-121.45,lngMax:-121.10,latMin:45.48,latMax:45.77,
-       trails:["Catherine Creek Arch Loop","Chetwoot Loop Hike","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Rowena Plateau","The Dalles Mountain","Tom McCall Point"]}
-    ];
-
-    const defaultCenter = [45.68, -121.9];
-    const defaultZoom = 9.53;
-
-    const map = L.map('map',{scrollWheelZoom:true,zoomControl:false}).setView(defaultCenter, defaultZoom);
-    L.control.zoom({position:'bottomright'}).addTo(map);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'&copy; OpenStreetMap'}).addTo(map);
-
-    const group = L.layerGroup().addTo(map);
-    let activeRegion = null;
-
-    function bandPolygon(lngMin,lngMax,latMin,latMax){
-      return [[latMin,lngMin],[latMin,lngMax],[latMax,lngMax],[latMax,lngMin]];
-    }
-
-    regions.forEach(r=>{
-      const poly = L.polygon(bandPolygon(r.lngMin,r.lngMax,r.latMin,r.latMax),{
-        color:r.color,weight:2,fillColor:r.color,fillOpacity:0.18
-      })
-      .on('mouseover',()=>poly.setStyle({fillOpacity:0.3,weight:3}))
-      .on('mouseout',()=>{ if(activeRegion!==r) poly.setStyle({fillOpacity:0.18,weight:2}); })
-      .on('click',()=>showRegionDetails(r))
-      .addTo(group);
-      r.layer = poly;
+    // --- Basic Leaflet setup (use your same coordinates and zoom) ---
+    const map = L.map('map', {
+      center: [45.68, -121.8],
+      zoom: 9.45
     });
 
-    const legend = document.getElementById('legend');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-    function renderDefaultLegend(){
-      legend.classList.add('fade');
-      setTimeout(()=>{
-        legend.innerHTML = `
-          <h3>Region Guide</h3>
-          <div style="height: 8px;"></div> <!-- added spacing -->
-          ${regions.map((r,i)=>`
-            <div class="row">
-              <div class="swatch" data-index="${i}" style="background:${r.color}20;border-color:${r.color}55"></div>
-              <div>
-                <div class="name" data-index="${i}">${r.name}</div>
-                <div class="meta"><strong>Area:</strong> ${r.area}</div>
-                <div class="meta"><strong>Exits:</strong> ${r.exits}</div>
-              </div>
-            </div>`).join('')}
-        `;
-        legend.classList.remove('fade');
-        document.querySelectorAll('.legend .name, .legend .swatch').forEach(el=>{
-          el.addEventListener('click',()=>{
-            const i=parseInt(el.getAttribute('data-index'));
-            showRegionDetails(regions[i]);
-          });
-        });
-      },200);
+    // --- Example region polygons (replace with your existing GeoJSON or shapes) ---
+    const regions = {
+      west: L.polygon([[45.53,-122.45],[45.55,-122.35],[45.58,-122.25]], {color:'#4a90e2'}),
+      centralwest: L.polygon([[45.57,-122.25],[45.6,-122.1],[45.63,-122.0]], {color:'#7ed321'}),
+      central: L.polygon([[45.64,-122.0],[45.66,-121.8],[45.68,-121.7]], {color:'#f8e71c'}),
+      centraleast: L.polygon([[45.69,-121.7],[45.71,-121.55],[45.74,-121.4]], {color:'#f5a623'}),
+      east: L.polygon([[45.75,-121.4],[45.75,-121.2],[45.7,-121.0]], {color:'#d0021b'})
+    };
+
+    for (const key in regions) {
+      regions[key].addTo(map);
     }
 
-    function showRegionDetails(region){
-      activeRegion = region;
-      regions.forEach(r=>r.layer.setStyle({weight:2,fillOpacity:0.18}));
-      region.layer.setStyle({weight:5,fillOpacity:0.35});
-      legend.classList.add('fade');
-      setTimeout(()=>{
-        legend.innerHTML = `
-          <span class="back-link" id="backLink">← Back to Region Guide</span>
-          <div class="region-header" style="background:${region.color};">${region.name}</div>
-          <div class="meta"><strong>Area:</strong> ${region.area}</div>
-          <div class="meta"><strong>Exits:</strong> ${region.exits}</div>
-          <div class="meta"><strong>Trails:</strong></div>
-          <div class="trail-list">${region.trails.map(t=>`<div>${t}</div>`).join('')}</div>
-        `;
-        legend.classList.remove('fade');
-        document.getElementById('backLink').addEventListener('click',()=>{
-          activeRegion=null;
-          regions.forEach(r=>r.layer.setStyle({weight:2,fillOpacity:0.18}));
-          renderDefaultLegend();
-        });
-      },200);
+    function zoomToRegion(regionKey) {
+      const layer = regions[regionKey];
+      if (layer) map.fitBounds(layer.getBounds(), {padding:[20,20]});
     }
-
-    map.on('click', e=>{
-      if(!e.originalEvent.target.closest('.leaflet-interactive') && activeRegion){
-        activeRegion=null;
-        regions.forEach(r=>r.layer.setStyle({weight:2,fillOpacity:0.18}));
-        renderDefaultLegend();
-        map.flyTo(defaultCenter, defaultZoom, {animate:true, duration:0.8});
-      }
-    });
-
-    renderDefaultLegend();
   </script>
 </body>
 </html>
