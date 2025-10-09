@@ -13,16 +13,12 @@
       color: #333;
       font-size: 13px;
     }
-    #map {
-      width: 100%;
-      height: 100%;
-    }
+    #map { width: 100%; height: 100%; }
 
     /* Right-side legend */
     .legend {
       position: absolute;
-      top: 0;
-      right: 0;
+      top: 0; right: 0;
       z-index: 1000;
       background: #fff;
       border-left: 1px solid #ddd;
@@ -30,7 +26,7 @@
       width: 270px;
       max-height: 100%;
       padding: 10px 14px 14px 14px;
-      overflow-y: auto;
+      overflow-y: auto; /* whole panel scrolls as one block */
       line-height: 1.4;
     }
     .legend h3 {
@@ -40,48 +36,25 @@
       border-bottom: 1px solid #ddd;
       padding-bottom: 6px;
     }
-    .region-item {
-      display: flex;
-      align-items: center;
-      margin: 4px 0;
-    }
+    .region-item { display: flex; align-items: center; margin: 4px 0; }
     .color-box {
-      width: 12px;
-      height: 12px;
-      margin-right: 8px;
-      border: 1px solid #ccc;
+      width: 12px; height: 12px; margin-right: 8px; border: 1px solid #ccc;
     }
-    .region-link {
-      color: #0066cc;
-      text-decoration: none;
-    }
-    .region-link:hover {
-      text-decoration: underline;
-    }
+    .region-link { color: #0066cc; text-decoration: none; }
+    .region-link:hover { text-decoration: underline; }
 
     /* Highlights */
-    .highlights {
-      margin-top: 10px;
-      border-top: 1px solid #ddd;
-      padding-top: 8px;
-    }
-    .highlights h4 {
-      margin: 0 0 6px 0;
-      font-size: 14px;
-      font-weight: 600;
-    }
-    .highlights p {
-      margin: 8px 0;
-    }
-    .highlights strong {
-      font-weight: 600;
-    }
-    .highlights em {
-      color: #666;
-    }
-    .highlights span {
-      color: #555;
-    }
+    .highlights { margin-top: 10px; border-top: 1px solid #ddd; padding-top: 8px; }
+    .highlights h4 { margin: 0 0 6px 0; font-size: 14px; font-weight: 600; }
+    .highlights p { margin: 8px 0; }
+    .highlights em { color: #666; }
+    .highlights span { color: #555; }
+
+    /* Popup trail list styling */
+    .popup-wrap { max-height: 220px; overflow-y: auto; }
+    .popup-wrap h4 { margin: 0 0 6px 0; font-size: 14px; }
+    .trail-list { margin: 0; padding-left: 18px; }
+    .trail-list li { margin: 2px 0; }
   </style>
 </head>
 <body>
@@ -143,64 +116,183 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // Create the map
-    const map = L.map('map', {
-      center: [45.68, -121.8],
-      zoom: 9.45
-    });
+    // --- Map setup ---
+    const map = L.map('map', { center: [45.68, -121.8], zoom: 9.45 });
 
-    // Tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // --- Clean rectangular region bands (west → east) ---
-    const regions = {
-      west: L.polygon([
-        [45.70, -122.50],
-        [45.70, -122.25],
-        [45.45, -122.25],
-        [45.45, -122.50]
-      ], { color: '#4a90e2', weight: 1, fillOpacity: 0.25 }),
+    // --- Region band geometry ---
+    // Narrow north/south extent centered on the river (~45.70°N)
+    // Adjust the latBandHalfWidth if you want thinner/thicker stripes.
+    const latCenter = 45.70;
+    const latBandHalfWidth = 0.05; // ~5-6 km north/south coverage around the river
+    const topLat = latCenter + latBandHalfWidth;   // ~45.75
+    const botLat = latCenter - latBandHalfWidth;   // ~45.65
 
-      centralwest: L.polygon([
-        [45.70, -122.25],
-        [45.70, -122.00],
-        [45.45, -122.00],
-        [45.45, -122.25]
-      ], { color: '#7ed321', weight: 1, fillOpacity: 0.25 }),
-
-      central: L.polygon([
-        [45.70, -122.00],
-        [45.70, -121.75],
-        [45.45, -121.75],
-        [45.45, -122.00]
-      ], { color: '#f8e71c', weight: 1, fillOpacity: 0.25 }),
-
-      centraleast: L.polygon([
-        [45.70, -121.75],
-        [45.70, -121.50],
-        [45.45, -121.50],
-        [45.45, -121.75]
-      ], { color: '#f5a623', weight: 1, fillOpacity: 0.25 }),
-
-      east: L.polygon([
-        [45.70, -121.50],
-        [45.70, -121.25],
-        [45.45, -121.25],
-        [45.45, -121.50]
-      ], { color: '#d0021b', weight: 1, fillOpacity: 0.25 })
+    // Longitudinal slices (west -> east)
+    // Tuned to roughly match: West, Central West, Central, Central East, East
+    const lonSlices = {
+      west:       { minLon: -122.50, maxLon: -122.25, color: '#4a90e2' },
+      centralwest:{ minLon: -122.25, maxLon: -122.00, color: '#7ed321' },
+      central:    { minLon: -122.00, maxLon: -121.75, color: '#f8e71c' },
+      centraleast:{ minLon: -121.75, maxLon: -121.50, color: '#f5a623' },
+      east:       { minLon: -121.50, maxLon: -121.25, color: '#d0021b' }
     };
 
-    for (const key in regions) {
-      regions[key].addTo(map);
-    }
+    // Create region layers and store for zoom
+    const regions = {};
+    Object.keys(lonSlices).forEach(key => {
+      const { minLon, maxLon, color } = lonSlices[key];
+      const poly = L.polygon([
+        [topLat,  minLon],
+        [topLat,  maxLon],
+        [botLat,  maxLon],
+        [botLat,  minLon]
+      ], { color, weight: 1, fillOpacity: 0.25 });
+      poly.addTo(map);
+      regions[key] = poly;
+    });
 
-    // Region zoom function
     function zoomToRegion(regionKey) {
       const layer = regions[regionKey];
       if (layer) map.fitBounds(layer.getBounds(), { padding: [20, 20] });
     }
+
+    // --- Trails loading from CSV ---
+    // Place your CSV in the same folder and name it exactly:
+    //   trails_by_region.csv
+    // Expected minimal headers (case-insensitive):
+    //   Trail, Region
+    // Region values must be one of:
+    //   West, Central West, Central, Central East, East
+    const CSV_URL = 'trails_by_region.csv';
+
+    // Build a dictionary like { "West": [ "Trail A", "Trail B", ... ], ... }
+    const TRAILS_BY_REGION_FALLBACK = {
+      // Fallback stays empty; once you upload CSV, it will populate automatically.
+      'West': [],
+      'Central West': [],
+      'Central': [],
+      'Central East': [],
+      'East': []
+    };
+
+    const TRAILS_BY_REGION = JSON.parse(JSON.stringify(TRAILS_BY_REGION_FALLBACK));
+
+    // Simple CSV parser (handles basic CSV; for complex fields, consider refining)
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      if (!lines.length) return [];
+      const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const rows = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        let line = lines[i];
+        // Basic quoted field support
+        const fields = [];
+        let cur = '';
+        let inQuotes = false;
+        for (let c = 0; c < line.length; c++) {
+          const ch = line[c];
+          if (ch === '"' ) {
+            if (inQuotes && line[c+1] === '"') { cur += '"'; c++; }
+            else { inQuotes = !inQuotes; }
+          } else if (ch === ',' && !inQuotes) {
+            fields.push(cur.trim());
+            cur = '';
+          } else {
+            cur += ch;
+          }
+        }
+        fields.push(cur.trim());
+
+        const obj = {};
+        header.forEach((h, idx) => { obj[h] = (fields[idx] || '').trim(); });
+        rows.push(obj);
+      }
+      return rows;
+    }
+
+    function normalizeRegionName(rgn) {
+      const v = (rgn || '').toLowerCase().trim();
+      if (v === 'west') return 'West';
+      if (v === 'central west' || v === 'centralwest') return 'Central West';
+      if (v === 'central') return 'Central';
+      if (v === 'central east' || v === 'centraleast') return 'Central East';
+      if (v === 'east') return 'East';
+      return null;
+    }
+
+    async function loadTrailsFromCSV() {
+      try {
+        const res = await fetch(CSV_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error('CSV not found');
+        const text = await res.text();
+        const rows = parseCSV(text);
+
+        // Map headers
+        // Accept "Trail" or "Name" as trail name column
+        rows.forEach(row => {
+          const trailName = row['trail'] || row['name'] || '';
+          const regionRaw = row['region'] || row['area'] || '';
+          const region = normalizeRegionName(regionRaw);
+          if (trailName && region && TRAILS_BY_REGION[region]) {
+            TRAILS_BY_REGION[region].push(trailName);
+          }
+        });
+
+        // Sort lists alphabetically
+        Object.keys(TRAILS_BY_REGION).forEach(k => {
+          TRAILS_BY_REGION[k].sort((a,b) => a.localeCompare(b));
+        });
+
+        bindPopups();
+      } catch (e) {
+        console.warn('Trails CSV not loaded — using fallback (empty).', e);
+        bindPopups();
+      }
+    }
+
+    function renderTrailListHTML(regionLabel) {
+      const list = TRAILS_BY_REGION[regionLabel] || [];
+      const items = list.map(t => `<li>${escapeHTML(t)}</li>`).join('');
+      const emptyNote = list.length ? '' : `<em>No trails loaded yet. Ensure <code>${CSV_URL}</code> is present with Trail & Region columns.</em>`;
+      return `
+        <div class="popup-wrap">
+          <h4>${regionLabel} — Trails</h4>
+          ${list.length ? `<ol class="trail-list">${items}</ol>` : emptyNote}
+        </div>
+      `;
+    }
+
+    function escapeHTML(s) {
+      return String(s)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function bindPopups() {
+      // Attach popups with trail lists to each region band
+      const mapKeyToLabel = {
+        west: 'West',
+        centralwest: 'Central West',
+        central: 'Central',
+        centraleast: 'Central East',
+        east: 'East'
+      };
+      Object.keys(regions).forEach(key => {
+        const label = mapKeyToLabel[key];
+        const html = renderTrailListHTML(label);
+        regions[key].bindPopup(html, { maxWidth: 360, closeButton: true });
+      });
+    }
+
+    loadTrailsFromCSV();
   </script>
 </body>
 </html>
