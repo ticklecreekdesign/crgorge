@@ -6,29 +6,124 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    html,body{height:100%;width:100%;margin:0;padding:0;font-family:Montserrat,sans-serif;color:#333;font-size:13px;}
-    #map{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;}
-    .legend{
-      position:absolute;top:0;right:0;z-index:1000;background:#fff;
-      border-left:1px solid #ddd;border-bottom:1px solid #ddd;
-      width:270px;max-height:100%;padding:10px 14px 14px 14px;
-      overflow-y:auto;line-height:1.45;box-sizing:border-box;
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: Montserrat, sans-serif;
+      color: #333;
+      font-size: 13px;
+      overflow: hidden;
     }
-    .legend h3{margin:0 0 8px 0;font-size:15px;font-weight:600;}
-    .region-entry{margin:8px 0 12px 0;}
-    .region-top{display:flex;align-items:center;gap:8px;}
-    .color-box{width:12px;height:12px;border:1px solid #ccc;cursor:pointer;}
-    .region-link{color:#000;text-decoration:none;font-weight:600;cursor:pointer;}
-    .region-link:hover,.color-box:hover{opacity:0.7;}
-    .region-meta{margin-left:20px;color:#555;}
-    .region-meta div{margin:2px 0;}
-    .legend-detail .back-row{position:sticky;top:0;background:#fff;padding:6px 0 8px 0;z-index:2;}
-    .legend-detail .back-link{color:#06c;text-decoration:none;font-weight:600;}
-    .legend-detail .back-link:hover{text-decoration:underline;}
-    .legend-detail h4{margin:8px 0 6px 0;font-size:14px;font-weight:600;}
-    .legend-detail p{margin:6px 0 10px 0;}
-    .trail-list{margin:0;padding-left:18px;}
-    .trail-list li{margin:3px 0;}
+
+    /* Map fills everything behind legend */
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Full-height right legend */
+    .legend {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;             /* full height */
+      z-index: 1000;
+      background: #fff;
+      border-left: 1px solid #ddd;
+      width: 270px;
+      height: 100%;
+      padding: 10px 14px 14px 14px;
+      overflow-y: auto;
+      line-height: 1.45;
+      box-sizing: border-box;
+    }
+
+    .legend h3 {
+      margin: 0 0 8px 0;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .region-entry {
+      margin: 8px 0 12px 0;
+    }
+
+    .region-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .color-box {
+      width: 12px;
+      height: 12px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    .region-link {
+      color: #000;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .region-link:hover, .color-box:hover {
+      opacity: 0.7;
+    }
+
+    .region-meta {
+      margin-left: 20px;
+      color: #555;
+    }
+
+    .region-meta div {
+      margin: 2px 0;
+    }
+
+    /* Region Detail View */
+    .legend-detail .back-row {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      padding: 6px 0 8px 0;
+      z-index: 2;
+    }
+
+    .legend-detail .back-link {
+      color: #06c;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .legend-detail .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .legend-detail h4 {
+      margin: 8px 0 6px 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .legend-detail p {
+      margin: 6px 0 10px 0;
+    }
+
+    .trail-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .trail-list li {
+      margin: 3px 0;
+    }
   </style>
 </head>
 <body>
@@ -37,12 +132,15 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const DEFAULT_CENTER=[45.68,-121.8],DEFAULT_ZOOM=9.45;
-    const map=L.map('map',{center:DEFAULT_CENTER,zoom:DEFAULT_ZOOM,zoomControl:true});
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+    const DEFAULT_CENTER = [45.68, -121.8];
+    const DEFAULT_ZOOM = 9.45;
 
-    const REGION_INFO={
+    const map = L.map('map', { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const REGION_INFO = {
       west:{label:'West',color:'#4a90e2',area:'Troutdale → Bridal Veil area',mm:'17–28',
         highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
       centralwest:{label:'Central West',color:'#7ed321',area:'Wahkeena → Cascade Locks',mm:'28–41',
@@ -55,7 +153,7 @@
         highlights:'Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.'}
     };
 
-    const TRAILS={
+    const TRAILS = {
       "West":["Angels’ Rest","Angels’ Rest to Devil’s Rest","Bridal Veil Falls","Bridal Veil Loop","Fairy Falls",
         "Larch Mt via Multnomah Falls","Latourell Falls Trail","Multnomah Falls","Multnomah–Wahkeena Loop",
         "Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Wahkeena Falls"],
@@ -84,8 +182,9 @@
     };
 
     const regions={},baseCoords={};
+
     function rectCoords(minLon,maxLon,half){
-      return[[latCenter+half,minLon],[latCenter+half,maxLon],[latCenter-half,maxLon],[latCenter-half,minLon]];
+      return [[latCenter+half,minLon],[latCenter+half,maxLon],[latCenter-half,maxLon],[latCenter-half,minLon]];
     }
 
     for(const k in slices){
