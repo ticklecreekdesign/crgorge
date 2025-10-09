@@ -16,24 +16,25 @@
       width: 100%;
       height: 100%;
     }
+    /* LEGEND (restored to original clean style) */
     .legend {
       position: absolute;
-      top: 10px;
-      left: 10px;
+      top: 0;
+      left: 0;
       z-index: 1000;
       background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 10px 14px;
-      max-height: 90%;
-      width: 240px;
-      overflow-y: auto; /* entire legend scrolls as one block */
-      box-shadow: 0 1px 6px rgba(0,0,0,0.15);
+      border: none;
+      border-right: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      padding: 10px 15px 15px 15px;
+      width: 260px;
+      max-height: 100%;
+      overflow-y: auto;
       line-height: 1.5;
     }
     .legend h3 {
+      margin: 0;
       font-size: 16px;
-      margin: 0 0 8px 0;
       font-weight: 600;
       border-bottom: 1px solid #ddd;
       padding-bottom: 6px;
@@ -42,7 +43,8 @@
       display: block;
       color: #0066cc;
       text-decoration: none;
-      margin: 3px 0;
+      margin: 5px 0;
+      font-size: 14px;
     }
     .legend a:hover {
       text-decoration: underline;
@@ -52,6 +54,11 @@
       border-top: 1px solid #ddd;
       padding-top: 10px;
       font-size: 13px;
+    }
+    .highlights h4 {
+      margin: 0 0 6px 0;
+      font-size: 14px;
+      font-weight: 600;
     }
     .highlights p {
       margin: 10px 0;
@@ -79,7 +86,7 @@
     <a href="#" onclick="zoomToRegion('east'); return false;">East</a>
 
     <div class="highlights">
-      <h4 style="margin:0 0 6px 0;font-size:14px;font-weight:600;">Region Highlights</h4>
+      <h4>Region Highlights</h4>
 
       <p><strong>West</strong><br>
       <em>Troutdale → Bridal Veil area</em><br>
@@ -110,17 +117,17 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // --- Basic Leaflet setup (use your same coordinates and zoom) ---
+    // Basic Leaflet map setup
     const map = L.map('map', {
       center: [45.68, -121.8],
-      zoom: 9.45
+      zoom: 9.42
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // --- Example region polygons (replace with your existing GeoJSON or shapes) ---
+    // Example region polygons (replace with your actual shapes)
     const regions = {
       west: L.polygon([[45.53,-122.45],[45.55,-122.35],[45.58,-122.25]], {color:'#4a90e2'}),
       centralwest: L.polygon([[45.57,-122.25],[45.6,-122.1],[45.63,-122.0]], {color:'#7ed321'}),
