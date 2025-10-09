@@ -1,57 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>Columbia River Gorge — Region Guide</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: Montserrat, sans-serif;
-      color: #333;
-      font-size: 13px;
-    }
+    html, body { height: 100%; margin: 0; font-family: Montserrat, sans-serif; color:#333; font-size:13px; }
     #map { width: 100%; height: 100%; }
 
-    /* Right-side legend */
+    /* Right-side legend (flat, compact) */
     .legend {
-      position: absolute;
-      top: 0; right: 0;
-      z-index: 1000;
-      background: #fff;
-      border-left: 1px solid #ddd;
-      border-bottom: 1px solid #ddd;
-      width: 270px;
-      max-height: 100%;
-      padding: 10px 14px 14px 14px;
-      overflow-y: auto; /* whole panel scrolls as one block */
-      line-height: 1.4;
+      position: absolute; top: 0; right: 0; z-index: 1000;
+      background: #fff; border-left: 1px solid #ddd; border-bottom: 1px solid #ddd;
+      width: 270px; max-height: 100%; padding: 10px 14px 14px 14px; overflow-y: auto; line-height: 1.4;
     }
-    .legend h3 {
-      margin: 0;
-      font-size: 15px;
-      font-weight: 600;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 6px;
-    }
-    .region-item { display: flex; align-items: center; margin: 4px 0; }
-    .color-box {
-      width: 12px; height: 12px; margin-right: 8px; border: 1px solid #ccc;
-    }
-    .region-link { color: #0066cc; text-decoration: none; }
-    .region-link:hover { text-decoration: underline; }
+    .legend h3 { margin: 0; font-size: 15px; font-weight: 600; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+    .region-item { display:flex; align-items:center; margin:4px 0; }
+    .color-box { width:12px; height:12px; margin-right:8px; border:1px solid #ccc; }
+    .region-link { color:#06c; text-decoration:none; }
+    .region-link:hover { text-decoration:underline; }
 
-    /* Highlights */
     .highlights { margin-top: 10px; border-top: 1px solid #ddd; padding-top: 8px; }
-    .highlights h4 { margin: 0 0 6px 0; font-size: 14px; font-weight: 600; }
-    .highlights p { margin: 8px 0; }
-    .highlights em { color: #666; }
-    .highlights span { color: #555; }
+    .highlights h4 { margin:0 0 6px 0; font-size:14px; font-weight:600; }
+    .highlights p { margin:8px 0; }
+    .highlights em { color:#666; }
+    .highlights span { color:#555; }
 
-    /* Popup trail list styling */
-    .popup-wrap { max-height: 220px; overflow-y: auto; }
+    /* Popup styling: no scroll; we expand the band instead */
+    .popup-wrap { max-width: 360px; }
     .popup-wrap h4 { margin: 0 0 6px 0; font-size: 14px; }
     .trail-list { margin: 0; padding-left: 18px; }
     .trail-list li { margin: 2px 0; }
@@ -60,28 +37,29 @@
 <body>
   <div id="map"></div>
 
+  <!-- Legend -->
   <div class="legend" id="legend">
     <h3>Region Guide</h3>
 
     <div class="region-item">
       <div class="color-box" style="background:#4a90e2;"></div>
-      <a href="#" class="region-link" onclick="zoomToRegion('west'); return false;">West</a>
+      <a href="#" class="region-link" onclick="zoomToRegion('west');return false;">West</a>
     </div>
     <div class="region-item">
       <div class="color-box" style="background:#7ed321;"></div>
-      <a href="#" class="region-link" onclick="zoomToRegion('centralwest'); return false;">Central West</a>
+      <a href="#" class="region-link" onclick="zoomToRegion('centralwest');return false;">Central West</a>
     </div>
     <div class="region-item">
       <div class="color-box" style="background:#f8e71c;"></div>
-      <a href="#" class="region-link" onclick="zoomToRegion('central'); return false;">Central</a>
+      <a href="#" class="region-link" onclick="zoomToRegion('central');return false;">Central</a>
     </div>
     <div class="region-item">
       <div class="color-box" style="background:#f5a623;"></div>
-      <a href="#" class="region-link" onclick="zoomToRegion('centraleast'); return false;">Central East</a>
+      <a href="#" class="region-link" onclick="zoomToRegion('centraleast');return false;">Central East</a>
     </div>
     <div class="region-item">
       <div class="color-box" style="background:#d0021b;"></div>
-      <a href="#" class="region-link" onclick="zoomToRegion('east'); return false;">East</a>
+      <a href="#" class="region-link" onclick="zoomToRegion('east');return false;">East</a>
     </div>
 
     <div class="highlights">
@@ -116,183 +94,176 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // --- Map setup ---
+    // --------------------
+    // Map setup
+    // --------------------
     const map = L.map('map', { center: [45.68, -121.8], zoom: 9.45 });
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // --- Region band geometry ---
-    // Narrow north/south extent centered on the river (~45.70°N)
-    // Adjust the latBandHalfWidth if you want thinner/thicker stripes.
-    const latCenter = 45.70;
-    const latBandHalfWidth = 0.05; // ~5-6 km north/south coverage around the river
-    const topLat = latCenter + latBandHalfWidth;   // ~45.75
-    const botLat = latCenter - latBandHalfWidth;   // ~45.65
-
-    // Longitudinal slices (west -> east)
-    // Tuned to roughly match: West, Central West, Central, Central East, East
-    const lonSlices = {
-      west:       { minLon: -122.50, maxLon: -122.25, color: '#4a90e2' },
-      centralwest:{ minLon: -122.25, maxLon: -122.00, color: '#7ed321' },
-      central:    { minLon: -122.00, maxLon: -121.75, color: '#f8e71c' },
-      centraleast:{ minLon: -121.75, maxLon: -121.50, color: '#f5a623' },
-      east:       { minLon: -121.50, maxLon: -121.25, color: '#d0021b' }
+    // --------------------
+    // Trail data (embedded)
+    // --------------------
+    const TRAILS = {
+      "West": [
+        "Angels’ Rest","Angels’ Rest to Devil’s Rest","Bridal Veil Falls","Bridal Veil Loop",
+        "Fairy Falls","Larch Mt via Multnomah Falls","Latourell Falls Trail",
+        "Multnomah Falls","Multnomah–Wahkeena Loop","Rooster Rock Loop","Sandy River Delta",
+        "Shepperd's Dell","Wahkeena Falls"
+      ],
+      "Central West": [
+        "Bell Creek Trail","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop",
+        "Indian Point Loop","John B. Yeon Trailhead","Munra Point","Nesmith Point Trail",
+        "Oneonta Gorge","Ponytail Falls Trail","Punchbowl Falls","Triple Falls Trail",
+        "Tunnel Falls","Upper McCord Creek Falls","Wauna Point"
+      ],
+      "Central": [
+        "Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail",
+        "Dry Creek Falls","Hamilton Mountain Loop","Hardy Ridge Loop","Herman Creek Pinnacles",
+        "Nick Eaton Ridge Loop","Ruckel Ridge Loop","Table Mountain Loop","Tom McCall Point",
+        "Wahclella Falls"
+      ],
+      "Central East": [
+        "Chetwoot Loop Hike","Lancaster Falls","Lower Starvation Loop","Mark O. Hatfield Trailhead",
+        "Memaloose Hills","Mitchell Point Trail","Mosier Twin Tunnels","Mt. Defiance Loop",
+        "Rowena Plateau","Starvation Creek Trail","Starvation Ridge","Tooth Rock Loop","Wygant Peak"
+      ],
+      "East": [
+        "Augspurger Mountain Trail","Beacon Rock Trail","Cape Horn Loop Trail",
+        "Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail",
+        "Dog Mountain","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail",
+        "Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail",
+        "The Dalles Mountain","Wind Mountain"
+      ]
     };
 
-    // Create region layers and store for zoom
+    // --------------------
+    // Region bands (river-centered)
+    // --------------------
+    const latCenter = 45.70;
+    const baseHalf = 0.05;      // default half-height of each band (~5-6 km N/S)
+    const topBase = latCenter + baseHalf;
+    const botBase = latCenter - baseHalf;
+
+    const slices = {
+      west:       { minLon: -122.50, maxLon: -122.25, color: '#4a90e2', label: 'West' },
+      centralwest:{ minLon: -122.25, maxLon: -122.00, color: '#7ed321', label: 'Central West' },
+      central:    { minLon: -122.00, maxLon: -121.75, color: '#f8e71c', label: 'Central' },
+      centraleast:{ minLon: -121.75, maxLon: -121.50, color: '#f5a623', label: 'Central East' },
+      east:       { minLon: -121.50, maxLon: -121.25, color: '#d0021b', label: 'East' }
+    };
+
     const regions = {};
-    Object.keys(lonSlices).forEach(key => {
-      const { minLon, maxLon, color } = lonSlices[key];
-      const poly = L.polygon([
-        [topLat,  minLon],
-        [topLat,  maxLon],
-        [botLat,  maxLon],
-        [botLat,  minLon]
-      ], { color, weight: 1, fillOpacity: 0.25 });
+    const baseCoords = {};
+    const expandedState = { current: null };
+
+    // Helper: build rectangle coords by half-height
+    function rectCoords(minLon, maxLon, halfHeight) {
+      return [
+        [latCenter + halfHeight, minLon],
+        [latCenter + halfHeight, maxLon],
+        [latCenter - halfHeight, maxLon],
+        [latCenter - halfHeight, minLon]
+      ];
+    }
+
+    // Create base bands
+    for (const key in slices) {
+      const { minLon, maxLon, color } = slices[key];
+      const coords = rectCoords(minLon, maxLon, baseHalf);
+      baseCoords[key] = coords.slice();
+      const poly = L.polygon(coords, { color, weight: 1, fillColor: color, fillOpacity: 0.25 });
       poly.addTo(map);
       regions[key] = poly;
-    });
-
-    function zoomToRegion(regionKey) {
-      const layer = regions[regionKey];
-      if (layer) map.fitBounds(layer.getBounds(), { padding: [20, 20] });
     }
 
-    // --- Trails loading from CSV ---
-    // Place your CSV in the same folder and name it exactly:
-    //   trails_by_region.csv
-    // Expected minimal headers (case-insensitive):
-    //   Trail, Region
-    // Region values must be one of:
-    //   West, Central West, Central, Central East, East
-    const CSV_URL = 'trails_by_region.csv';
-
-    // Build a dictionary like { "West": [ "Trail A", "Trail B", ... ], ... }
-    const TRAILS_BY_REGION_FALLBACK = {
-      // Fallback stays empty; once you upload CSV, it will populate automatically.
-      'West': [],
-      'Central West': [],
-      'Central': [],
-      'Central East': [],
-      'East': []
+    // --------------------
+    // Popups + expansion logic
+    // --------------------
+    const mapKeyToLabel = {
+      west: 'West',
+      centralwest: 'Central West',
+      central: 'Central',
+      centraleast: 'Central East',
+      east: 'East'
     };
 
-    const TRAILS_BY_REGION = JSON.parse(JSON.stringify(TRAILS_BY_REGION_FALLBACK));
-
-    // Simple CSV parser (handles basic CSV; for complex fields, consider refining)
-    function parseCSV(text) {
-      const lines = text.trim().split(/\r?\n/);
-      if (!lines.length) return [];
-      const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-      const rows = [];
-
-      for (let i = 1; i < lines.length; i++) {
-        let line = lines[i];
-        // Basic quoted field support
-        const fields = [];
-        let cur = '';
-        let inQuotes = false;
-        for (let c = 0; c < line.length; c++) {
-          const ch = line[c];
-          if (ch === '"' ) {
-            if (inQuotes && line[c+1] === '"') { cur += '"'; c++; }
-            else { inQuotes = !inQuotes; }
-          } else if (ch === ',' && !inQuotes) {
-            fields.push(cur.trim());
-            cur = '';
-          } else {
-            cur += ch;
-          }
-        }
-        fields.push(cur.trim());
-
-        const obj = {};
-        header.forEach((h, idx) => { obj[h] = (fields[idx] || '').trim(); });
-        rows.push(obj);
-      }
-      return rows;
-    }
-
-    function normalizeRegionName(rgn) {
-      const v = (rgn || '').toLowerCase().trim();
-      if (v === 'west') return 'West';
-      if (v === 'central west' || v === 'centralwest') return 'Central West';
-      if (v === 'central') return 'Central';
-      if (v === 'central east' || v === 'centraleast') return 'Central East';
-      if (v === 'east') return 'East';
-      return null;
-    }
-
-    async function loadTrailsFromCSV() {
-      try {
-        const res = await fetch(CSV_URL, { cache: 'no-store' });
-        if (!res.ok) throw new Error('CSV not found');
-        const text = await res.text();
-        const rows = parseCSV(text);
-
-        // Map headers
-        // Accept "Trail" or "Name" as trail name column
-        rows.forEach(row => {
-          const trailName = row['trail'] || row['name'] || '';
-          const regionRaw = row['region'] || row['area'] || '';
-          const region = normalizeRegionName(regionRaw);
-          if (trailName && region && TRAILS_BY_REGION[region]) {
-            TRAILS_BY_REGION[region].push(trailName);
-          }
-        });
-
-        // Sort lists alphabetically
-        Object.keys(TRAILS_BY_REGION).forEach(k => {
-          TRAILS_BY_REGION[k].sort((a,b) => a.localeCompare(b));
-        });
-
-        bindPopups();
-      } catch (e) {
-        console.warn('Trails CSV not loaded — using fallback (empty).', e);
-        bindPopups();
-      }
-    }
-
-    function renderTrailListHTML(regionLabel) {
-      const list = TRAILS_BY_REGION[regionLabel] || [];
+    // Render popup HTML
+    function popupHTML(regionLabel) {
+      const list = TRAILS[regionLabel] || [];
       const items = list.map(t => `<li>${escapeHTML(t)}</li>`).join('');
-      const emptyNote = list.length ? '' : `<em>No trails loaded yet. Ensure <code>${CSV_URL}</code> is present with Trail & Region columns.</em>`;
       return `
         <div class="popup-wrap">
-          <h4>${regionLabel} — Trails</h4>
-          ${list.length ? `<ol class="trail-list">${items}</ol>` : emptyNote}
+          <h4>${regionLabel} — Trails (${list.length})</h4>
+          <ol class="trail-list">${items}</ol>
         </div>
       `;
     }
 
-    function escapeHTML(s) {
-      return String(s)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
+    // Estimate extra half-height needed based on trail count (rough heuristic)
+    // Each item ~16px line-height; convert to degrees lat so all items fit without scroll.
+    function extraHalfHeightFor(count) {
+      // Heuristic: ~0.002 deg per 5 items; scale gently so it doesn’t get absurdly tall.
+      return Math.min(0.18, (count / 5) * 0.002);
     }
 
-    function bindPopups() {
-      // Attach popups with trail lists to each region band
-      const mapKeyToLabel = {
-        west: 'West',
-        centralwest: 'Central West',
-        central: 'Central',
-        centraleast: 'Central East',
-        east: 'East'
-      };
-      Object.keys(regions).forEach(key => {
-        const label = mapKeyToLabel[key];
-        const html = renderTrailListHTML(label);
-        regions[key].bindPopup(html, { maxWidth: 360, closeButton: true });
+    // Expand a region (increase band height), bind and open popup
+    function expandRegion(key) {
+      const label = mapKeyToLabel[key];
+      const band = regions[key];
+      const { minLon, maxLon } = slices[key];
+      const trailCount = (TRAILS[label] || []).length;
+
+      // Reset others first
+      resetAllBands();
+
+      // Compute expanded half-height so the trail list fits comfortably
+      const extra = extraHalfHeightFor(trailCount);
+      const newCoords = rectCoords(minLon, maxLon, baseHalf + extra);
+      band.setLatLngs(newCoords);
+
+      // Bind & open popup (no internal scroll—band is taller instead)
+      band.bindPopup(popupHTML(label), { maxWidth: 360, closeButton: true }).openPopup();
+      expandedState.current = key;
+    }
+
+    // Reset all bands to base size & close popups
+    function resetAllBands() {
+      for (const k in regions) {
+        regions[k].setLatLngs(baseCoords[k]);
+        regions[k].closePopup();
+      }
+      expandedState.current = null;
+    }
+
+    // Click handlers: expand on band click, reset on map click
+    for (const key in regions) {
+      regions[key].on('click', (e) => {
+        L.DomEvent.stopPropagation(e); // prevent map click from immediately resetting
+        expandRegion(key);
       });
     }
+    map.on('click', resetAllBands);
 
-    loadTrailsFromCSV();
+    // Public helper for legend links
+    function zoomToRegion(regionKey) {
+      const layer = regions[regionKey];
+      if (layer) {
+        map.fitBounds(layer.getBounds(), { padding: [20, 20] });
+        // Also expand & show trails when using legend links (feels intentional)
+        expandRegion(regionKey);
+      }
+    }
+    window.zoomToRegion = zoomToRegion;
+
+    // Utility
+    function escapeHTML(s) {
+      return String(s)
+        .replaceAll('&','&amp;').replaceAll('<','&lt;')
+        .replaceAll('>','&gt;').replaceAll('"','&quot;')
+        .replaceAll("'","&#39;");
+    }
   </script>
 </body>
 </html>
