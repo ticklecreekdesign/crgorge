@@ -11,49 +11,61 @@
       margin: 0;
       font-family: Montserrat, sans-serif;
       color: #333;
+      font-size: 13px;
     }
     #map {
       width: 100%;
       height: 100%;
     }
-    /* LEGEND (restored to original clean style) */
+
+    /* RIGHT-SIDE LEGEND */
     .legend {
       position: absolute;
       top: 0;
-      left: 0;
+      right: 0;
       z-index: 1000;
       background: #fff;
-      border: none;
-      border-right: 1px solid #ddd;
+      border-left: 1px solid #ddd;
       border-bottom: 1px solid #ddd;
-      padding: 10px 15px 15px 15px;
-      width: 260px;
+      width: 270px;
       max-height: 100%;
+      padding: 10px 14px 14px 14px;
       overflow-y: auto;
-      line-height: 1.5;
+      line-height: 1.4;
     }
     .legend h3 {
       margin: 0;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       border-bottom: 1px solid #ddd;
       padding-bottom: 6px;
     }
-    .legend a {
-      display: block;
+
+    /* Color key list */
+    .region-item {
+      display: flex;
+      align-items: center;
+      margin: 4px 0;
+    }
+    .color-box {
+      width: 12px;
+      height: 12px;
+      margin-right: 8px;
+      border: 1px solid #ccc;
+    }
+    .region-link {
       color: #0066cc;
       text-decoration: none;
-      margin: 5px 0;
-      font-size: 14px;
     }
-    .legend a:hover {
+    .region-link:hover {
       text-decoration: underline;
     }
+
+    /* Highlights section */
     .highlights {
-      margin-top: 12px;
+      margin-top: 10px;
       border-top: 1px solid #ddd;
-      padding-top: 10px;
-      font-size: 13px;
+      padding-top: 8px;
     }
     .highlights h4 {
       margin: 0 0 6px 0;
@@ -61,7 +73,7 @@
       font-weight: 600;
     }
     .highlights p {
-      margin: 10px 0;
+      margin: 8px 0;
     }
     .highlights strong {
       font-weight: 600;
@@ -79,11 +91,27 @@
 
   <div class="legend" id="legend">
     <h3>Region Guide</h3>
-    <a href="#" onclick="zoomToRegion('west'); return false;">West</a>
-    <a href="#" onclick="zoomToRegion('centralwest'); return false;">Central West</a>
-    <a href="#" onclick="zoomToRegion('central'); return false;">Central</a>
-    <a href="#" onclick="zoomToRegion('centraleast'); return false;">Central East</a>
-    <a href="#" onclick="zoomToRegion('east'); return false;">East</a>
+
+    <div class="region-item">
+      <div class="color-box" style="background:#4a90e2;"></div>
+      <a href="#" class="region-link" onclick="zoomToRegion('west'); return false;">West</a>
+    </div>
+    <div class="region-item">
+      <div class="color-box" style="background:#7ed321;"></div>
+      <a href="#" class="region-link" onclick="zoomToRegion('centralwest'); return false;">Central West</a>
+    </div>
+    <div class="region-item">
+      <div class="color-box" style="background:#f8e71c;"></div>
+      <a href="#" class="region-link" onclick="zoomToRegion('central'); return false;">Central</a>
+    </div>
+    <div class="region-item">
+      <div class="color-box" style="background:#f5a623;"></div>
+      <a href="#" class="region-link" onclick="zoomToRegion('centraleast'); return false;">Central East</a>
+    </div>
+    <div class="region-item">
+      <div class="color-box" style="background:#d0021b;"></div>
+      <a href="#" class="region-link" onclick="zoomToRegion('east'); return false;">East</a>
+    </div>
 
     <div class="highlights">
       <h4>Region Highlights</h4>
@@ -117,17 +145,17 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // Basic Leaflet map setup
+    // Map setup
     const map = L.map('map', {
       center: [45.68, -121.8],
-      zoom: 9.42
+      zoom: 9.45
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Example region polygons (replace with your actual shapes)
+    // Region polygons (replace with your actual shapes)
     const regions = {
       west: L.polygon([[45.53,-122.45],[45.55,-122.35],[45.58,-122.25]], {color:'#4a90e2'}),
       centralwest: L.polygon([[45.57,-122.25],[45.6,-122.1],[45.63,-122.0]], {color:'#7ed321'}),
