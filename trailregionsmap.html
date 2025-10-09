@@ -6,126 +6,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    html, body {
-      height: 100%;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: Montserrat, sans-serif;
-      color: #333;
-      font-size: 13px;
-      overflow: hidden;
+    html,body{height:100%;width:100%;margin:0;padding:0;font-family:Montserrat,sans-serif;color:#333;font-size:13px;overflow:hidden;}
+    #map{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;}
+
+    /* Full-height legend panel */
+    .legend{
+      position:absolute;top:0;right:0;bottom:0;z-index:1000;background:#fff;
+      border-left:1px solid #ddd;width:270px;height:100%;
+      padding:10px 14px 14px 14px;overflow-y:auto;line-height:1.45;box-sizing:border-box;
     }
 
-    #map {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-    }
+    .legend h3{margin:0 0 16px 0;font-size:15px;font-weight:600;} /* extra space below title */
 
-    /* Full-height right legend */
-    .legend {
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 1000;
-      background: #fff;
-      border-left: 1px solid #ddd;
-      width: 270px;
-      height: 100%;
-      padding: 10px 14px 14px 14px;
-      overflow-y: auto;
-      line-height: 1.45;
-      box-sizing: border-box;
-    }
+    .region-entry{margin:10px 0 18px 0;}
+    .region-top{display:flex;align-items:center;gap:8px;}
+    .color-box{width:12px;height:12px;border:1px solid #ccc;cursor:pointer;}
+    .region-link{color:#000;text-decoration:none;font-weight:700;font-size:17px;cursor:pointer;}
+    .region-link:hover,.color-box:hover{opacity:0.7;}
+    .region-meta{margin-left:20px;color:#555;}
+    .region-meta div{margin:2px 0;}
 
-    .legend h3 {
-      margin: 0 0 8px 0;
-      font-size: 15px;
-      font-weight: 600;
-    }
-
-    .region-entry {
-      margin: 8px 0 12px 0;
-    }
-
-    .region-top {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .color-box {
-      width: 12px;
-      height: 12px;
-      border: 1px solid #ccc;
-      cursor: pointer;
-    }
-
-    .region-link {
-      color: #000;
-      text-decoration: none;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .region-link:hover, .color-box:hover {
-      opacity: 0.7;
-    }
-
-    .region-meta {
-      margin-left: 20px;
-      color: #555;
-    }
-
-    .region-meta div {
-      margin: 2px 0;
-    }
-
-    /* Region Detail View */
-    .legend-detail .back-row {
-      position: sticky;
-      top: 0;
-      background: #fff;
-      padding: 6px 0 8px 0;
-      z-index: 2;
-    }
-
-    .legend-detail .back-link {
-      color: #06c;
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .legend-detail .back-link:hover {
-      text-decoration: underline;
-    }
-
-    .legend-detail h4 {
-      display: inline;
-      margin: 0;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .legend-detail p {
-      margin: 6px 0 10px 0;
-      display: inline;
-    }
-
-    .trail-list {
-      margin: 10px 0 0 0;
-      padding-left: 18px;
-      list-style-type: disc;
-    }
-
-    .trail-list li {
-      margin: 3px 0;
-    }
+    /* Detail view */
+    .legend-detail .back-row{position:sticky;top:0;background:#fff;padding:6px 0 8px 0;z-index:2;}
+    .legend-detail .back-link{color:#06c;text-decoration:none;font-weight:600;}
+    .legend-detail .back-link:hover{text-decoration:underline;}
+    .legend-detail h3{font-size:18px;font-weight:700;margin:8px 0 8px 0;}
+    .legend-detail h4{display:inline;margin:0;font-size:13px;font-weight:600;}
+    .legend-detail p{margin:6px 0 10px 0;display:inline;}
+    .trail-list{margin:10px 0 0 0;padding-left:18px;list-style-type:disc;}
+    .trail-list li{margin:3px 0;}
   </style>
 </head>
 <body>
@@ -134,15 +43,11 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const DEFAULT_CENTER = [45.68, -121.8];
-    const DEFAULT_ZOOM = 9.45;
+    const DEFAULT_CENTER=[45.68,-121.8],DEFAULT_ZOOM=9.45;
+    const map=L.map('map',{center:DEFAULT_CENTER,zoom:DEFAULT_ZOOM});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
 
-    const map = L.map('map', { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    const REGION_INFO = {
+    const REGION_INFO={
       west:{label:'West',color:'#4a90e2',area:'Troutdale → Bridal Veil area',mm:'17–28',
         highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
       centralwest:{label:'Central West',color:'#7ed321',area:'Wahkeena → Cascade Locks',mm:'28–41',
@@ -155,23 +60,12 @@
         highlights:'Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.'}
     };
 
-    const TRAILS = {
-      "West":["Angels’ Rest","Angels’ Rest to Devil’s Rest","Bridal Veil Falls","Bridal Veil Loop","Fairy Falls",
-        "Larch Mt via Multnomah Falls","Latourell Falls Trail","Multnomah Falls","Multnomah–Wahkeena Loop",
-        "Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Wahkeena Falls"],
-      "Central West":["Bell Creek Trail","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop","Indian Point Loop",
-        "John B. Yeon Trailhead","Munra Point","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail",
-        "Punchbowl Falls","Triple Falls Trail","Tunnel Falls","Upper McCord Creek Falls","Wauna Point"],
-      "Central":["Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail","Dry Creek Falls",
-        "Hamilton Mountain Loop","Hardy Ridge Loop","Herman Creek Pinnacles","Nick Eaton Ridge Loop",
-        "Ruckel Ridge Loop","Table Mountain Loop","Tom McCall Point","Wahclella Falls"],
-      "Central East":["Chetwoot Loop Hike","Lancaster Falls","Lower Starvation Loop","Mark O. Hatfield Trailhead",
-        "Memaloose Hills","Mitchell Point Trail","Mosier Twin Tunnels","Mt. Defiance Loop","Rowena Plateau",
-        "Starvation Creek Trail","Starvation Ridge","Tooth Rock Loop","Wygant Peak"],
-      "East":["Augspurger Mountain Trail","Beacon Rock Trail","Cape Horn Loop Trail","Catherine Creek Arch Loop",
-        "Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Dog Mountain","Gillette Lake",
-        "Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard",
-        "Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","Wind Mountain"]
+    const TRAILS={
+      "West":["Angels’ Rest","Angels’ Rest to Devil’s Rest","Bridal Veil Falls","Bridal Veil Loop","Fairy Falls","Larch Mt via Multnomah Falls","Latourell Falls Trail","Multnomah Falls","Multnomah–Wahkeena Loop","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Wahkeena Falls"],
+      "Central West":["Bell Creek Trail","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop","Indian Point Loop","John B. Yeon Trailhead","Munra Point","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Punchbowl Falls","Triple Falls Trail","Tunnel Falls","Upper McCord Creek Falls","Wauna Point"],
+      "Central":["Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail","Dry Creek Falls","Hamilton Mountain Loop","Hardy Ridge Loop","Herman Creek Pinnacles","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Table Mountain Loop","Tom McCall Point","Wahclella Falls"],
+      "Central East":["Chetwoot Loop Hike","Lancaster Falls","Lower Starvation Loop","Mark O. Hatfield Trailhead","Memaloose Hills","Mitchell Point Trail","Mosier Twin Tunnels","Mt. Defiance Loop","Rowena Plateau","Starvation Creek Trail","Starvation Ridge","Tooth Rock Loop","Wygant Peak"],
+      "East":["Augspurger Mountain Trail","Beacon Rock Trail","Cape Horn Loop Trail","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Dog Mountain","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","Wind Mountain"]
     };
 
     const latCenter=45.68,baseHalf=0.045;
@@ -184,10 +78,7 @@
     };
 
     const regions={},baseCoords={};
-
-    function rectCoords(minLon,maxLon,half){
-      return [[latCenter+half,minLon],[latCenter+half,maxLon],[latCenter-half,maxLon],[latCenter-half,minLon]];
-    }
+    function rectCoords(minLon,maxLon,half){return[[latCenter+half,minLon],[latCenter+half,maxLon],[latCenter-half,maxLon],[latCenter-half,minLon]];}
 
     for(const k in slices){
       const i=REGION_INFO[k],{minLon,maxLon}=slices[k];
@@ -204,16 +95,9 @@
       regions[k].setLatLngs(rectCoords(minLon,maxLon,baseHalf+extra));
       regions[k].setStyle({fillOpacity:0.45});
     }
-
-    function resetBands(){
-      for(const k in regions){
-        regions[k].setLatLngs(baseCoords[k]);
-        regions[k].setStyle({fillOpacity:0.3});
-      }
-    }
+    function resetBands(){for(const k in regions){regions[k].setLatLngs(baseCoords[k]);regions[k].setStyle({fillOpacity:0.3});}}
 
     const legend=document.getElementById('legend');
-
     function renderGuide(){
       legend.className='legend';
       legend.innerHTML='<h3>Region Guide</h3>'+
@@ -238,7 +122,7 @@
       legend.className='legend legend-detail';
       legend.innerHTML=`
         <div class="back-row"><a class="back-link" onclick="backToGuide()">← Back to Region Guide</a></div>
-        <h3 style="margin:6px 0 4px 0;">${i.label}</h3>
+        <h3>${i.label}</h3>
         <div style="color:#555;margin-bottom:8px;">
           <div><strong>Area:</strong> ${i.area}</div>
           <div><strong>I-84 Mile Markers (approx):</strong> ${i.mm}</div>
@@ -247,33 +131,11 @@
         <ul class="trail-list">${trails.map(t=>`<li>${escapeHTML(t)}</li>`).join('')}</ul>`;
     }
 
-    function showRegion(k){
-      resetBands();
-      expandRegion(k);
-      renderRegionDetail(k);
-      map.fitBounds(regions[k].getBounds(),{padding:[20,20]});
-    }
-
-    function backToGuide(){
-      resetBands();
-      renderGuide();
-      map.setView(DEFAULT_CENTER,DEFAULT_ZOOM);
-    }
-
+    function showRegion(k){resetBands();expandRegion(k);renderRegionDetail(k);map.fitBounds(regions[k].getBounds(),{padding:[20,20]});}
+    function backToGuide(){resetBands();renderGuide();map.setView(DEFAULT_CENTER,DEFAULT_ZOOM);}
     map.on('click',backToGuide);
-    for(const k in regions){
-      regions[k].on('click',e=>{L.DomEvent.stopPropagation(e);showRegion(k);});
-    }
-
-    function escapeHTML(s){
-      return String(s)
-        .replaceAll('&','&amp;')
-        .replaceAll('<','&lt;')
-        .replaceAll('>','&gt;')
-        .replaceAll('"','&quot;')
-        .replaceAll("'",'&#39;');
-    }
-
+    for(const k in regions){regions[k].on('click',e=>{L.DomEvent.stopPropagation(e);showRegion(k);});}
+    function escapeHTML(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');}
     renderGuide();
   </script>
 </body>
