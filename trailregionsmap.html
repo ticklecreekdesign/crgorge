@@ -44,8 +44,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // Slightly west-shifted center to account for legend width
-    const DEFAULT_CENTER=[45.68,-121.87], DEFAULT_ZOOM=9.45;
+    const DEFAULT_CENTER=[45.68,-121.8], DEFAULT_ZOOM=9.45;
     const map=L.map('map',{center:DEFAULT_CENTER,zoom:DEFAULT_ZOOM});
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       {attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
@@ -71,7 +70,7 @@
       "East":["Augspurger Mountain Trail","Beacon Rock Trail","Cape Horn Loop Trail","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Dog Mountain","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","Wind Mountain"]
     };
 
-    // Adjusted center latitudes (Central and Central East raised)
+    // Adjusted latitudes for accurate centering
     const REGION_CENTER_LAT={
       west:45.55,
       centralwest:45.58,
@@ -113,6 +112,12 @@
     function resetBands(){for(const k in regions){regions[k].setLatLngs(baseCoords[k]);regions[k].setStyle({fillOpacity:0.3});}}
 
     const legend=document.getElementById('legend');
+
+    // Visually recenter map to account for legend width
+    function recenterMap() {
+      map.panBy([-legend.offsetWidth / 2, 0], { animate: false });
+    }
+
     function renderGuide(){
       legend.className='legend';
       legend.innerHTML='<h3>Region Guide</h3>'+
@@ -126,6 +131,7 @@
               </div>
             </div>`;
         }).join('');
+      recenterMap();
     }
 
     function renderRegionDetail(k){
@@ -141,14 +147,17 @@
           <div><strong>Highlights:</strong> ${i.highlights}</div>
         </div>
         <ul class="trail-list">${trails.map(t=>`<li>${escapeHTML(t)}</li>`).join('')}</ul>`;
+      recenterMap();
     }
 
-    function showRegion(k){resetBands();expandRegion(k);renderRegionDetail(k);map.fitBounds(regions[k].getBounds(),{padding:[20,20]});}
-    function backToGuide(){resetBands();renderGuide();map.setView(DEFAULT_CENTER,DEFAULT_ZOOM);}
+    function showRegion(k){resetBands();expandRegion(k);renderRegionDetail(k);map.fitBounds(regions[k].getBounds(),{padding:[20,20]});recenterMap();}
+    function backToGuide(){resetBands();renderGuide();map.setView(DEFAULT_CENTER,DEFAULT_ZOOM);recenterMap();}
+
     map.on('click',backToGuide);
     for(const k in regions){regions[k].on('click',e=>{L.DomEvent.stopPropagation(e);showRegion(k);});}
     function escapeHTML(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');}
-    renderGuide();
+
+    map.whenReady(()=>{renderGuide();recenterMap();});
   </script>
 </body>
 </html>
