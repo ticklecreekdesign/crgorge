@@ -10,11 +10,8 @@
       height:100%;width:100%;margin:0;padding:0;
       font-family:Montserrat,sans-serif;color:#333;font-size:13px;overflow:hidden;
     }
-    #map{
-      position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;
-    }
+    #map{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;}
 
-    /* Full-height right legend */
     .legend{
       position:absolute;top:0;right:0;bottom:0;z-index:1000;
       background:#fff;border-left:1px solid #ddd;
@@ -22,27 +19,20 @@
       overflow-y:auto;line-height:1.45;box-sizing:border-box;
     }
 
-    .legend h3{
-      margin:0 0 16px 0;font-size:15px;font-weight:600;
-    }
-
+    .legend h3{margin:0 0 16px 0;font-size:15px;font-weight:600;}
     .region-entry{margin:12px 0 20px 0;}
     .region-link{
       text-decoration:none;font-weight:700;font-size:17px;
       display:inline-block;margin-bottom:3px;cursor:pointer;
     }
     .region-link:hover{opacity:0.75;}
-
     .region-meta{margin-left:2px;color:#555;}
     .region-meta div{margin:2px 0;}
 
-    /* Detail view */
     .legend-detail .back-row{position:sticky;top:0;background:#fff;padding:6px 0 8px 0;z-index:2;}
     .legend-detail .back-link{color:#06c;text-decoration:none;font-weight:600;}
     .legend-detail .back-link:hover{text-decoration:underline;}
-    .legend-detail h3{
-      font-size:18px;font-weight:700;margin:8px 0 8px 0;
-    }
+    .legend-detail h3{font-size:18px;font-weight:700;margin:8px 0 8px 0;}
     .legend-detail h4{display:inline;margin:0;font-size:13px;font-weight:600;}
     .legend-detail p{margin:6px 0 10px 0;display:inline;}
     .trail-list{margin:10px 0 0 0;padding-left:18px;list-style-type:disc;}
@@ -118,7 +108,7 @@
               <a class="region-link" style="color:${i.color};" onclick="showRegion('${k}')">${i.label}</a>
               <div class="region-meta">
                 <div><strong>Area:</strong> ${i.area}</div>
-                <div><strong>I-84 Mile Markers (approx):</strong> ${i.mm}</div>
+                <div><strong>I-84 Mile Range:</strong> ${i.mm}</div>
               </div>
             </div>`;
         }).join('');
@@ -133,7 +123,7 @@
         <h3 style="color:${i.color};">${i.label}</h3>
         <div style="color:#555;margin-bottom:8px;">
           <div><strong>Area:</strong> ${i.area}</div>
-          <div><strong>I-84 Mile Markers (approx):</strong> ${i.mm}</div>
+          <div><strong>I-84 Mile Range:</strong> ${i.mm}</div>
           <div><strong>Highlights:</strong> ${i.highlights}</div>
         </div>
         <ul class="trail-list">${trails.map(t=>`<li>${escapeHTML(t)}</li>`).join('')}</ul>`;
