@@ -32,8 +32,6 @@
     .legend-detail .back-link{color:#06c;text-decoration:none;font-weight:600;}
     .legend-detail .back-link:hover{text-decoration:underline;}
     .legend-detail h3{font-size:18px;font-weight:700;margin:8px 0 8px 0;}
-    .legend-detail h4{display:inline;margin:0;font-size:13px;font-weight:600;}
-    .legend-detail p{margin:6px 0 10px 0;display:inline;}
     .trail-list{margin:10px 0 0 0;padding-left:18px;list-style-type:disc;}
     .trail-list li{margin:3px 0;}
   </style>
@@ -44,10 +42,9 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // 🌲 Center on Cascade Locks Airport for perfect Gorge balance
+    // Center on Cascade Locks Airport
     const DEFAULT_CENTER = [45.6746, -121.8794];
     const DEFAULT_ZOOM = 9.45;
-
     const map = L.map('map', { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
@@ -73,7 +70,7 @@
       "East":["Augspurger Mountain Trail","Beacon Rock Trail","Cape Horn Loop Trail","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Dog Mountain","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","Wind Mountain"]
     };
 
-    // Adjusted latitudes for accurate centering
+    // Corrected latitudes
     const REGION_CENTER_LAT={
       west:45.55,
       centralwest:45.58,
@@ -115,6 +112,12 @@
     function resetBands(){for(const k in regions){regions[k].setLatLngs(baseCoords[k]);regions[k].setStyle({fillOpacity:0.3});}}
 
     const legend=document.getElementById('legend');
+
+    // Apply a fixed leftward pan of ~140px to visually center the Gorge
+    function visualCenter() {
+      map.panBy([-140, 0], {animate:false});
+    }
+
     function renderGuide(){
       legend.className='legend';
       legend.innerHTML='<h3>Region Guide</h3>'+
@@ -128,6 +131,7 @@
               </div>
             </div>`;
         }).join('');
+      visualCenter();
     }
 
     function renderRegionDetail(k){
@@ -143,16 +147,17 @@
           <div><strong>Highlights:</strong> ${i.highlights}</div>
         </div>
         <ul class="trail-list">${trails.map(t=>`<li>${escapeHTML(t)}</li>`).join('')}</ul>`;
+      visualCenter();
     }
 
-    function showRegion(k){resetBands();expandRegion(k);renderRegionDetail(k);map.fitBounds(regions[k].getBounds(),{padding:[20,20]});}
-    function backToGuide(){resetBands();renderGuide();map.setView(DEFAULT_CENTER,DEFAULT_ZOOM);}
+    function showRegion(k){resetBands();expandRegion(k);renderRegionDetail(k);map.fitBounds(regions[k].getBounds(),{padding:[20,20]});visualCenter();}
+    function backToGuide(){resetBands();renderGuide();map.setView(DEFAULT_CENTER,DEFAULT_ZOOM);visualCenter();}
 
     map.on('click',backToGuide);
     for(const k in regions){regions[k].on('click',e=>{L.DomEvent.stopPropagation(e);showRegion(k);});}
     function escapeHTML(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');}
 
-    renderGuide();
+    map.whenReady(()=>{renderGuide();visualCenter();});
   </script>
 </body>
 </html>
