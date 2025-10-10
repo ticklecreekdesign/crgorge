@@ -6,16 +6,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    html,body{height:100%;width:100%;margin:0;padding:0;font-family:Montserrat,sans-serif;color:#333;font-size:13px;overflow:hidden;}
+    html,body{
+      height:100%;width:100%;margin:0;padding:0;
+      font-family:Montserrat,sans-serif;color:#333;font-size:13px;overflow:hidden;
+    }
     #map{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;}
 
     .legend{
-      position:absolute;top:0;right:0;bottom:0;z-index:1000;background:#fff;border-left:1px solid #ddd;
-      width:270px;height:100%;padding:10px 14px 14px 14px;overflow-y:auto;line-height:1.45;box-sizing:border-box;
+      position:absolute;top:0;right:0;bottom:0;z-index:1000;
+      background:#fff;border-left:1px solid #ddd;
+      width:270px;height:100%;padding:10px 14px 14px 14px;
+      overflow-y:auto;line-height:1.45;box-sizing:border-box;
     }
     .legend h3{margin:0 0 16px 0;font-size:15px;font-weight:600;}
     .region-entry{margin:12px 0 20px 0;}
-    .region-link{ text-decoration:none;font-weight:700;font-size:17px; display:inline-block;margin-bottom:3px;cursor:pointer;}
+    .region-link{
+      text-decoration:none;font-weight:700;font-size:17px;
+      display:inline-block;margin-bottom:3px;cursor:pointer;
+    }
     .region-link:hover{opacity:0.75;}
     .region-meta{margin-left:2px;color:#555;}
     .region-meta div{margin:2px 0;}
@@ -61,16 +69,16 @@
       "East":["Augspurger Mountain Trail","Beacon Rock Trail","Cape Horn Loop Trail","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Dog Mountain","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","Wind Mountain"]
     };
 
-    // Per-region center latitudes to follow the river (rectangular, no overlap)
+    // Updated region center latitudes (Central + Central East shifted up)
     const REGION_CENTER_LAT = {
       west: 45.55,
       centralwest: 45.58,
-      central: 45.61,
-      centraleast: 45.65,
+      central: 45.64,       // moved up
+      centraleast: 45.67,   // moved up
       east: 45.68
     };
 
-    const baseHalf=0.045; // band half-height (~5 km). Adjust if you want thinner/thicker.
+    const baseHalf=0.045;
     const slices={
       west:{minLon:-122.50,maxLon:-122.25},
       centralwest:{minLon:-122.25,maxLon:-122.00},
@@ -86,7 +94,6 @@
       return [[c+half,minLon],[c+half,maxLon],[c-half,maxLon],[c-half,minLon]];
     }
 
-    // Build region bands using per-region center lat
     for(const k in slices){
       const i=REGION_INFO[k],{minLon,maxLon}=slices[k];
       const coords=rectCoordsFor(k,minLon,maxLon,baseHalf);
@@ -94,25 +101,17 @@
       regions[k]=L.polygon(coords,{color:i.color,fillColor:i.color,weight:1,fillOpacity:0.3}).addTo(map);
     }
 
-    function extraHalfHeight(count){ return Math.min(0.12,(count/6)*0.002); }
-
+    function extraHalfHeight(count){return Math.min(0.12,(count/6)*0.002);}
     function expandRegion(k){
-      const i=REGION_INFO[k], {minLon,maxLon}=slices[k];
+      const i=REGION_INFO[k],{minLon,maxLon}=slices[k];
       const count=(TRAILS[i.label]||[]).length;
       const half=baseHalf+extraHalfHeight(count);
       regions[k].setLatLngs(rectCoordsFor(k,minLon,maxLon,half));
       regions[k].setStyle({fillOpacity:0.45});
     }
-
-    function resetBands(){
-      for(const k in regions){
-        regions[k].setLatLngs(baseCoords[k]);
-        regions[k].setStyle({fillOpacity:0.3});
-      }
-    }
+    function resetBands(){for(const k in regions){regions[k].setLatLngs(baseCoords[k]);regions[k].setStyle({fillOpacity:0.3});}}
 
     const legend=document.getElementById('legend');
-
     function renderGuide(){
       legend.className='legend';
       legend.innerHTML='<h3>Region Guide</h3>'+
@@ -143,24 +142,11 @@
         <ul class="trail-list">${trails.map(t=>`<li>${escapeHTML(t)}</li>`).join('')}</ul>`;
     }
 
-    function showRegion(k){
-      resetBands();
-      expandRegion(k);
-      renderRegionDetail(k);
-      map.fitBounds(regions[k].getBounds(),{padding:[20,20]});
-    }
-    function backToGuide(){ resetBands(); renderGuide(); map.setView(DEFAULT_CENTER,DEFAULT_ZOOM); }
-
+    function showRegion(k){resetBands();expandRegion(k);renderRegionDetail(k);map.fitBounds(regions[k].getBounds(),{padding:[20,20]});}
+    function backToGuide(){resetBands();renderGuide();map.setView(DEFAULT_CENTER,DEFAULT_ZOOM);}
     map.on('click',backToGuide);
-    for(const k in regions){ regions[k].on('click',e=>{L.DomEvent.stopPropagation(e);showRegion(k);}); }
-
-    function escapeHTML(s){
-      return String(s)
-        .replaceAll('&','&amp;').replaceAll('<','&lt;')
-        .replaceAll('>','&gt;').replaceAll('"','&quot;')
-        .replaceAll("'",'&#39;');
-    }
-
+    for(const k in regions){regions[k].on('click',e=>{L.DomEvent.stopPropagation(e);showRegion(k);});}
+    function escapeHTML(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');}
     renderGuide();
   </script>
 </body>
