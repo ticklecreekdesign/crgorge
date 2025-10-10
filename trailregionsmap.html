@@ -8,16 +8,31 @@
   <style>
     html,body{
       height:100%;width:100%;margin:0;padding:0;
-      font-family:Montserrat,sans-serif;color:#333;font-size:13px;overflow:hidden;
+      font-family:Montserrat,sans-serif;color:#333;font-size:13px;
     }
-    #map{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;}
-    .legend{
-      position:absolute;top:0;right:0;bottom:0;z-index:1000;
-      background:#fff;border-left:1px solid #ddd;
-      width:270px;height:100%;padding:10px 14px 14px 14px;
-      overflow-y:auto;line-height:1.45;box-sizing:border-box;
+    .container{
+      display:flex;
+      width:100%;
+      height:100%;
     }
-    .legend h3{margin:0 0 16px 0;font-size:15px;font-weight:600;}
+    .map-column{
+      flex:1;
+      position:relative;
+    }
+    #map{
+      position:absolute;
+      top:0;left:0;right:0;bottom:0;
+    }
+    .legend-column{
+      width:270px;
+      background:#fff;
+      border-left:1px solid #ddd;
+      padding:10px 14px 14px 14px;
+      overflow-y:auto;
+      line-height:1.45;
+      box-sizing:border-box;
+    }
+    .legend-column h3{margin:0 0 16px 0;font-size:15px;font-weight:600;}
     .region-entry{margin:12px 0 20px 0;}
     .region-link{
       text-decoration:none;font-weight:700;font-size:17px;
@@ -27,7 +42,7 @@
     .region-meta{margin-left:2px;color:#555;}
     .region-meta div{margin:2px 0;}
     .legend-detail .back-row{position:sticky;top:0;background:#fff;padding:6px 0 8px 0;z-index:2;}
-    .legend-detail .back-link{color:#06c;text-decoration:none;font-weight:600;}
+    .legend-detail .back-link{color:#06c;text-decoration:none;font-weight:600;cursor:pointer;}
     .legend-detail .back-link:hover{text-decoration:underline;}
     .legend-detail h3{font-size:18px;font-weight:700;margin:8px 0 8px 0;}
     .trail-list{margin:10px 0 0 0;padding-left:18px;list-style-type:disc;}
@@ -35,178 +50,189 @@
   </style>
 </head>
 <body>
-  <div id="map"></div>
-  <div class="legend" id="legend"></div>
+  <div class="container">
+    <div class="map-column">
+      <div id="map"></div>
+    </div>
+    <div class="legend-column" id="legend"></div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    (function(){
-      var DEFAULT_CENTER = [45.6746, -121.8794];
-      var DEFAULT_ZOOM = 9.45;
-      var LEGEND_WIDTH = 270;
-      var OFFSET_CENTER = [45.6746, -121.98];
+    var gorge = {};
+    
+    gorge.DEFAULT_CENTER = [45.6746, -121.8794];
+    gorge.DEFAULT_ZOOM = 9.45;
 
-      var map = L.map('map', { center: OFFSET_CENTER, zoom: DEFAULT_ZOOM });
+    gorge.REGION_INFO = {
+      west:{label:'West',color:'#1B5E20',area:'Troutdale → Bridal Veil area',mm:'17–28',
+        highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
+      centralwest:{label:'Central West',color:'#2E7D32',area:'Wahkeena → Cascade Locks',mm:'28–41',
+        highlights:'Iconic waterfall corridor (Multnomah, Wahkeena, Horsetail); steep canyon hikes with sweeping vistas; Benson Bridge photo stops; Gorge Trail 400 connections; picnic areas and visitor centers.'},
+      central:{label:'Central',color:'#558B2F',area:'Cascade Locks → Starvation Creek',mm:'41–55',
+        highlights:'Forest climbs and summit routes (Hamilton Mountain, Table Mountain, Dog Mountain); panoramic viewpoints; Pacific Crest Trail crossings; windsurfing at Bridge of the Gods; spring wildflowers.'},
+      centraleast:{label:'Central East',color:'#9E9D24',area:'Starvation Creek → Mosier',mm:'55–67',
+        highlights:'Steep basalt cliffs and open hillsides; scenic drives with river overlooks; lesser-traveled trails like McCall Point and Coyote Wall; spring wildflowers; transition zone between rainforest and grassland.'},
+      east:{label:'East',color:'#C0CA33',area:'Mosier → The Dalles and beyond',mm:'60–90',
+        highlights:'Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.'}
+    };
+
+    gorge.TRAILS = {
+      "West":["Angels' Rest","Angels' Rest to Devil's Rest","Bridal Veil Falls","Bridal Veil Loop","Fairy Falls","Larch Mt via Multnomah Falls","Latourell Falls Trail","Multnomah Falls","Multnomah–Wahkeena Loop","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Wahkeena Falls"],
+      "Central West":["Bell Creek Trail","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop","Indian Point Loop","John B. Yeon Trailhead","Munra Point","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Punchbowl Falls","Triple Falls Trail","Tunnel Falls","Upper McCord Creek Falls","Wauna Point"],
+      "Central":["Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail","Dry Creek Falls","Hamilton Mountain Loop","Hardy Ridge Loop","Herman Creek Pinnacles","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Table Mountain Loop","Tom McCall Point","Wahclella Falls"],
+      "Central East":["Chetwoot Loop Hike","Lancaster Falls","Lower Starvation Loop","Mark O. Hatfield Trailhead","Memaloose Hills","Mitchell Point Trail","Mosier Twin Tunnels","Mt. Defiance Loop","Rowena Plateau","Starvation Creek Trail","Starvation Ridge","Tooth Rock Loop","Wygant Peak"],
+      "East":["Augspurger Mountain Trail","Beacon Rock Trail","Cape Horn Loop Trail","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Dog Mountain","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","Wind Mountain"]
+    };
+
+    gorge.REGION_CENTER_LAT = {
+      west:45.55,
+      centralwest:45.58,
+      central:45.655,
+      centraleast:45.685,
+      east:45.68
+    };
+
+    gorge.baseHalf = 0.045;
+    gorge.slices = {
+      west:{minLon:-122.50,maxLon:-122.25},
+      centralwest:{minLon:-122.25,maxLon:-122.00},
+      central:{minLon:-122.00,maxLon:-121.75},
+      centraleast:{minLon:-121.75,maxLon:-121.50},
+      east:{minLon:-121.50,maxLon:-121.25}
+    };
+
+    gorge.regions = {};
+    gorge.baseCoords = {};
+    
+    gorge.init = function() {
+      gorge.map = L.map('map').setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
 
       L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
         { attribution: '&copy; Esri, USGS, NOAA, U.S. Navy, NGA, GEBCO' }
-      ).addTo(map);
+      ).addTo(gorge.map);
 
-      var REGION_INFO={
-        west:{label:'West',color:'#1B5E20',area:'Troutdale → Bridal Veil area',mm:'17–28',
-          highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
-        centralwest:{label:'Central West',color:'#2E7D32',area:'Wahkeena → Cascade Locks',mm:'28–41',
-          highlights:'Iconic waterfall corridor (Multnomah, Wahkeena, Horsetail); steep canyon hikes with sweeping vistas; Benson Bridge photo stops; Gorge Trail 400 connections; picnic areas and visitor centers.'},
-        central:{label:'Central',color:'#558B2F',area:'Cascade Locks → Starvation Creek',mm:'41–55',
-          highlights:'Forest climbs and summit routes (Hamilton Mountain, Table Mountain, Dog Mountain); panoramic viewpoints; Pacific Crest Trail crossings; windsurfing at Bridge of the Gods; spring wildflowers.'},
-        centraleast:{label:'Central East',color:'#9E9D24',area:'Starvation Creek → Mosier',mm:'55–67',
-          highlights:'Steep basalt cliffs and open hillsides; scenic drives with river overlooks; lesser-traveled trails like McCall Point and Coyote Wall; spring wildflowers; transition zone between rainforest and grassland.'},
-        east:{label:'East',color:'#C0CA33',area:'Mosier → The Dalles and beyond',mm:'60–90',
-          highlights:'Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.'}
+      gorge.legend = document.getElementById('legend');
+      
+      gorge.createRegions();
+      gorge.setupEventListeners();
+      gorge.renderGuide();
+    };
+
+    gorge.rectCoordsFor = function(key, minLon, maxLon, half) {
+      var c = gorge.REGION_CENTER_LAT[key];
+      return [[c+half,minLon],[c+half,maxLon],[c-half,maxLon],[c-half,minLon]];
+    };
+
+    gorge.createRegions = function() {
+      for(var k in gorge.slices) {
+        var i = gorge.REGION_INFO[k];
+        var s = gorge.slices[k];
+        var coords = gorge.rectCoordsFor(k, s.minLon, s.maxLon, gorge.baseHalf);
+        gorge.baseCoords[k] = coords.slice();
+        gorge.regions[k] = L.polygon(coords, {
+          color: i.color,
+          fillColor: i.color,
+          weight: 1,
+          fillOpacity: 0.35
+        }).addTo(gorge.map);
+      }
+    };
+
+    gorge.extraHalfHeight = function(count) {
+      return Math.min(0.12, (count/6)*0.002);
+    };
+    
+    gorge.expandRegion = function(k) {
+      var i = gorge.REGION_INFO[k];
+      var s = gorge.slices[k];
+      var count = (gorge.TRAILS[i.label] || []).length;
+      var half = gorge.baseHalf + gorge.extraHalfHeight(count);
+      gorge.regions[k].setLatLngs(gorge.rectCoordsFor(k, s.minLon, s.maxLon, half));
+      gorge.regions[k].setStyle({fillOpacity: 0.55});
+    };
+    
+    gorge.resetBands = function() {
+      for(var k in gorge.regions) {
+        gorge.regions[k].setLatLngs(gorge.baseCoords[k]);
+        gorge.regions[k].setStyle({fillOpacity: 0.35});
+      }
+    };
+
+    gorge.escapeHTML = function(s) {
+      var div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    };
+
+    gorge.renderGuide = function() {
+      gorge.legend.className = 'legend-column';
+      var html = '<h3>Region Guide</h3>';
+      for(var k in gorge.REGION_INFO) {
+        var i = gorge.REGION_INFO[k];
+        html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
+      }
+      gorge.legend.innerHTML = html;
+      
+      var links = gorge.legend.querySelectorAll('.region-link');
+      for(var i=0; i<links.length; i++) {
+        links[i].onclick = function() {
+          gorge.showRegion(this.getAttribute('data-region'));
+        };
+      }
+      
+      gorge.map.setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
+    };
+
+    gorge.renderRegionDetail = function(k) {
+      var i = gorge.REGION_INFO[k];
+      var trails = (gorge.TRAILS[i.label] || []).slice().sort(function(a,b){return a.localeCompare(b);});
+      gorge.legend.className = 'legend-column legend-detail';
+      var html = '<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div style="color:#555;margin-bottom:8px;"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div></div><ul class="trail-list">';
+      for(var j=0; j<trails.length; j++) {
+        html += '<li>'+gorge.escapeHTML(trails[j])+'</li>';
+      }
+      html += '</ul>';
+      gorge.legend.innerHTML = html;
+      
+      document.getElementById('backLink').onclick = function() {
+        gorge.backToGuide();
       };
+    };
 
-      var TRAILS={
-        "West":["Angels' Rest","Angels' Rest to Devil's Rest","Bridal Veil Falls","Bridal Veil Loop","Fairy Falls","Larch Mt via Multnomah Falls","Latourell Falls Trail","Multnomah Falls","Multnomah–Wahkeena Loop","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Wahkeena Falls"],
-        "Central West":["Bell Creek Trail","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop","Indian Point Loop","John B. Yeon Trailhead","Munra Point","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Punchbowl Falls","Triple Falls Trail","Tunnel Falls","Upper McCord Creek Falls","Wauna Point"],
-        "Central":["Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail","Dry Creek Falls","Hamilton Mountain Loop","Hardy Ridge Loop","Herman Creek Pinnacles","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Table Mountain Loop","Tom McCall Point","Wahclella Falls"],
-        "Central East":["Chetwoot Loop Hike","Lancaster Falls","Lower Starvation Loop","Mark O. Hatfield Trailhead","Memaloose Hills","Mitchell Point Trail","Mosier Twin Tunnels","Mt. Defiance Loop","Rowena Plateau","Starvation Creek Trail","Starvation Ridge","Tooth Rock Loop","Wygant Peak"],
-        "East":["Augspurger Mountain Trail","Beacon Rock Trail","Cape Horn Loop Trail","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Dog Mountain","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","Wind Mountain"]
-      };
+    gorge.showRegion = function(k) {
+      gorge.resetBands();
+      gorge.expandRegion(k);
+      gorge.renderRegionDetail(k);
+      gorge.map.fitBounds(gorge.regions[k].getBounds(), {padding: [20, 20]});
+    };
+    
+    gorge.backToGuide = function() {
+      gorge.resetBands();
+      gorge.renderGuide();
+    };
 
-      var REGION_CENTER_LAT={
-        west:45.55,
-        centralwest:45.58,
-        central:45.655,
-        centraleast:45.685,
-        east:45.68
-      };
-
-      var baseHalf=0.045;
-      var slices={
-        west:{minLon:-122.50,maxLon:-122.25},
-        centralwest:{minLon:-122.25,maxLon:-122.00},
-        central:{minLon:-122.00,maxLon:-121.75},
-        centraleast:{minLon:-121.75,maxLon:-121.50},
-        east:{minLon:-121.50,maxLon:-121.25}
-      };
-
-      var regions={};
-      var baseCoords={};
-      
-      function rectCoordsFor(key,minLon,maxLon,half){
-        var c=REGION_CENTER_LAT[key];
-        return [[c+half,minLon],[c+half,maxLon],[c-half,maxLon],[c-half,minLon]];
-      }
-
-      for(var k in slices){
-        var i=REGION_INFO[k];
-        var s=slices[k];
-        var coords=rectCoordsFor(k,s.minLon,s.maxLon,baseHalf);
-        baseCoords[k]=coords.slice();
-        regions[k]=L.polygon(coords,{color:i.color,fillColor:i.color,weight:1,fillOpacity:0.35}).addTo(map);
-      }
-
-      function extraHalfHeight(count){
-        return Math.min(0.12,(count/6)*0.002);
-      }
-      
-      function expandRegion(k){
-        var i=REGION_INFO[k];
-        var s=slices[k];
-        var count=(TRAILS[i.label]||[]).length;
-        var half=baseHalf+extraHalfHeight(count);
-        regions[k].setLatLngs(rectCoordsFor(k,s.minLon,s.maxLon,half));
-        regions[k].setStyle({fillOpacity:0.55});
-      }
-      
-      function resetBands(){
-        for(var k in regions){
-          regions[k].setLatLngs(baseCoords[k]);
-          regions[k].setStyle({fillOpacity:0.35});
-        }
-      }
-
-      var legend=document.getElementById('legend');
-
-      function escapeHTML(s){
-        var div = document.createElement('div');
-        div.textContent = s;
-        return div.innerHTML;
-      }
-
-      function renderGuide(){
-        legend.className='legend';
-        var html='<h3>Region Guide</h3>';
-        for(var k in REGION_INFO){
-          var i=REGION_INFO[k];
-          html+='<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
-        }
-        legend.innerHTML=html;
-        
-        var links = legend.querySelectorAll('.region-link');
-        for(var i=0;i<links.length;i++){
-          links[i].addEventListener('click', function(e){
-            e.preventDefault();
-            var regionKey = this.getAttribute('data-region');
-            showRegion(regionKey);
-          });
-        }
-        
-        map.setView(OFFSET_CENTER, DEFAULT_ZOOM);
-      }
-
-      function renderRegionDetail(k){
-        var i=REGION_INFO[k];
-        var trails=(TRAILS[i.label]||[]).slice().sort(function(a,b){return a.localeCompare(b);});
-        legend.className='legend legend-detail';
-        var html='<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div style="color:#555;margin-bottom:8px;"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div></div><ul class="trail-list">';
-        for(var j=0;j<trails.length;j++){
-          html+='<li>'+escapeHTML(trails[j])+'</li>';
-        }
-        html+='</ul>';
-        legend.innerHTML=html;
-        
-        document.getElementById('backLink').addEventListener('click', function(e){
-          e.preventDefault();
-          backToGuide();
-        });
-      }
-
-      function showRegion(k){
-        resetBands();
-        expandRegion(k);
-        renderRegionDetail(k);
-        map.fitBounds(regions[k].getBounds(), {
-          paddingTopRight: [LEGEND_WIDTH + 20, 20],
-          paddingBottomRight: [LEGEND_WIDTH + 20, 20],
-          paddingTopLeft: [20, 20],
-          paddingBottomLeft: [20, 20]
-        });
-      }
-      
-      function backToGuide(){
-        resetBands();
-        renderGuide();
-      }
-      
-      map.on('click', function(){
-        backToGuide();
+    gorge.setupEventListeners = function() {
+      gorge.map.on('click', function() {
+        gorge.backToGuide();
       });
       
-      for(var k in regions){
-        (function(key){
-          regions[key].on('click', function(e){
+      for(var k in gorge.regions) {
+        (function(key) {
+          gorge.regions[key].on('click', function(e) {
             L.DomEvent.stopPropagation(e);
-            showRegion(key);
+            gorge.showRegion(key);
           });
         })(k);
       }
-      
-      map.whenReady(function(){
-        renderGuide();
-      });
-    })();
+    };
+
+    if(document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', gorge.init);
+    } else {
+      gorge.init();
+    }
   </script>
 </body>
 </html>
