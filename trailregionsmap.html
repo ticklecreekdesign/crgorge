@@ -63,6 +63,8 @@
     
     gorge.DEFAULT_CENTER = [45.6746, -121.8794];
     gorge.DEFAULT_ZOOM = 10;
+    gorge.INITIAL_CENTER = [44.0, -120.5];
+    gorge.INITIAL_ZOOM = 7;
 
     gorge.REGION_INFO = {
       west:{label:'West',color:'#1B5E20',area:'Troutdale → Bridal Veil area',mm:'17–28',
@@ -108,7 +110,7 @@
     gorge.regionLabels = {};
     
     gorge.init = function() {
-      gorge.map = L.map('map').setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
+      gorge.map = L.map('map').setView(gorge.INITIAL_CENTER, gorge.INITIAL_ZOOM);
 
       L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
@@ -120,6 +122,13 @@
       gorge.createRegions();
       gorge.setupEventListeners();
       gorge.renderGuide();
+      
+      // Animate zoom in after a brief delay
+      setTimeout(function() {
+        gorge.map.flyTo(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM, {
+          duration: 2.5
+        });
+      }, 500);
     };
 
     gorge.rectCoordsFor = function(key, minLon, maxLon, half) {
@@ -471,7 +480,7 @@
       return div.innerHTML;
     };
 
-    gorge.renderGuide = function() {
+    gorge.renderGuide = function(resetView) {
       gorge.legend.className = 'legend-column';
       var html = '<h3>Region Guide</h3>';
       for(var k in gorge.REGION_INFO) {
@@ -487,7 +496,9 @@
         };
       }
       
-      gorge.map.setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
+      if(resetView) {
+        gorge.map.setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
+      }
     };
 
     gorge.renderRegionDetail = function(k) {
@@ -533,7 +544,7 @@
       }
       
       gorge.resetBands();
-      gorge.renderGuide();
+      gorge.renderGuide(true);
     };
 
     gorge.setupEventListeners = function() {
