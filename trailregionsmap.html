@@ -11,7 +11,6 @@
       font-family:Montserrat,sans-serif;color:#333;font-size:13px;overflow:hidden;
     }
     #map{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;}
-
     .legend{
       position:absolute;top:0;right:0;bottom:0;z-index:1000;
       background:#fff;border-left:1px solid #ddd;
@@ -27,7 +26,6 @@
     .region-link:hover{opacity:0.75;}
     .region-meta{margin-left:2px;color:#555;}
     .region-meta div{margin:2px 0;}
-
     .legend-detail .back-row{position:sticky;top:0;background:#fff;padding:6px 0 8px 0;z-index:2;}
     .legend-detail .back-link{color:#06c;text-decoration:none;font-weight:600;}
     .legend-detail .back-link:hover{text-decoration:underline;}
@@ -42,23 +40,19 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const DEFAULT_CENTER = [45.6746, -121.8794]; // Cascade Locks Airport
+    // 🎯 Perfect visual centering (shifted west by 0.06° for legend offset)
+    const DEFAULT_CENTER = [45.6746, -121.9394];
     const DEFAULT_ZOOM = 9.45;
-    const LEGEND_WIDTH = 270; // px
-
     const map = L.map('map', { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
 
-    // 🌍 Muted terrain map (ESRI World Terrain)
-    L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
-      { attribution: '&copy; Esri, USGS, NOAA' }
-    ).addTo(map);
-    L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-      { attribution: '', opacity: 0.4 }
-    ).addTo(map);
+    // 🗺️ Carto Voyager base map — detailed, professional, subtle terrain
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a> contributors',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
 
-    // 🌲 Forest Gradient (Professional palette)
+    // 🌲 Forest Gradient
     const REGION_INFO={
       west:{label:'West',color:'#1B5E20',area:'Troutdale → Bridal Veil area',mm:'17–28',
         highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
@@ -121,7 +115,6 @@
     function resetBands(){for(const k in regions){regions[k].setLatLngs(baseCoords[k]);regions[k].setStyle({fillOpacity:0.35});}}
 
     const legend=document.getElementById('legend');
-
     function renderGuide(){
       legend.className='legend';
       legend.innerHTML='<h3>Region Guide</h3>'+
@@ -135,7 +128,6 @@
               </div>
             </div>`;
         }).join('');
-      centerWithLegend();
     }
 
     function renderRegionDetail(k){
@@ -151,51 +143,14 @@
           <div><strong>Highlights:</strong> ${i.highlights}</div>
         </div>
         <ul class="trail-list">${trails.map(t=>`<li>${escapeHTML(t)}</li>`).join('')}</ul>`;
-      centerWithLegend();
     }
 
-    // Proper visual centering: pad map view so legend space is accounted for
-    function centerWithLegend() {
-      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, {
-        paddingTopLeft: [0, 0],
-        paddingBottomRight: [LEGEND_WIDTH, 0]
-      });
-    }
-
-    function showRegion(k){
-      resetBands();
-      expandRegion(k);
-      renderRegionDetail(k);
-      map.fitBounds(regions[k].getBounds(), {
-        paddingTopLeft: [0, 0],
-        paddingBottomRight: [LEGEND_WIDTH, 0]
-      });
-    }
-
-    function backToGuide(){
-      resetBands();
-      renderGuide();
-      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, {
-        paddingTopLeft: [0, 0],
-        paddingBottomRight: [LEGEND_WIDTH, 0]
-      });
-    }
-
-    map.on('click', backToGuide);
-    for(const k in regions){
-      regions[k].on('click', e=>{
-        L.DomEvent.stopPropagation(e);
-        showRegion(k);
-      });
-    }
-
-    function escapeHTML(s){
-      return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;')
-        .replaceAll('>','&gt;').replaceAll('"','&quot;')
-        .replaceAll("'",'&#39;');
-    }
-
-    map.whenReady(()=>{renderGuide();centerWithLegend();});
+    function showRegion(k){resetBands();expandRegion(k);renderRegionDetail(k);map.fitBounds(regions[k].getBounds(),{padding:[20,20]});}
+    function backToGuide(){resetBands();renderGuide();map.setView(DEFAULT_CENTER,DEFAULT_ZOOM);}
+    map.on('click',backToGuide);
+    for(const k in regions){regions[k].on('click',e=>{L.DomEvent.stopPropagation(e);showRegion(k);});}
+    function escapeHTML(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');}
+    renderGuide();
   </script>
 </body>
 </html>
