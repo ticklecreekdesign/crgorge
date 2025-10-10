@@ -277,8 +277,9 @@
         // Add region label
         var labelIcon = L.divIcon({
           className: 'region-label',
-          html: '<div style="font-size:16px;font-weight:700;color:'+i.color+';text-shadow:1px 1px 2px rgba(255,255,255,0.9), -1px -1px 2px rgba(255,255,255,0.9), 1px -1px 2px rgba(255,255,255,0.9), -1px 1px 2px rgba(255,255,255,0.9);white-space:nowrap;">'+i.label+'</div>',
-          iconSize: [0, 0]
+          html: '<div style="font-size:16px;font-weight:700;color:'+i.color+';text-shadow:1px 1px 2px rgba(255,255,255,0.9), -1px -1px 2px rgba(255,255,255,0.9), 1px -1px 2px rgba(255,255,255,0.9), -1px 1px 2px rgba(255,255,255,0.9);white-space:nowrap;text-align:center;">'+i.label+'</div>',
+          iconSize: [100, 0],
+          iconAnchor: [50, 0]
         });
         
         gorge.regionLabels[k] = L.marker([centerLat, (s.minLon + s.maxLon) / 2], {
@@ -441,9 +442,11 @@
     
     gorge.resetBands = function() {
       for(var k in gorge.regions) {
-        // Remove old fade/border layers
+        // Remove old fade/border layers if they exist
         for(var j = 0; j < gorge.regionLayers[k].length; j++) {
-          gorge.map.removeLayer(gorge.regionLayers[k][j]);
+          if(gorge.map.hasLayer(gorge.regionLayers[k][j])) {
+            gorge.map.removeLayer(gorge.regionLayers[k][j]);
+          }
         }
         gorge.regionLayers[k] = [];
         
@@ -627,13 +630,31 @@
     };
 
     gorge.showRegion = function(k) {
-      gorge.resetBands();
+      // Hide all other regions
+      for(var rk in gorge.regions) {
+        if(rk !== k) {
+          gorge.map.removeLayer(gorge.regions[rk]);
+          gorge.map.removeLayer(gorge.regionLabels[rk]);
+          for(var j = 0; j < gorge.regionLayers[rk].length; j++) {
+            gorge.map.removeLayer(gorge.regionLayers[rk][j]);
+          }
+        }
+      }
+      
       gorge.expandRegion(k);
       gorge.renderRegionDetail(k);
       gorge.map.fitBounds(gorge.regions[k].getBounds(), {padding: [20, 20]});
     };
     
     gorge.backToGuide = function() {
+      // Restore all regions
+      for(var k in gorge.regions) {
+        if(!gorge.map.hasLayer(gorge.regions[k])) {
+          gorge.map.addLayer(gorge.regions[k]);
+          gorge.map.addLayer(gorge.regionLabels[k]);
+        }
+      }
+      
       gorge.resetBands();
       gorge.renderGuide();
     };
