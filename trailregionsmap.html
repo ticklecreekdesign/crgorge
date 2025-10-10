@@ -44,11 +44,21 @@
   <script>
     const DEFAULT_CENTER = [45.6746, -121.8794]; // Cascade Locks Airport
     const DEFAULT_ZOOM = 9.45;
-    const map = L.map('map', { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+    const LEGEND_WIDTH = 270; // px
 
-    // 🌲 Forest Gradient (Professional Earthy Palette)
+    const map = L.map('map', { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
+
+    // 🌍 Muted terrain map (ESRI World Terrain)
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
+      { attribution: '&copy; Esri, USGS, NOAA' }
+    ).addTo(map);
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+      { attribution: '', opacity: 0.4 }
+    ).addTo(map);
+
+    // 🌲 Forest Gradient (Professional palette)
     const REGION_INFO={
       west:{label:'West',color:'#1B5E20',area:'Troutdale → Bridal Veil area',mm:'17–28',
         highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
@@ -112,9 +122,6 @@
 
     const legend=document.getElementById('legend');
 
-    // Small leftward offset to visually center due to legend width
-    function visualCenter() { map.panBy([-140, 0], {animate:false}); }
-
     function renderGuide(){
       legend.className='legend';
       legend.innerHTML='<h3>Region Guide</h3>'+
@@ -128,7 +135,7 @@
               </div>
             </div>`;
         }).join('');
-      visualCenter();
+      centerWithLegend();
     }
 
     function renderRegionDetail(k){
@@ -144,17 +151,51 @@
           <div><strong>Highlights:</strong> ${i.highlights}</div>
         </div>
         <ul class="trail-list">${trails.map(t=>`<li>${escapeHTML(t)}</li>`).join('')}</ul>`;
-      visualCenter();
+      centerWithLegend();
     }
 
-    function showRegion(k){resetBands();expandRegion(k);renderRegionDetail(k);map.fitBounds(regions[k].getBounds(),{padding:[20,20]});visualCenter();}
-    function backToGuide(){resetBands();renderGuide();map.setView(DEFAULT_CENTER,DEFAULT_ZOOM);visualCenter();}
+    // Proper visual centering: pad map view so legend space is accounted for
+    function centerWithLegend() {
+      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, {
+        paddingTopLeft: [0, 0],
+        paddingBottomRight: [LEGEND_WIDTH, 0]
+      });
+    }
 
-    map.on('click',backToGuide);
-    for(const k in regions){regions[k].on('click',e=>{L.DomEvent.stopPropagation(e);showRegion(k);});}
-    function escapeHTML(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');}
+    function showRegion(k){
+      resetBands();
+      expandRegion(k);
+      renderRegionDetail(k);
+      map.fitBounds(regions[k].getBounds(), {
+        paddingTopLeft: [0, 0],
+        paddingBottomRight: [LEGEND_WIDTH, 0]
+      });
+    }
 
-    map.whenReady(()=>{renderGuide();visualCenter();});
+    function backToGuide(){
+      resetBands();
+      renderGuide();
+      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM, {
+        paddingTopLeft: [0, 0],
+        paddingBottomRight: [LEGEND_WIDTH, 0]
+      });
+    }
+
+    map.on('click', backToGuide);
+    for(const k in regions){
+      regions[k].on('click', e=>{
+        L.DomEvent.stopPropagation(e);
+        showRegion(k);
+      });
+    }
+
+    function escapeHTML(s){
+      return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;')
+        .replaceAll('>','&gt;').replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
+
+    map.whenReady(()=>{renderGuide();centerWithLegend();});
   </script>
 </body>
 </html>
