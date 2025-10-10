@@ -40,18 +40,16 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const DEFAULT_CENTER = [45.6746, -121.8794]; // Cascade Locks Airport
+    const DEFAULT_CENTER = [45.6746, -121.8794];
     const DEFAULT_ZOOM = 9.45;
 
     const map = L.map('map', { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
 
-    // 🗺️ Esri World Topographic Map (Detailed Terrain)
     L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
       { attribution: '&copy; Esri, USGS, NOAA, U.S. Navy, NGA, GEBCO' }
     ).addTo(map);
 
-    // 🌲 Forest Gradient Colors
     const REGION_INFO={
       west:{label:'West',color:'#1B5E20',area:'Troutdale → Bridal Veil area',mm:'17–28',
         highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
@@ -91,6 +89,7 @@
     };
 
     const regions={},baseCoords={};
+    
     function rectCoordsFor(key,minLon,maxLon,half){
       const c=REGION_CENTER_LAT[key];
       return [[c+half,minLon],[c+half,maxLon],[c-half,maxLon],[c-half,minLon]];
@@ -103,7 +102,10 @@
       regions[k]=L.polygon(coords,{color:i.color,fillColor:i.color,weight:1,fillOpacity:0.35}).addTo(map);
     }
 
-    function extraHalfHeight(count){return Math.min(0.12,(count/6)*0.002);}
+    function extraHalfHeight(count){
+      return Math.min(0.12,(count/6)*0.002);
+    }
+    
     function expandRegion(k){
       const i=REGION_INFO[k],{minLon,maxLon}=slices[k];
       const count=(TRAILS[i.label]||[]).length;
@@ -111,21 +113,31 @@
       regions[k].setLatLngs(rectCoordsFor(k,minLon,maxLon,half));
       regions[k].setStyle({fillOpacity:0.55});
     }
-    function resetBands(){for(const k in regions){regions[k].setLatLngs(baseCoords[k]);regions[k].setStyle({fillOpacity:0.35});}}
+    
+    function resetBands(){
+      for(const k in regions){
+        regions[k].setLatLngs(baseCoords[k]);
+        regions[k].setStyle({fillOpacity:0.35});
+      }
+    }
 
     const legend=document.getElementById('legend');
 
-    // Compute true map center offset based on legend width
-    function getOffsetLon(pxOffset){
-      const metersPerPixel = 156543.03392 * Math.cos(DEFAULT_CENTER[0] * Math.PI/180) / Math.pow(2, map.getZoom());
-      const metersPerDegreeLon = 111320 * Math.cos(DEFAULT_CENTER[0] * Math.PI/180);
-      return (pxOffset * metersPerPixel) / metersPerDegreeLon;
-    }
-
     function recenterMap(){
-      const offsetLon = getOffsetLon(legend.offsetWidth / 2);
-      const newCenter = [DEFAULT_CENTER[0], DEFAULT_CENTER[1] - offsetLon];
-      map.setView(newCenter, DEFAULT_ZOOM);
+      const mapContainer = map.getContainer();
+      const legendWidth = legend.offsetWidth;
+      const availableWidth = mapContainer.offsetWidth - legendWidth;
+      const offsetPixels = legendWidth / 2;
+      
+      const bounds = map.getBounds();
+      const nw = bounds.getNorthWest();
+      const se = bounds.getSouthEast();
+      
+      const point = map.project(DEFAULT_CENTER, DEFAULT_ZOOM);
+      point.x -= offsetPixels;
+      const newCenter = map.unproject(point, DEFAULT_ZOOM);
+      
+      map.setView(newCenter, DEFAULT_ZOOM, {animate: false});
     }
 
     function renderGuide(){
@@ -163,7 +175,6 @@
       resetBands();
       expandRegion(k);
       renderRegionDetail(k);
-      // Account for legend width when fitting bounds
       map.fitBounds(regions[k].getBounds(), {
         paddingTopRight: [legend.offsetWidth + 20, 20],
         paddingBottomRight: [legend.offsetWidth + 20, 20],
@@ -172,12 +183,27 @@
       });
     }
     
-    function backToGuide(){resetBands();renderGuide();recenterMap();}
+    function backToGuide(){
+      resetBands();
+      renderGuide();
+    }
+    
     map.on('click',backToGuide);
-    for(const k in regions){regions[k].on('click',e=>{L.DomEvent.stopPropagation(e);showRegion(k);});}
+    
+    for(const k in regions){
+      regions[k].on('click',function(e){
+        L.DomEvent.stopPropagation(e);
+        showRegion(k);
+      });
+    }
 
-    function escapeHTML(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');}
-    map.whenReady(()=>{renderGuide();recenterMap();});
+    function escapeHTML(s){
+      return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+    }
+    
+    map.whenReady(function(){
+      renderGuide();
+    });
   </script>
 </body>
 </html>
