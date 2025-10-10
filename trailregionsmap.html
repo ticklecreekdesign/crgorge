@@ -131,6 +131,54 @@
         var s = gorge.slices[k];
         var coords = gorge.rectCoordsFor(k, s.minLon, s.maxLon, gorge.baseHalf);
         gorge.baseCoords[k] = coords.slice();
+        
+        // Create fade extensions above and below
+        var fadeSteps = 3;
+        var fadeExtension = 0.02;
+        
+        // Fade above
+        for(var step = 1; step <= fadeSteps; step++) {
+          var centerLat = gorge.REGION_CENTER_LAT[k];
+          var topStart = centerLat + gorge.baseHalf + (fadeExtension * (step - 1));
+          var topEnd = centerLat + gorge.baseHalf + (fadeExtension * step);
+          var opacity = 0.35 * (1 - (step / (fadeSteps + 1)));
+          
+          L.polygon([
+            [topEnd, s.minLon],
+            [topEnd, s.maxLon],
+            [topStart, s.maxLon],
+            [topStart, s.minLon]
+          ], {
+            color: i.color,
+            fillColor: i.color,
+            weight: 0,
+            fillOpacity: opacity,
+            interactive: false
+          }).addTo(gorge.map);
+        }
+        
+        // Fade below
+        for(var step = 1; step <= fadeSteps; step++) {
+          var centerLat = gorge.REGION_CENTER_LAT[k];
+          var bottomStart = centerLat - gorge.baseHalf - (fadeExtension * (step - 1));
+          var bottomEnd = centerLat - gorge.baseHalf - (fadeExtension * step);
+          var opacity = 0.35 * (1 - (step / (fadeSteps + 1)));
+          
+          L.polygon([
+            [bottomStart, s.minLon],
+            [bottomStart, s.maxLon],
+            [bottomEnd, s.maxLon],
+            [bottomEnd, s.minLon]
+          ], {
+            color: i.color,
+            fillColor: i.color,
+            weight: 0,
+            fillOpacity: opacity,
+            interactive: false
+          }).addTo(gorge.map);
+        }
+        
+        // Main region (interactive)
         gorge.regions[k] = L.polygon(coords, {
           color: i.color,
           fillColor: i.color,
