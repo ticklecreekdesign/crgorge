@@ -40,19 +40,18 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // 🎯 Perfect visual centering (shifted west by 0.06° for legend offset)
-    const DEFAULT_CENTER = [45.6746, -121.9394];
+    const DEFAULT_CENTER = [45.6746, -121.8794]; // Cascade Locks Airport
     const DEFAULT_ZOOM = 9.45;
+
     const map = L.map('map', { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
 
-    // 🗺️ Carto Voyager base map — detailed, professional, subtle terrain
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a> contributors',
-      subdomains: 'abcd',
-      maxZoom: 19
-    }).addTo(map);
+    // 🗺️ Esri World Topographic Map (Detailed Terrain)
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+      { attribution: '&copy; Esri, USGS, NOAA, U.S. Navy, NGA, GEBCO' }
+    ).addTo(map);
 
-    // 🌲 Forest Gradient
+    // 🌲 Forest Gradient Colors
     const REGION_INFO={
       west:{label:'West',color:'#1B5E20',area:'Troutdale → Bridal Veil area',mm:'17–28',
         highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
@@ -115,6 +114,20 @@
     function resetBands(){for(const k in regions){regions[k].setLatLngs(baseCoords[k]);regions[k].setStyle({fillOpacity:0.35});}}
 
     const legend=document.getElementById('legend');
+
+    // Compute true map center offset based on legend width
+    function getOffsetLon(pxOffset){
+      const metersPerPixel = 156543.03392 * Math.cos(DEFAULT_CENTER[0] * Math.PI/180) / Math.pow(2, map.getZoom());
+      const metersPerDegreeLon = 111320 * Math.cos(DEFAULT_CENTER[0] * Math.PI/180);
+      return (pxOffset * metersPerPixel) / metersPerDegreeLon;
+    }
+
+    function recenterMap(){
+      const offsetLon = getOffsetLon(legend.offsetWidth / 2);
+      const newCenter = [DEFAULT_CENTER[0], DEFAULT_CENTER[1] - offsetLon];
+      map.setView(newCenter, DEFAULT_ZOOM);
+    }
+
     function renderGuide(){
       legend.className='legend';
       legend.innerHTML='<h3>Region Guide</h3>'+
@@ -128,6 +141,7 @@
               </div>
             </div>`;
         }).join('');
+      recenterMap();
     }
 
     function renderRegionDetail(k){
@@ -143,14 +157,16 @@
           <div><strong>Highlights:</strong> ${i.highlights}</div>
         </div>
         <ul class="trail-list">${trails.map(t=>`<li>${escapeHTML(t)}</li>`).join('')}</ul>`;
+      recenterMap();
     }
 
-    function showRegion(k){resetBands();expandRegion(k);renderRegionDetail(k);map.fitBounds(regions[k].getBounds(),{padding:[20,20]});}
-    function backToGuide(){resetBands();renderGuide();map.setView(DEFAULT_CENTER,DEFAULT_ZOOM);}
+    function showRegion(k){resetBands();expandRegion(k);renderRegionDetail(k);map.fitBounds(regions[k].getBounds(),{padding:[20,20]});recenterMap();}
+    function backToGuide(){resetBands();renderGuide();recenterMap();}
     map.on('click',backToGuide);
     for(const k in regions){regions[k].on('click',e=>{L.DomEvent.stopPropagation(e);showRegion(k);});}
+
     function escapeHTML(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');}
-    renderGuide();
+    map.whenReady(()=>{renderGuide();recenterMap();});
   </script>
 </body>
 </html>
