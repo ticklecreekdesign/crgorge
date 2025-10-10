@@ -140,10 +140,9 @@
         
         var fadeSteps = 5;
         var fadeExtensionLat = 0.03;
-        var fadeExtensionLon = 0.04;
         var centerLat = gorge.REGION_CENTER_LAT[k];
         
-        // Fade above (top edge)
+        // Fade above (top edge only)
         for(var step = 1; step <= fadeSteps; step++) {
           var topStart = centerLat + gorge.baseHalf + (fadeExtensionLat * (step - 1));
           var topEnd = centerLat + gorge.baseHalf + (fadeExtensionLat * step);
@@ -164,7 +163,7 @@
           gorge.regionLayers[k].push(layer);
         }
         
-        // Fade below (bottom edge)
+        // Fade below (bottom edge only)
         for(var step = 1; step <= fadeSteps; step++) {
           var bottomStart = centerLat - gorge.baseHalf - (fadeExtensionLat * (step - 1));
           var bottomEnd = centerLat - gorge.baseHalf - (fadeExtensionLat * step);
@@ -185,47 +184,7 @@
           gorge.regionLayers[k].push(layer);
         }
         
-        // Fade left (left edge with border)
-        for(var step = 1; step <= fadeSteps; step++) {
-          var leftStart = s.minLon - (fadeExtensionLon * (step - 1));
-          var leftEnd = s.minLon - (fadeExtensionLon * step);
-          var opacity = 0.35 - (0.35 * (step / fadeSteps));
-          
-          var layer = L.polygon([
-            [centerLat + gorge.baseHalf, leftStart],
-            [centerLat + gorge.baseHalf, leftEnd],
-            [centerLat - gorge.baseHalf, leftEnd],
-            [centerLat - gorge.baseHalf, leftStart]
-          ], {
-            color: 'transparent',
-            fillColor: i.color,
-            weight: 0,
-            fillOpacity: opacity,
-            interactive: false
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
-        
-        // Fade right (right edge with border)
-        for(var step = 1; step <= fadeSteps; step++) {
-          var rightStart = s.maxLon + (fadeExtensionLon * (step - 1));
-          var rightEnd = s.maxLon + (fadeExtensionLon * step);
-          var opacity = 0.35 - (0.35 * (step / fadeSteps));
-          
-          var layer = L.polygon([
-            [centerLat + gorge.baseHalf, rightStart],
-            [centerLat + gorge.baseHalf, rightEnd],
-            [centerLat - gorge.baseHalf, rightEnd],
-            [centerLat - gorge.baseHalf, rightStart]
-          ], {
-            color: 'transparent',
-            fillColor: i.color,
-            weight: 0,
-            fillOpacity: opacity,
-            interactive: false
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
+        // No left/right fades
         
         // Create fading vertical border lines on left and right
         var borderSteps = 10;
@@ -415,10 +374,9 @@
         var borderColor = '#666';
         var fadeSteps = 5;
         var fadeExtensionLat = 0.03;
-        var fadeExtensionLon = 0.04;
         var centerLat = gorge.REGION_CENTER_LAT[k];
         
-        // Fade above
+        // Fade above only
         for(var step = 1; step <= fadeSteps; step++) {
           var topStart = centerLat + gorge.baseHalf + (fadeExtensionLat * (step - 1));
           var topEnd = centerLat + gorge.baseHalf + (fadeExtensionLat * step);
@@ -439,7 +397,7 @@
           gorge.regionLayers[k].push(layer);
         }
         
-        // Fade below
+        // Fade below only
         for(var step = 1; step <= fadeSteps; step++) {
           var bottomStart = centerLat - gorge.baseHalf - (fadeExtensionLat * (step - 1));
           var bottomEnd = centerLat - gorge.baseHalf - (fadeExtensionLat * step);
@@ -460,47 +418,7 @@
           gorge.regionLayers[k].push(layer);
         }
         
-        // Fade left
-        for(var step = 1; step <= fadeSteps; step++) {
-          var leftStart = s.minLon - (fadeExtensionLon * (step - 1));
-          var leftEnd = s.minLon - (fadeExtensionLon * step);
-          var opacity = 0.35 - (0.35 * (step / fadeSteps));
-          
-          var layer = L.polygon([
-            [centerLat + gorge.baseHalf, leftStart],
-            [centerLat + gorge.baseHalf, leftEnd],
-            [centerLat - gorge.baseHalf, leftEnd],
-            [centerLat - gorge.baseHalf, leftStart]
-          ], {
-            color: 'transparent',
-            fillColor: i.color,
-            weight: 0,
-            fillOpacity: opacity,
-            interactive: false
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
-        
-        // Fade right
-        for(var step = 1; step <= fadeSteps; step++) {
-          var rightStart = s.maxLon + (fadeExtensionLon * (step - 1));
-          var rightEnd = s.maxLon + (fadeExtensionLon * step);
-          var opacity = 0.35 - (0.35 * (step / fadeSteps));
-          
-          var layer = L.polygon([
-            [centerLat + gorge.baseHalf, rightStart],
-            [centerLat + gorge.baseHalf, rightEnd],
-            [centerLat - gorge.baseHalf, rightEnd],
-            [centerLat - gorge.baseHalf, rightStart]
-          ], {
-            color: 'transparent',
-            fillColor: i.color,
-            weight: 0,
-            fillOpacity: opacity,
-            interactive: false
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
+        // No left/right fades
         
         // Recreate border lines
         var borderSteps = 10;
