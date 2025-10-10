@@ -123,12 +123,12 @@
       gorge.setupEventListeners();
       gorge.renderGuide();
       
-      // Animate zoom in after a brief delay
+      // Animate zoom in after a 3 second pause
       setTimeout(function() {
         gorge.map.flyTo(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM, {
-          duration: 2.5
+          duration: 4
         });
-      }, 500);
+      }, 3000);
     };
 
     gorge.rectCoordsFor = function(key, minLon, maxLon, half) {
