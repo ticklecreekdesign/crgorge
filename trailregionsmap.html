@@ -24,7 +24,7 @@
       text-decoration:none;font-weight:700;font-size:17px;
       display:inline-block;margin-bottom:3px;cursor:pointer;
     }
-    .region-link:hover{opacity:0.75;}
+    .region-link:hover{opacity:0.8;}
     .region-meta{margin-left:2px;color:#555;}
     .region-meta div{margin:2px 0;}
 
@@ -49,16 +49,17 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
 
+    // Columbia Classic palette (earthy & professional)
     const REGION_INFO={
-      west:{label:'West',color:'#4a90e2',area:'Troutdale → Bridal Veil area',mm:'17–28',
+      west:{label:'West',color:'#2E86AB',area:'Troutdale → Bridal Veil area',mm:'17–28',
         highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
-      centralwest:{label:'Central West',color:'#7ed321',area:'Wahkeena → Cascade Locks',mm:'28–41',
+      centralwest:{label:'Central West',color:'#6AA84F',area:'Wahkeena → Cascade Locks',mm:'28–41',
         highlights:'Iconic waterfall corridor (Multnomah, Wahkeena, Horsetail); steep canyon hikes with sweeping vistas; Benson Bridge photo stops; Gorge Trail 400 connections; picnic areas and visitor centers.'},
-      central:{label:'Central',color:'#f8e71c',area:'Cascade Locks → Starvation Creek',mm:'41–55',
+      central:{label:'Central',color:'#E1B12C',area:'Cascade Locks → Starvation Creek',mm:'41–55',
         highlights:'Forest climbs and summit routes (Hamilton Mountain, Table Mountain, Dog Mountain); panoramic viewpoints; Pacific Crest Trail crossings; windsurfing at Bridge of the Gods; spring wildflowers.'},
-      centraleast:{label:'Central East',color:'#f5a623',area:'Starvation Creek → Mosier',mm:'55–67',
+      centraleast:{label:'Central East',color:'#C27C2C',area:'Starvation Creek → Mosier',mm:'55–67',
         highlights:'Steep basalt cliffs and open hillsides; scenic drives with river overlooks; lesser-traveled trails like McCall Point and Coyote Wall; spring wildflowers; transition zone between rainforest and grassland.'},
-      east:{label:'East',color:'#d0021b',area:'Mosier → The Dalles and beyond',mm:'60–90',
+      east:{label:'East',color:'#A04D3D',area:'Mosier → The Dalles and beyond',mm:'60–90',
         highlights:'Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.'}
     };
 
@@ -70,7 +71,6 @@
       "East":["Augspurger Mountain Trail","Beacon Rock Trail","Cape Horn Loop Trail","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Dog Mountain","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","Wind Mountain"]
     };
 
-    // Corrected latitudes
     const REGION_CENTER_LAT={
       west:45.55,
       centralwest:45.58,
@@ -98,7 +98,12 @@
       const i=REGION_INFO[k],{minLon,maxLon}=slices[k];
       const coords=rectCoordsFor(k,minLon,maxLon,baseHalf);
       baseCoords[k]=coords.slice();
-      regions[k]=L.polygon(coords,{color:i.color,fillColor:i.color,weight:1,fillOpacity:0.3}).addTo(map);
+      regions[k]=L.polygon(coords,{
+        color:i.color,
+        fillColor:i.color,
+        weight:1,
+        fillOpacity:0.25
+      }).addTo(map);
     }
 
     function extraHalfHeight(count){return Math.min(0.12,(count/6)*0.002);}
@@ -107,16 +112,20 @@
       const count=(TRAILS[i.label]||[]).length;
       const half=baseHalf+extraHalfHeight(count);
       regions[k].setLatLngs(rectCoordsFor(k,minLon,maxLon,half));
-      regions[k].setStyle({fillOpacity:0.45});
+      regions[k].setStyle({fillOpacity:0.35});
     }
-    function resetBands(){for(const k in regions){regions[k].setLatLngs(baseCoords[k]);regions[k].setStyle({fillOpacity:0.3});}}
+
+    function resetBands(){
+      for(const k in regions){
+        regions[k].setLatLngs(baseCoords[k]);
+        regions[k].setStyle({fillOpacity:0.25});
+      }
+    }
 
     const legend=document.getElementById('legend');
 
-    // Apply a fixed leftward pan of ~140px to visually center the Gorge
-    function visualCenter() {
-      map.panBy([-140, 0], {animate:false});
-    }
+    // Visual centering offset (~140px left for legend balance)
+    function visualCenter() { map.panBy([-140, 0], {animate:false}); }
 
     function renderGuide(){
       legend.className='legend';
