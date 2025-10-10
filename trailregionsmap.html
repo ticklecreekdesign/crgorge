@@ -24,7 +24,7 @@
       text-decoration:none;font-weight:700;font-size:17px;
       display:inline-block;margin-bottom:3px;cursor:pointer;
     }
-    .region-link:hover{opacity:0.8;}
+    .region-link:hover{opacity:0.75;}
     .region-meta{margin-left:2px;color:#555;}
     .region-meta div{margin:2px 0;}
 
@@ -42,24 +42,23 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // Center on Cascade Locks Airport
-    const DEFAULT_CENTER = [45.6746, -121.8794];
+    const DEFAULT_CENTER = [45.6746, -121.8794]; // Cascade Locks Airport
     const DEFAULT_ZOOM = 9.45;
     const map = L.map('map', { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
 
-    // Columbia Classic palette (earthy & professional)
+    // 🌲 Forest Gradient (Professional Earthy Palette)
     const REGION_INFO={
-      west:{label:'West',color:'#2E86AB',area:'Troutdale → Bridal Veil area',mm:'17–28',
+      west:{label:'West',color:'#1B5E20',area:'Troutdale → Bridal Veil area',mm:'17–28',
         highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
-      centralwest:{label:'Central West',color:'#6AA84F',area:'Wahkeena → Cascade Locks',mm:'28–41',
+      centralwest:{label:'Central West',color:'#2E7D32',area:'Wahkeena → Cascade Locks',mm:'28–41',
         highlights:'Iconic waterfall corridor (Multnomah, Wahkeena, Horsetail); steep canyon hikes with sweeping vistas; Benson Bridge photo stops; Gorge Trail 400 connections; picnic areas and visitor centers.'},
-      central:{label:'Central',color:'#E1B12C',area:'Cascade Locks → Starvation Creek',mm:'41–55',
+      central:{label:'Central',color:'#558B2F',area:'Cascade Locks → Starvation Creek',mm:'41–55',
         highlights:'Forest climbs and summit routes (Hamilton Mountain, Table Mountain, Dog Mountain); panoramic viewpoints; Pacific Crest Trail crossings; windsurfing at Bridge of the Gods; spring wildflowers.'},
-      centraleast:{label:'Central East',color:'#C27C2C',area:'Starvation Creek → Mosier',mm:'55–67',
+      centraleast:{label:'Central East',color:'#9E9D24',area:'Starvation Creek → Mosier',mm:'55–67',
         highlights:'Steep basalt cliffs and open hillsides; scenic drives with river overlooks; lesser-traveled trails like McCall Point and Coyote Wall; spring wildflowers; transition zone between rainforest and grassland.'},
-      east:{label:'East',color:'#A04D3D',area:'Mosier → The Dalles and beyond',mm:'60–90',
+      east:{label:'East',color:'#C0CA33',area:'Mosier → The Dalles and beyond',mm:'60–90',
         highlights:'Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.'}
     };
 
@@ -98,12 +97,7 @@
       const i=REGION_INFO[k],{minLon,maxLon}=slices[k];
       const coords=rectCoordsFor(k,minLon,maxLon,baseHalf);
       baseCoords[k]=coords.slice();
-      regions[k]=L.polygon(coords,{
-        color:i.color,
-        fillColor:i.color,
-        weight:1,
-        fillOpacity:0.25
-      }).addTo(map);
+      regions[k]=L.polygon(coords,{color:i.color,fillColor:i.color,weight:1,fillOpacity:0.35}).addTo(map);
     }
 
     function extraHalfHeight(count){return Math.min(0.12,(count/6)*0.002);}
@@ -112,19 +106,13 @@
       const count=(TRAILS[i.label]||[]).length;
       const half=baseHalf+extraHalfHeight(count);
       regions[k].setLatLngs(rectCoordsFor(k,minLon,maxLon,half));
-      regions[k].setStyle({fillOpacity:0.35});
+      regions[k].setStyle({fillOpacity:0.55});
     }
-
-    function resetBands(){
-      for(const k in regions){
-        regions[k].setLatLngs(baseCoords[k]);
-        regions[k].setStyle({fillOpacity:0.25});
-      }
-    }
+    function resetBands(){for(const k in regions){regions[k].setLatLngs(baseCoords[k]);regions[k].setStyle({fillOpacity:0.35});}}
 
     const legend=document.getElementById('legend');
 
-    // Visual centering offset (~140px left for legend balance)
+    // Small leftward offset to visually center due to legend width
     function visualCenter() { map.panBy([-140, 0], {animate:false}); }
 
     function renderGuide(){
