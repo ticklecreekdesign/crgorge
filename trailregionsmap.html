@@ -151,9 +151,9 @@
             [topStart, s.maxLon],
             [topStart, s.minLon]
           ], {
-            color: borderColor,
+            color: 'transparent',
             fillColor: i.color,
-            weight: 0.5,
+            weight: 0,
             fillOpacity: opacity,
             interactive: false
           }).addTo(gorge.map);
@@ -171,15 +171,15 @@
             [bottomEnd, s.maxLon],
             [bottomEnd, s.minLon]
           ], {
-            color: borderColor,
+            color: 'transparent',
             fillColor: i.color,
-            weight: 0.5,
+            weight: 0,
             fillOpacity: opacity,
             interactive: false
           }).addTo(gorge.map);
         }
         
-        // Fade left (left edge)
+        // Fade left (left edge with border)
         for(var step = 1; step <= fadeSteps; step++) {
           var leftStart = s.minLon - (fadeExtensionLon * (step - 1));
           var leftEnd = s.minLon - (fadeExtensionLon * step);
@@ -191,15 +191,15 @@
             [centerLat - gorge.baseHalf, leftEnd],
             [centerLat - gorge.baseHalf, leftStart]
           ], {
-            color: borderColor,
+            color: 'transparent',
             fillColor: i.color,
-            weight: 0.5,
+            weight: 0,
             fillOpacity: opacity,
             interactive: false
           }).addTo(gorge.map);
         }
         
-        // Fade right (right edge)
+        // Fade right (right edge with border)
         for(var step = 1; step <= fadeSteps; step++) {
           var rightStart = s.maxLon + (fadeExtensionLon * (step - 1));
           var rightEnd = s.maxLon + (fadeExtensionLon * step);
@@ -211,19 +211,56 @@
             [centerLat - gorge.baseHalf, rightEnd],
             [centerLat - gorge.baseHalf, rightStart]
           ], {
-            color: borderColor,
+            color: 'transparent',
             fillColor: i.color,
-            weight: 0.5,
+            weight: 0,
             fillOpacity: opacity,
             interactive: false
           }).addTo(gorge.map);
         }
         
-        // Main region (interactive)
+        // Create fading vertical border lines on left and right
+        var borderSteps = 10;
+        var totalHeight = gorge.baseHalf * 2 + (fadeExtensionLat * fadeSteps * 2);
+        var startLat = centerLat - gorge.baseHalf - (fadeExtensionLat * fadeSteps);
+        
+        // Left border line
+        for(var bstep = 0; bstep < borderSteps; bstep++) {
+          var latStart = startLat + (totalHeight * bstep / borderSteps);
+          var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
+          var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
+          var maxDist = gorge.baseHalf + (fadeExtensionLat * fadeSteps);
+          var borderOpacity = 1 - (distFromCenter / maxDist);
+          borderOpacity = Math.max(0, Math.min(1, borderOpacity));
+          
+          L.polyline([[latStart, s.minLon], [latEnd, s.minLon]], {
+            color: borderColor,
+            weight: 2,
+            opacity: borderOpacity
+          }).addTo(gorge.map);
+        }
+        
+        // Right border line
+        for(var bstep = 0; bstep < borderSteps; bstep++) {
+          var latStart = startLat + (totalHeight * bstep / borderSteps);
+          var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
+          var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
+          var maxDist = gorge.baseHalf + (fadeExtensionLat * fadeSteps);
+          var borderOpacity = 1 - (distFromCenter / maxDist);
+          borderOpacity = Math.max(0, Math.min(1, borderOpacity));
+          
+          L.polyline([[latStart, s.maxLon], [latEnd, s.maxLon]], {
+            color: borderColor,
+            weight: 2,
+            opacity: borderOpacity
+          }).addTo(gorge.map);
+        }
+        
+        // Main region (interactive, no border)
         gorge.regions[k] = L.polygon(coords, {
-          color: borderColor,
+          color: 'transparent',
           fillColor: i.color,
-          weight: 1,
+          weight: 0,
           fillOpacity: 0.35
         }).addTo(gorge.map);
       }
