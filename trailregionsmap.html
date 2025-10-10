@@ -44,9 +44,11 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const DEFAULT_CENTER=[45.68,-121.8],DEFAULT_ZOOM=9.45;
+    // Slightly west-shifted center to account for legend width
+    const DEFAULT_CENTER=[45.68,-121.87], DEFAULT_ZOOM=9.45;
     const map=L.map('map',{center:DEFAULT_CENTER,zoom:DEFAULT_ZOOM});
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
 
     const REGION_INFO={
       west:{label:'West',color:'#4a90e2',area:'Troutdale → Bridal Veil area',mm:'17–28',
@@ -69,13 +71,13 @@
       "East":["Augspurger Mountain Trail","Beacon Rock Trail","Cape Horn Loop Trail","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Dog Mountain","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","Wind Mountain"]
     };
 
-    // Updated region center latitudes (Central + Central East shifted up)
-    const REGION_CENTER_LAT = {
-      west: 45.55,
-      centralwest: 45.58,
-      central: 45.64,       // moved up
-      centraleast: 45.67,   // moved up
-      east: 45.68
+    // Adjusted center latitudes (Central and Central East raised)
+    const REGION_CENTER_LAT={
+      west:45.55,
+      centralwest:45.58,
+      central:45.655,
+      centraleast:45.685,
+      east:45.68
     };
 
     const baseHalf=0.045;
@@ -88,7 +90,6 @@
     };
 
     const regions={},baseCoords={};
-
     function rectCoordsFor(key,minLon,maxLon,half){
       const c=REGION_CENTER_LAT[key];
       return [[c+half,minLon],[c+half,maxLon],[c-half,maxLon],[c-half,minLon]];
