@@ -97,11 +97,11 @@
 
     gorge.baseHalf = 0.045;
     gorge.slices = {
-      west:{minLon:-122.50,maxLon:-122.32},
-      centralwest:{minLon:-122.32,maxLon:-121.96},
-      central:{minLon:-121.96,maxLon:-121.73},
-      centraleast:{minLon:-121.73,maxLon:-121.48},
-      east:{minLon:-121.48,maxLon:-121.25}
+      west:{minLon:-122.50,maxLon:-122.25},
+      centralwest:{minLon:-122.25,maxLon:-122.00},
+      central:{minLon:-122.00,maxLon:-121.75},
+      centraleast:{minLon:-121.75,maxLon:-121.50},
+      east:{minLon:-121.50,maxLon:-121.25}
     };
 
     gorge.regions = {};
@@ -266,13 +266,72 @@
       }
       gorge.regionLayers[k] = [];
       
-      // Recreate border layers only (no fades, no color fill)
       var borderColor = '#666';
       var fadeSteps = 5;
       var fadeExtensionLat = 0.03;
       var centerLat = gorge.REGION_CENTER_LAT[k];
+      var edgeWidth = 0.012; // Width of the colored edge strips
       
-      // No fades when expanded - only borders
+      // Create colored edge strips
+      // Top edge strip
+      var topLayer = L.polygon([
+        [centerLat + half, s.minLon],
+        [centerLat + half, s.maxLon],
+        [centerLat + half - edgeWidth, s.maxLon],
+        [centerLat + half - edgeWidth, s.minLon]
+      ], {
+        color: 'transparent',
+        fillColor: i.color,
+        weight: 0,
+        fillOpacity: 0.35,
+        interactive: false
+      }).addTo(gorge.map);
+      gorge.regionLayers[k].push(topLayer);
+      
+      // Bottom edge strip
+      var bottomLayer = L.polygon([
+        [centerLat - half + edgeWidth, s.minLon],
+        [centerLat - half + edgeWidth, s.maxLon],
+        [centerLat - half, s.maxLon],
+        [centerLat - half, s.minLon]
+      ], {
+        color: 'transparent',
+        fillColor: i.color,
+        weight: 0,
+        fillOpacity: 0.35,
+        interactive: false
+      }).addTo(gorge.map);
+      gorge.regionLayers[k].push(bottomLayer);
+      
+      // Left edge strip
+      var leftLayer = L.polygon([
+        [centerLat + half - edgeWidth, s.minLon],
+        [centerLat + half - edgeWidth, s.minLon + (edgeWidth * 2)],
+        [centerLat - half + edgeWidth, s.minLon + (edgeWidth * 2)],
+        [centerLat - half + edgeWidth, s.minLon]
+      ], {
+        color: 'transparent',
+        fillColor: i.color,
+        weight: 0,
+        fillOpacity: 0.35,
+        interactive: false
+      }).addTo(gorge.map);
+      gorge.regionLayers[k].push(leftLayer);
+      
+      // Right edge strip
+      var rightLayer = L.polygon([
+        [centerLat + half - edgeWidth, s.maxLon - (edgeWidth * 2)],
+        [centerLat + half - edgeWidth, s.maxLon],
+        [centerLat - half + edgeWidth, s.maxLon],
+        [centerLat - half + edgeWidth, s.maxLon - (edgeWidth * 2)]
+      ], {
+        color: 'transparent',
+        fillColor: i.color,
+        weight: 0,
+        fillOpacity: 0.35,
+        interactive: false
+      }).addTo(gorge.map);
+      gorge.regionLayers[k].push(rightLayer);
       
       // Recreate border lines (still fade at top/bottom)
       var borderSteps = 10;
@@ -313,7 +372,7 @@
         gorge.regionLayers[k].push(layer);
       }
       
-      // Update main region - hide fill color, show only outline
+      // Update main region - keep fill transparent
       gorge.regions[k].setLatLngs(gorge.rectCoordsFor(k, s.minLon, s.maxLon, half));
       gorge.regions[k].setStyle({fillOpacity: 0});
     };
