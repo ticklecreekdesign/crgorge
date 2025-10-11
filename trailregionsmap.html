@@ -97,11 +97,11 @@
 
     gorge.baseHalf = 0.045;
     gorge.slices = {
-      west:{minLon:-122.50,maxLon:-122.25},
-      centralwest:{minLon:-122.25,maxLon:-122.00},
-      central:{minLon:-122.00,maxLon:-121.75},
-      centraleast:{minLon:-121.75,maxLon:-121.50},
-      east:{minLon:-121.50,maxLon:-121.25}
+      west:{minLon:-122.50,maxLon:-122.32},
+      centralwest:{minLon:-122.32,maxLon:-121.96},
+      central:{minLon:-121.96,maxLon:-121.73},
+      centraleast:{minLon:-121.73,maxLon:-121.48},
+      east:{minLon:-121.48,maxLon:-121.25}
     };
 
     gorge.regions = {};
@@ -140,8 +140,8 @@
         
         gorge.regionLayers[k] = [];
         
-        var fadeSteps = 5;
-        var fadeExtensionLat = 0.03;
+        var fadeSteps = 8;
+        var fadeExtensionLat = 0.04;
         var centerLat = gorge.REGION_CENTER_LAT[k];
         
         // Fade above (top edge only)
@@ -268,8 +268,8 @@
       
       // Recreate fade and border layers with new height
       var borderColor = '#666';
-      var fadeSteps = 5;
-      var fadeExtensionLat = 0.03;
+      var fadeSteps = 8;
+      var fadeExtensionLat = 0.04;
       var centerLat = gorge.REGION_CENTER_LAT[k];
       
       // Fade above only
@@ -374,8 +374,8 @@
         var i = gorge.REGION_INFO[k];
         var s = gorge.slices[k];
         var borderColor = '#666';
-        var fadeSteps = 5;
-        var fadeExtensionLat = 0.03;
+        var fadeSteps = 8;
+        var fadeExtensionLat = 0.04;
         var centerLat = gorge.REGION_CENTER_LAT[k];
         
         // Fade above only
