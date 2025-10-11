@@ -75,508 +75,449 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    var gorge = {};
-    
-    gorge.DEFAULT_CENTER = [45.6746, -121.8794];
-    gorge.DEFAULT_ZOOM = 9.4;
-    gorge.INITIAL_CENTER = [44.0, -120.5];
-    gorge.INITIAL_ZOOM = 7;
-
-    gorge.REGION_INFO = {
-      west:{label:'West',color:'#1B5E20',area:'Troutdale → Bridal Veil area',mm:'17–28',
-        highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
-      centralwest:{label:'Central West',color:'#2E7D32',area:'Wahkeena → Cascade Locks',mm:'28–41',
-        highlights:'Iconic waterfall corridor (Multnomah, Wahkeena, Horsetail); steep canyon hikes with sweeping vistas; Benson Bridge photo stops; Gorge Trail 400 connections; picnic areas and visitor centers.'},
-      central:{label:'Central',color:'#558B2F',area:'Cascade Locks → Starvation Creek',mm:'41–55',
-        highlights:'Forest climbs and summit routes (Hamilton Mountain, Table Mountain, Dog Mountain); panoramic viewpoints; Pacific Crest Trail crossings; windsurfing at Bridge of the Gods; spring wildflowers.'},
-      centraleast:{label:'Central East',color:'#9E9D24',area:'Starvation Creek → Mosier',mm:'55–67',
-        highlights:'Steep basalt cliffs and open hillsides; scenic drives with river overlooks; lesser-traveled trails like McCall Point and Coyote Wall; spring wildflowers; transition zone between rainforest and grassland.'},
-      east:{label:'East',color:'#C0CA33',area:'Mosier → The Dalles and beyond',mm:'60–90',
-        highlights:'Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.'}
-    };
-
-    gorge.TRAILS = {
-      "West":["Angels' Rest","Angels' Rest to Devil's Rest","Bridal Veil Falls","Bridal Veil Loop","Fairy Falls","Gillette Lake","Larch Mt via Multnomah Falls","Latourell Falls Trail","Multnomah Falls","Multnomah–Wahkeena Loop","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Wahkeena Falls"],
-      "Central West":["Bell Creek Trail","Cape Horn Loop Trail","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop","Indian Point Loop","John B. Yeon Trailhead","Munra Point","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Punchbowl Falls","Triple Falls Trail","Tunnel Falls"],
-      "Central":["Beacon Rock Trail","Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail","Dog Mountain","Dry Creek Falls","Hamilton Mountain Loop","Hardy Ridge Loop","Herman Creek Pinnacles","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Table Mountain Loop","Upper McCord Creek Falls","Wahclella Falls","Wauna Point"],
-      "Central East":["Chetwoot Loop Hike","Lancaster Falls","Lower Starvation Loop","Mark O. Hatfield Trailhead","Memaloose Hills","Mitchell Point Trail","Mosier Twin Tunnels","Mt. Defiance Loop","Starvation Creek Trail","Starvation Ridge","Steigerwald Lake Trail","Tooth Rock Loop","Wind Mountain","Wygant Peak"],
-      "East":["Augspurger Mountain Trail","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Rowena Plateau","Sevenmile Hill","The Dalles Mountain","Tom McCall Point"]
-    };
-
-    gorge.REGION_CENTER_LAT = {
-      west:45.55,
-      centralwest:45.58,
-      central:45.655,
-      centraleast:45.685,
-      east:45.68
-    };
-
-    gorge.baseHalf = 0.045;
-    gorge.slices = {
-      west:{minLon:-122.50,maxLon:-122.25},
-      centralwest:{minLon:-122.25,maxLon:-122.00},
-      central:{minLon:-122.00,maxLon:-121.75},
-      centraleast:{minLon:-121.75,maxLon:-121.50},
-      east:{minLon:-121.50,maxLon:-121.25}
-    };
-
-    gorge.regions = {};
-    gorge.baseCoords = {};
-    gorge.regionLayers = {};
-    gorge.regionLabels = {};
-    
-    gorge.init = function() {
-      gorge.map = L.map('map').setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
-
-      L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-        { attribution: '&copy; Esri, USGS, NOAA, U.S. Navy, NGA, GEBCO' }
-      ).addTo(gorge.map);
-
-      gorge.legend = document.getElementById('legend');
+    (function() {
+      'use strict';
       
-      gorge.createRegions();
-      gorge.setupEventListeners();
-      gorge.renderGuide();
-    };
-
-    gorge.rectCoordsFor = function(key, minLon, maxLon, half) {
-      var c = gorge.REGION_CENTER_LAT[key];
-      return [[c+half,minLon],[c+half,maxLon],[c-half,maxLon],[c-half,minLon]];
-    };
-
-    gorge.createRegions = function() {
-      var borderColor = '#666';
+      // Wait for both DOM and Leaflet to be ready
+      function waitForLeaflet(callback) {
+        if (typeof L !== 'undefined') {
+          callback();
+        } else {
+          setTimeout(function() { waitForLeaflet(callback); }, 50);
+        }
+      }
       
-      for(var k in gorge.slices) {
-        var i = gorge.REGION_INFO[k];
-        var s = gorge.slices[k];
-        var coords = gorge.rectCoordsFor(k, s.minLon, s.maxLon, gorge.baseHalf);
-        gorge.baseCoords[k] = coords.slice();
-        
-        gorge.regionLayers[k] = [];
-        
-        var fadeSteps = 5;
-        var fadeExtensionLat = 0.03;
-        var centerLat = gorge.REGION_CENTER_LAT[k];
-        
-        // Fade above (top edge only)
-        for(var step = 1; step <= fadeSteps; step++) {
-          var topStart = centerLat + gorge.baseHalf + (fadeExtensionLat * (step - 1));
-          var topEnd = centerLat + gorge.baseHalf + (fadeExtensionLat * step);
-          var opacity = 0.35 - (0.35 * (step / fadeSteps));
-          
-          var layer = L.polygon([
-            [topEnd, s.minLon],
-            [topEnd, s.maxLon],
-            [topStart, s.maxLon],
-            [topStart, s.minLon]
-          ], {
-            color: 'transparent',
-            fillColor: i.color,
-            weight: 0,
-            fillOpacity: opacity,
-            interactive: false
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
-        
-        // Fade below (bottom edge only)
-        for(var step = 1; step <= fadeSteps; step++) {
-          var bottomStart = centerLat - gorge.baseHalf - (fadeExtensionLat * (step - 1));
-          var bottomEnd = centerLat - gorge.baseHalf - (fadeExtensionLat * step);
-          var opacity = 0.35 - (0.35 * (step / fadeSteps));
-          
-          var layer = L.polygon([
-            [bottomStart, s.minLon],
-            [bottomStart, s.maxLon],
-            [bottomEnd, s.maxLon],
-            [bottomEnd, s.minLon]
-          ], {
-            color: 'transparent',
-            fillColor: i.color,
-            weight: 0,
-            fillOpacity: opacity,
-            interactive: false
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
-        
-        // No left/right fades
-        
-        // Create fading vertical border lines on left and right
-        var borderSteps = 10;
-        var totalHeight = gorge.baseHalf * 2 + (fadeExtensionLat * fadeSteps * 2);
-        var startLat = centerLat - gorge.baseHalf - (fadeExtensionLat * fadeSteps);
-        
-        // Left border line
-        for(var bstep = 0; bstep < borderSteps; bstep++) {
-          var latStart = startLat + (totalHeight * bstep / borderSteps);
-          var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
-          var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
-          var maxDist = gorge.baseHalf + (fadeExtensionLat * fadeSteps);
-          var borderOpacity = 1 - (distFromCenter / maxDist);
-          borderOpacity = Math.max(0, Math.min(1, borderOpacity));
-          
-          var layer = L.polyline([[latStart, s.minLon], [latEnd, s.minLon]], {
-            color: borderColor,
-            weight: 2,
-            opacity: borderOpacity
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
-        
-        // Right border line
-        for(var bstep = 0; bstep < borderSteps; bstep++) {
-          var latStart = startLat + (totalHeight * bstep / borderSteps);
-          var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
-          var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
-          var maxDist = gorge.baseHalf + (fadeExtensionLat * fadeSteps);
-          var borderOpacity = 1 - (distFromCenter / maxDist);
-          borderOpacity = Math.max(0, Math.min(1, borderOpacity));
-          
-          var layer = L.polyline([[latStart, s.maxLon], [latEnd, s.maxLon]], {
-            color: borderColor,
-            weight: 2,
-            opacity: borderOpacity
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
-        
-        // Main region (interactive, no border)
-        gorge.regions[k] = L.polygon(coords, {
-          color: 'transparent',
-          fillColor: i.color,
-          weight: 0,
-          fillOpacity: 0.35
-        }).addTo(gorge.map);
-        
-        // Add region label
-        var labelIcon = L.divIcon({
-          className: 'region-label',
-          html: '<div style="font-size:16px;font-weight:700;color:'+i.color+';text-shadow:1px 1px 2px rgba(255,255,255,0.9), -1px -1px 2px rgba(255,255,255,0.9), 1px -1px 2px rgba(255,255,255,0.9), -1px 1px 2px rgba(255,255,255,0.9);white-space:nowrap;text-align:center;">'+i.label+'</div>',
-          iconSize: [100, 0],
-          iconAnchor: [50, 0]
+      function initWhenReady() {
+        waitForLeaflet(function() {
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGorge);
+          } else {
+            initGorge();
+          }
         });
-        
-        gorge.regionLabels[k] = L.marker([centerLat, (s.minLon + s.maxLon) / 2], {
-          icon: labelIcon,
-          interactive: false
-        }).addTo(gorge.map);
       }
-    };
+      
+      var gorge = {};
+      
+      gorge.DEFAULT_CENTER = [45.6746, -121.8794];
+      gorge.DEFAULT_ZOOM = 9.4;
 
-    gorge.extraHalfHeight = function(count) {
-      return Math.min(0.12, (count/6)*0.002);
-    };
-    
-    gorge.expandRegion = function(k) {
-      var i = gorge.REGION_INFO[k];
-      var s = gorge.slices[k];
-      var count = (gorge.TRAILS[i.label] || []).length;
-      var half = gorge.baseHalf + gorge.extraHalfHeight(count);
+      gorge.REGION_INFO = {
+        west:{label:'West',color:'#1B5E20',area:'Portland metro → Bridal Veil',mm:'17–28',
+          highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
+        centralwest:{label:'Central West',color:'#2E7D32',area:'Bridal Veil → Elowah Falls',mm:'28–40',
+          highlights:'Iconic waterfall corridor (Multnomah, Wahkeena, Horsetail); steep canyon hikes with sweeping vistas; Benson Bridge photo stops; Gorge Trail 400 connections; picnic areas and visitor centers.'},
+        central:{label:'Central',color:'#558B2F',area:'Bonneville Dam → Dog Mountain',mm:'40–51',
+          highlights:'Forest climbs and summit routes (Hamilton Mountain, Table Mountain, Dog Mountain); panoramic viewpoints; Pacific Crest Trail crossings; Bridge of the Gods; Beacon Rock; spring wildflowers.'},
+        centraleast:{label:'Central East',color:'#9E9D24',area:'Herman Creek → Hood River',mm:'51–64',
+          highlights:'Steep basalt cliffs and open hillsides; scenic drives with river overlooks; lesser-traveled trails like Wyeth and Mitchell Point; spring wildflowers; transition zone between rainforest and grassland.'},
+        east:{label:'East',color:'#C0CA33',area:'Mosier → The Dalles',mm:'64–90',
+          highlights:'Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.'}
+      };
+
+      gorge.TRAILS = {
+        "West":["Angels' Rest","Angels' Rest to Devil's Rest","Bridal Veil Falls","Bridal Veil Loop","Cape Horn Loop Trail","Coopey Falls","Devils Rest","Fairy Falls","Franklin Ridge","Gorge Trail #400","Larch Mt via Multnomah Falls","Latourell Falls Trail","Multnomah Falls","Multnomah–Wahkeena Loop","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Wahkeena Falls","Washougal Waterfront Trail"],
+        "Central West":["Aldrich Butte","Bell Creek Trail","Dry Creek Falls","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop","Indian Point Loop","John B. Yeon Trailhead","Munra Point","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Pool Of The Winds","Punchbowl Falls","Tanner Butte Trail","Tanner Ridge","Triple Falls Trail","Tunnel Falls","Upper McCord Creek Falls","Wauna Point","Wauna Viewpoint"],
+        "Central":["Beacon Rock Trail","Benson Plateau","Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail","Dog Mountain","Falls Creek Falls","Fort Cascades Loop","Hamilton Mountain Loop","Hardy Ridge Loop","Heartbreak Ridge","Herman Creek Pinnacles","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Strawberry Island","Table Mountain Loop","Tamanous Trail","Tom McCall Point","Wahclella Falls"],
+        "Central East":["Cabin Creek Falls","Chetwoot Loop Hike","Hole-in-the-Wall Falls","Lancaster Falls","Lower Starvation Loop","Mark O. Hatfield Trailhead","Memaloose Hills","Mitchell Point Trail","Mosier Creek Falls","Mosier Plateau","Mosier Twin Tunnels","Mt. Defiance Loop","North Lake","Rowena Plateau","Starvation Creek Trail","Starvation Ridge","Tooth Rock Loop","Wahtum Lake","Wyeth Trail","Wygant Peak"],
+        "East":["Augspurger Mountain Trail","Balfour-Klickitat Loop","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Crawford Oaks","Deschutes River Trail","Dog Creek Falls","Ferry Springs Trail","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","The Dalles Riverfront Trail","Wind Mountain"]
+      };
+
+      gorge.REGION_CENTER_LAT = {
+        west:45.55,
+        centralwest:45.58,
+        central:45.655,
+        centraleast:45.685,
+        east:45.68
+      };
+
+      gorge.baseHalf = 0.045;
+      gorge.slices = {
+        west:{minLon:-122.50,maxLon:-122.15},
+        centralwest:{minLon:-122.15,maxLon:-121.88},
+        central:{minLon:-121.88,maxLon:-121.60},
+        centraleast:{minLon:-121.60,maxLon:-121.38},
+        east:{minLon:-121.38,maxLon:-121.10}
+      };
+
+      gorge.regions = {};
+      gorge.baseCoords = {};
+      gorge.regionLayers = {};
+      gorge.regionLabels = {};
       
-      // Remove ALL old layers for this region
-      if(gorge.regionLayers[k]) {
-        for(var j = 0; j < gorge.regionLayers[k].length; j++) {
-          if(gorge.map.hasLayer(gorge.regionLayers[k][j])) {
-            gorge.map.removeLayer(gorge.regionLayers[k][j]);
-          }
+      function initGorge() {
+        try {
+          gorge.map = L.map('map').setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
+
+          L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+            { attribution: '&copy; Esri, USGS, NOAA, U.S. Navy, NGA, GEBCO' }
+          ).addTo(gorge.map);
+
+          gorge.legend = document.getElementById('legend');
+          
+          createRegions();
+          setupEventListeners();
+          renderGuide();
+        } catch (e) {
+          console.error('Initialization error:', e);
         }
       }
-      gorge.regionLayers[k] = [];
-      
-      var centerLat = gorge.REGION_CENTER_LAT[k];
-      
-      // Create ONLY 4 thin colored border lines - nothing else
-      var borderLines = [
-        // Top
-        [[centerLat + half, s.minLon], [centerLat + half, s.maxLon]],
-        // Bottom
-        [[centerLat - half, s.minLon], [centerLat - half, s.maxLon]],
-        // Left
-        [[centerLat + half, s.minLon], [centerLat - half, s.minLon]],
-        // Right
-        [[centerLat + half, s.maxLon], [centerLat - half, s.maxLon]]
-      ];
-      
-      for(var b = 0; b < borderLines.length; b++) {
-        var line = L.polyline(borderLines[b], {
-          color: i.color,
-          weight: 2,
-          opacity: 0.7
-        }).addTo(gorge.map);
-        gorge.regionLayers[k].push(line);
+
+      function rectCoordsFor(key, minLon, maxLon, half) {
+        var c = gorge.REGION_CENTER_LAT[key];
+        return [[c+half,minLon],[c+half,maxLon],[c-half,maxLon],[c-half,minLon]];
       }
-      
-      // Update main region polygon - completely transparent fill
-      gorge.regions[k].setLatLngs(gorge.rectCoordsFor(k, s.minLon, s.maxLon, half));
-      gorge.regions[k].setStyle({
-        fillOpacity: 0,
-        color: 'transparent',
-        weight: 0
-      });
-    };
-    
-    gorge.resetBands = function() {
-      for(var k in gorge.regions) {
-        // Remove old fade/border layers if they exist
-        for(var j = 0; j < gorge.regionLayers[k].length; j++) {
-          if(gorge.map.hasLayer(gorge.regionLayers[k][j])) {
-            gorge.map.removeLayer(gorge.regionLayers[k][j]);
-          }
-        }
-        gorge.regionLayers[k] = [];
-        
-        // Recreate with original dimensions
-        var i = gorge.REGION_INFO[k];
-        var s = gorge.slices[k];
+
+      function createRegions() {
         var borderColor = '#666';
-        var fadeSteps = 5;
-        var fadeExtensionLat = 0.03;
-        var centerLat = gorge.REGION_CENTER_LAT[k];
         
-        // Fade above only
-        for(var step = 1; step <= fadeSteps; step++) {
-          var topStart = centerLat + gorge.baseHalf + (fadeExtensionLat * (step - 1));
-          var topEnd = centerLat + gorge.baseHalf + (fadeExtensionLat * step);
-          var opacity = 0.35 - (0.35 * (step / fadeSteps));
+        for(var k in gorge.slices) {
+          var i = gorge.REGION_INFO[k];
+          var s = gorge.slices[k];
+          var coords = rectCoordsFor(k, s.minLon, s.maxLon, gorge.baseHalf);
+          gorge.baseCoords[k] = coords.slice();
           
-          var layer = L.polygon([
-            [topEnd, s.minLon],
-            [topEnd, s.maxLon],
-            [topStart, s.maxLon],
-            [topStart, s.minLon]
-          ], {
+          gorge.regionLayers[k] = [];
+          
+          var fadeSteps = 5;
+          var fadeExtensionLat = 0.03;
+          var centerLat = gorge.REGION_CENTER_LAT[k];
+          
+          for(var step = 1; step <= fadeSteps; step++) {
+            var topStart = centerLat + gorge.baseHalf + (fadeExtensionLat * (step - 1));
+            var topEnd = centerLat + gorge.baseHalf + (fadeExtensionLat * step);
+            var opacity = 0.35 - (0.35 * (step / fadeSteps));
+            
+            var layer = L.polygon([
+              [topEnd, s.minLon],
+              [topEnd, s.maxLon],
+              [topStart, s.maxLon],
+              [topStart, s.minLon]
+            ], {
+              color: 'transparent',
+              fillColor: i.color,
+              weight: 0,
+              fillOpacity: opacity,
+              interactive: false
+            }).addTo(gorge.map);
+            gorge.regionLayers[k].push(layer);
+          }
+          
+          for(var step = 1; step <= fadeSteps; step++) {
+            var bottomStart = centerLat - gorge.baseHalf - (fadeExtensionLat * (step - 1));
+            var bottomEnd = centerLat - gorge.baseHalf - (fadeExtensionLat * step);
+            var opacity = 0.35 - (0.35 * (step / fadeSteps));
+            
+            var layer = L.polygon([
+              [bottomStart, s.minLon],
+              [bottomStart, s.maxLon],
+              [bottomEnd, s.maxLon],
+              [bottomEnd, s.minLon]
+            ], {
+              color: 'transparent',
+              fillColor: i.color,
+              weight: 0,
+              fillOpacity: opacity,
+              interactive: false
+            }).addTo(gorge.map);
+            gorge.regionLayers[k].push(layer);
+          }
+          
+          var borderSteps = 10;
+          var totalHeight = gorge.baseHalf * 2 + (fadeExtensionLat * fadeSteps * 2);
+          var startLat = centerLat - gorge.baseHalf - (fadeExtensionLat * fadeSteps);
+          
+          for(var bstep = 0; bstep < borderSteps; bstep++) {
+            var latStart = startLat + (totalHeight * bstep / borderSteps);
+            var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
+            var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
+            var maxDist = gorge.baseHalf + (fadeExtensionLat * fadeSteps);
+            var borderOpacity = 1 - (distFromCenter / maxDist);
+            borderOpacity = Math.max(0, Math.min(1, borderOpacity));
+            
+            var layer = L.polyline([[latStart, s.minLon], [latEnd, s.minLon]], {
+              color: borderColor,
+              weight: 2,
+              opacity: borderOpacity
+            }).addTo(gorge.map);
+            gorge.regionLayers[k].push(layer);
+          }
+          
+          for(var bstep = 0; bstep < borderSteps; bstep++) {
+            var latStart = startLat + (totalHeight * bstep / borderSteps);
+            var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
+            var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
+            var maxDist = gorge.baseHalf + (fadeExtensionLat * fadeSteps);
+            var borderOpacity = 1 - (distFromCenter / maxDist);
+            borderOpacity = Math.max(0, Math.min(1, borderOpacity));
+            
+            var layer = L.polyline([[latStart, s.maxLon], [latEnd, s.maxLon]], {
+              color: borderColor,
+              weight: 2,
+              opacity: borderOpacity
+            }).addTo(gorge.map);
+            gorge.regionLayers[k].push(layer);
+          }
+          
+          gorge.regions[k] = L.polygon(coords, {
             color: 'transparent',
             fillColor: i.color,
             weight: 0,
-            fillOpacity: opacity,
+            fillOpacity: 0.35
+          }).addTo(gorge.map);
+          
+          var labelIcon = L.divIcon({
+            className: 'region-label',
+            html: '<div style="font-size:16px;font-weight:700;color:'+i.color+';text-shadow:1px 1px 2px rgba(255,255,255,0.9), -1px -1px 2px rgba(255,255,255,0.9), 1px -1px 2px rgba(255,255,255,0.9), -1px 1px 2px rgba(255,255,255,0.9);white-space:nowrap;text-align:center;">'+i.label+'</div>',
+            iconSize: [100, 0],
+            iconAnchor: [50, 0]
+          });
+          
+          gorge.regionLabels[k] = L.marker([centerLat, (s.minLon + s.maxLon) / 2], {
+            icon: labelIcon,
             interactive: false
           }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
         }
-        
-        // Fade below only
-        for(var step = 1; step <= fadeSteps; step++) {
-          var bottomStart = centerLat - gorge.baseHalf - (fadeExtensionLat * (step - 1));
-          var bottomEnd = centerLat - gorge.baseHalf - (fadeExtensionLat * step);
-          var opacity = 0.35 - (0.35 * (step / fadeSteps));
-          
-          var layer = L.polygon([
-            [bottomStart, s.minLon],
-            [bottomStart, s.maxLon],
-            [bottomEnd, s.maxLon],
-            [bottomEnd, s.minLon]
-          ], {
-            color: 'transparent',
-            fillColor: i.color,
-            weight: 0,
-            fillOpacity: opacity,
-            interactive: false
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
-        
-        // No left/right fades
-        
-        // Recreate border lines
-        var borderSteps = 10;
-        var totalHeight = gorge.baseHalf * 2 + (fadeExtensionLat * fadeSteps * 2);
-        var startLat = centerLat - gorge.baseHalf - (fadeExtensionLat * fadeSteps);
-        
-        // Left border
-        for(var bstep = 0; bstep < borderSteps; bstep++) {
-          var latStart = startLat + (totalHeight * bstep / borderSteps);
-          var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
-          var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
-          var maxDist = gorge.baseHalf + (fadeExtensionLat * fadeSteps);
-          var borderOpacity = 1 - (distFromCenter / maxDist);
-          borderOpacity = Math.max(0, Math.min(1, borderOpacity));
-          
-          var layer = L.polyline([[latStart, s.minLon], [latEnd, s.minLon]], {
-            color: borderColor,
-            weight: 2,
-            opacity: borderOpacity
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
-        
-        // Right border
-        for(var bstep = 0; bstep < borderSteps; bstep++) {
-          var latStart = startLat + (totalHeight * bstep / borderSteps);
-          var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
-          var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
-          var maxDist = gorge.baseHalf + (fadeExtensionLat * fadeSteps);
-          var borderOpacity = 1 - (distFromCenter / maxDist);
-          borderOpacity = Math.max(0, Math.min(1, borderOpacity));
-          
-          var layer = L.polyline([[latStart, s.maxLon], [latEnd, s.maxLon]], {
-            color: borderColor,
-            weight: 2,
-            opacity: borderOpacity
-          }).addTo(gorge.map);
-          gorge.regionLayers[k].push(layer);
-        }
-        
-        // Reset main region
-        gorge.regions[k].setLatLngs(gorge.baseCoords[k]);
-        gorge.regions[k].setStyle({fillOpacity: 0.35});
       }
-    };
 
-    gorge.escapeHTML = function(s) {
-      var div = document.createElement('div');
-      div.textContent = s;
-      return div.innerHTML;
-    };
+      function resetBands() {
+        for(var k in gorge.regions) {
+          for(var j = 0; j < gorge.regionLayers[k].length; j++) {
+            if(gorge.map.hasLayer(gorge.regionLayers[k][j])) {
+              gorge.map.removeLayer(gorge.regionLayers[k][j]);
+            }
+          }
+          gorge.regionLayers[k] = [];
+          
+          var i = gorge.REGION_INFO[k];
+          var s = gorge.slices[k];
+          var borderColor = '#666';
+          var fadeSteps = 5;
+          var fadeExtensionLat = 0.03;
+          var centerLat = gorge.REGION_CENTER_LAT[k];
+          
+          for(var step = 1; step <= fadeSteps; step++) {
+            var topStart = centerLat + gorge.baseHalf + (fadeExtensionLat * (step - 1));
+            var topEnd = centerLat + gorge.baseHalf + (fadeExtensionLat * step);
+            var opacity = 0.35 - (0.35 * (step / fadeSteps));
+            
+            var layer = L.polygon([
+              [topEnd, s.minLon],
+              [topEnd, s.maxLon],
+              [topStart, s.maxLon],
+              [topStart, s.minLon]
+            ], {
+              color: 'transparent',
+              fillColor: i.color,
+              weight: 0,
+              fillOpacity: opacity,
+              interactive: false
+            }).addTo(gorge.map);
+            gorge.regionLayers[k].push(layer);
+          }
+          
+          for(var step = 1; step <= fadeSteps; step++) {
+            var bottomStart = centerLat - gorge.baseHalf - (fadeExtensionLat * (step - 1));
+            var bottomEnd = centerLat - gorge.baseHalf - (fadeExtensionLat * step);
+            var opacity = 0.35 - (0.35 * (step / fadeSteps));
+            
+            var layer = L.polygon([
+              [bottomStart, s.minLon],
+              [bottomStart, s.maxLon],
+              [bottomEnd, s.maxLon],
+              [bottomEnd, s.minLon]
+            ], {
+              color: 'transparent',
+              fillColor: i.color,
+              weight: 0,
+              fillOpacity: opacity,
+              interactive: false
+            }).addTo(gorge.map);
+            gorge.regionLayers[k].push(layer);
+          }
+          
+          var borderSteps = 10;
+          var totalHeight = gorge.baseHalf * 2 + (fadeExtensionLat * fadeSteps * 2);
+          var startLat = centerLat - gorge.baseHalf - (fadeExtensionLat * fadeSteps);
+          
+          for(var bstep = 0; bstep < borderSteps; bstep++) {
+            var latStart = startLat + (totalHeight * bstep / borderSteps);
+            var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
+            var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
+            var maxDist = gorge.baseHalf + (fadeExtensionLat * fadeSteps);
+            var borderOpacity = 1 - (distFromCenter / maxDist);
+            borderOpacity = Math.max(0, Math.min(1, borderOpacity));
+            
+            var layer = L.polyline([[latStart, s.minLon], [latEnd, s.minLon]], {
+              color: borderColor,
+              weight: 2,
+              opacity: borderOpacity
+            }).addTo(gorge.map);
+            gorge.regionLayers[k].push(layer);
+          }
+          
+          for(var bstep = 0; bstep < borderSteps; bstep++) {
+            var latStart = startLat + (totalHeight * bstep / borderSteps);
+            var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
+            var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
+            var maxDist = gorge.baseHalf + (fadeExtensionLat * fadeSteps);
+            var borderOpacity = 1 - (distFromCenter / maxDist);
+            borderOpacity = Math.max(0, Math.min(1, borderOpacity));
+            
+            var layer = L.polyline([[latStart, s.maxLon], [latEnd, s.maxLon]], {
+              color: borderColor,
+              weight: 2,
+              opacity: borderOpacity
+            }).addTo(gorge.map);
+            gorge.regionLayers[k].push(layer);
+          }
+          
+          gorge.regions[k].setLatLngs(gorge.baseCoords[k]);
+          gorge.regions[k].setStyle({fillOpacity: 0.35});
+        }
+      }
 
-    gorge.renderGuide = function(resetView) {
-      gorge.legend.className = 'legend-column';
-      var html = '<h3>Region Guide</h3>';
-      for(var k in gorge.REGION_INFO) {
+      function escapeHTML(s) {
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
+      function renderGuide(resetView) {
+        gorge.legend.className = 'legend-column';
+        var html = '<h3>Region Guide</h3>';
+        for(var k in gorge.REGION_INFO) {
+          var i = gorge.REGION_INFO[k];
+          html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
+        }
+        gorge.legend.innerHTML = html;
+        
+        var links = gorge.legend.querySelectorAll('.region-link');
+        for(var i=0; i<links.length; i++) {
+          links[i].onclick = function() {
+            showRegion(this.getAttribute('data-region'));
+          };
+        }
+        
+        if(resetView) {
+          gorge.map.setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
+        }
+      }
+
+      function renderRegionDetail(k) {
         var i = gorge.REGION_INFO[k];
-        html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
-      }
-      gorge.legend.innerHTML = html;
-      
-      var links = gorge.legend.querySelectorAll('.region-link');
-      for(var i=0; i<links.length; i++) {
-        links[i].onclick = function() {
-          gorge.showRegion(this.getAttribute('data-region'));
+        var trails = (gorge.TRAILS[i.label] || []).slice().sort(function(a,b){return a.localeCompare(b);});
+        gorge.legend.className = 'legend-column legend-detail';
+        var html = '<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div class="region-info"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div></div><ul class="trail-list">';
+        for(var j=0; j<trails.length; j++) {
+          html += '<li>'+escapeHTML(trails[j])+'</li>';
+        }
+        html += '</ul>';
+        gorge.legend.innerHTML = html;
+        
+        document.getElementById('backLink').onclick = function() {
+          backToGuide();
         };
       }
-      
-      if(resetView) {
-        gorge.map.setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
-      }
-    };
 
-    gorge.renderRegionDetail = function(k) {
-      var i = gorge.REGION_INFO[k];
-      var trails = (gorge.TRAILS[i.label] || []).slice().sort(function(a,b){return a.localeCompare(b);});
-      gorge.legend.className = 'legend-column legend-detail';
-      var html = '<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div class="region-info"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div></div><ul class="trail-list">';
-      for(var j=0; j<trails.length; j++) {
-        html += '<li>'+gorge.escapeHTML(trails[j])+'</li>';
-      }
-      html += '</ul>';
-      gorge.legend.innerHTML = html;
-      
-      document.getElementById('backLink').onclick = function() {
-        gorge.backToGuide();
-      };
-    };
-
-    gorge.showRegion = function(k) {
-      // Hide EVERYTHING first - all regions and all their layers
-      for(var rk in gorge.regions) {
-        // Remove main region polygon
-        if(gorge.map.hasLayer(gorge.regions[rk])) {
-          gorge.map.removeLayer(gorge.regions[rk]);
-        }
-        // Remove region label
-        if(gorge.map.hasLayer(gorge.regionLabels[rk])) {
-          gorge.map.removeLayer(gorge.regionLabels[rk]);
-        }
-        // Remove ALL associated layers for ALL regions
-        if(gorge.regionLayers[rk]) {
-          for(var j = 0; j < gorge.regionLayers[rk].length; j++) {
-            if(gorge.map.hasLayer(gorge.regionLayers[rk][j])) {
-              gorge.map.removeLayer(gorge.regionLayers[rk][j]);
+      function showRegion(k) {
+        for(var rk in gorge.regions) {
+          if(gorge.map.hasLayer(gorge.regions[rk])) {
+            gorge.map.removeLayer(gorge.regions[rk]);
+          }
+          if(gorge.map.hasLayer(gorge.regionLabels[rk])) {
+            gorge.map.removeLayer(gorge.regionLabels[rk]);
+          }
+          if(gorge.regionLayers[rk]) {
+            for(var j = 0; j < gorge.regionLayers[rk].length; j++) {
+              if(gorge.map.hasLayer(gorge.regionLayers[rk][j])) {
+                gorge.map.removeLayer(gorge.regionLayers[rk][j]);
+              }
             }
           }
         }
-      }
-      
-      // Now create ONLY the simple colored border for region k
-      var i = gorge.REGION_INFO[k];
-      var s = gorge.slices[k];
-      var count = (gorge.TRAILS[i.label] || []).length;
-      var half = gorge.baseHalf + gorge.extraHalfHeight(count);
-      var centerLat = gorge.REGION_CENTER_LAT[k];
-      
-      // Clear any existing expanded layers for this region
-      if(!gorge.expandedLayers) gorge.expandedLayers = {};
-      if(gorge.expandedLayers[k]) {
-        for(var j = 0; j < gorge.expandedLayers[k].length; j++) {
-          if(gorge.map.hasLayer(gorge.expandedLayers[k][j])) {
-            gorge.map.removeLayer(gorge.expandedLayers[k][j]);
-          }
-        }
-      }
-      gorge.expandedLayers[k] = [];
-      
-      // Add ONLY 4 colored border lines
-      var lines = [
-        [[centerLat + half, s.minLon], [centerLat + half, s.maxLon]], // top
-        [[centerLat - half, s.minLon], [centerLat - half, s.maxLon]], // bottom
-        [[centerLat + half, s.minLon], [centerLat - half, s.minLon]], // left
-        [[centerLat + half, s.maxLon], [centerLat - half, s.maxLon]]  // right
-      ];
-      
-      for(var b = 0; b < lines.length; b++) {
-        var line = L.polyline(lines[b], {
-          color: i.color,
-          weight: 3,
-          opacity: 0.8
-        }).addTo(gorge.map);
-        gorge.expandedLayers[k].push(line);
-      }
-      
-      gorge.renderRegionDetail(k);
-      
-      var bounds = [
-        [centerLat + half, s.minLon],
-        [centerLat - half, s.maxLon]
-      ];
-      gorge.map.fitBounds(bounds, {padding: [20, 20]});
-    };
-    
-    gorge.backToGuide = function() {
-      // Remove any expanded layers
-      if(gorge.expandedLayers) {
-        for(var k in gorge.expandedLayers) {
+        
+        var i = gorge.REGION_INFO[k];
+        var s = gorge.slices[k];
+        var count = (gorge.TRAILS[i.label] || []).length;
+        var half = gorge.baseHalf + Math.min(0.12, (count/6)*0.002);
+        var centerLat = gorge.REGION_CENTER_LAT[k];
+        
+        if(!gorge.expandedLayers) gorge.expandedLayers = {};
+        if(gorge.expandedLayers[k]) {
           for(var j = 0; j < gorge.expandedLayers[k].length; j++) {
             if(gorge.map.hasLayer(gorge.expandedLayers[k][j])) {
               gorge.map.removeLayer(gorge.expandedLayers[k][j]);
             }
           }
         }
+        gorge.expandedLayers[k] = [];
+        
+        var lines = [
+          [[centerLat + half, s.minLon], [centerLat + half, s.maxLon]],
+          [[centerLat - half, s.minLon], [centerLat - half, s.maxLon]],
+          [[centerLat + half, s.minLon], [centerLat - half, s.minLon]],
+          [[centerLat + half, s.maxLon], [centerLat - half, s.maxLon]]
+        ];
+        
+        for(var b = 0; b < lines.length; b++) {
+          var line = L.polyline(lines[b], {
+            color: i.color,
+            weight: 3,
+            opacity: 0.8
+          }).addTo(gorge.map);
+          gorge.expandedLayers[k].push(line);
+        }
+        
+        renderRegionDetail(k);
+        
+        var bounds = [
+          [centerLat + half, s.minLon],
+          [centerLat - half, s.maxLon]
+        ];
+        gorge.map.fitBounds(bounds, {padding: [20, 20]});
       }
       
-      // Restore all regions
-      for(var k in gorge.regions) {
-        if(!gorge.map.hasLayer(gorge.regions[k])) {
-          gorge.map.addLayer(gorge.regions[k]);
-          gorge.map.addLayer(gorge.regionLabels[k]);
+      function backToGuide() {
+        if(gorge.expandedLayers) {
+          for(var k in gorge.expandedLayers) {
+            for(var j = 0; j < gorge.expandedLayers[k].length; j++) {
+              if(gorge.map.hasLayer(gorge.expandedLayers[k][j])) {
+                gorge.map.removeLayer(gorge.expandedLayers[k][j]);
+              }
+            }
+          }
+        }
+        
+        for(var k in gorge.regions) {
+          if(!gorge.map.hasLayer(gorge.regions[k])) {
+            gorge.map.addLayer(gorge.regions[k]);
+            gorge.map.addLayer(gorge.regionLabels[k]);
+          }
+        }
+        
+        resetBands();
+        renderGuide(true);
+      }
+
+      function setupEventListeners() {
+        gorge.map.on('click', function() {
+          backToGuide();
+        });
+        
+        for(var k in gorge.regions) {
+          (function(key) {
+            gorge.regions[key].on('click', function(e) {
+              L.DomEvent.stopPropagation(e);
+              showRegion(key);
+            });
+          })(k);
         }
       }
-      
-      gorge.resetBands();
-      gorge.renderGuide(true);
-    };
 
-    gorge.setupEventListeners = function() {
-      gorge.map.on('click', function() {
-        gorge.backToGuide();
-      });
-      
-      for(var k in gorge.regions) {
-        (function(key) {
-          gorge.regions[key].on('click', function(e) {
-            L.DomEvent.stopPropagation(e);
-            gorge.showRegion(key);
-          });
-        })(k);
-      }
-    };
-
-    if(document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', gorge.init);
-    } else {
-      gorge.init();
-    }
+      initWhenReady();
+    })();
   </script>
 </body>
 </html>
