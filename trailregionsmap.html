@@ -54,10 +54,13 @@
     .region-meta{margin:4px 0 0 2px;color:#555;}
     .region-meta div{margin:0 0 4px 0;}
     .region-meta div:last-child{margin-bottom:0;}
-    .legend-detail .back-row{position:sticky;top:0;background:#fff;padding:6px 0 8px 0;z-index:2;}
+    .legend-detail .back-row{position:sticky;top:0;background:#fff;padding:6px 0 4px 0;z-index:2;margin-bottom:4px;}
     .legend-detail .back-link{color:#06c;text-decoration:none;font-weight:600;cursor:pointer;}
     .legend-detail .back-link:hover{text-decoration:underline;}
-    .legend-detail h3{font-size:18px;font-weight:700;margin:8px 0 8px 0;}
+    .legend-detail h3{font-size:18px;font-weight:700;margin:0 0 8px 0;}
+    .legend-detail .region-info{color:#555;margin-bottom:8px;}
+    .legend-detail .region-info div{margin:0 0 4px 0;}
+    .legend-detail .region-info div:last-child{margin-bottom:0;}
     .trail-list{margin:10px 0 0 0;padding-left:18px;list-style-type:disc;}
     .trail-list li{margin:3px 0;}
   </style>
@@ -453,7 +456,7 @@
       var i = gorge.REGION_INFO[k];
       var trails = (gorge.TRAILS[i.label] || []).slice().sort(function(a,b){return a.localeCompare(b);});
       gorge.legend.className = 'legend-column legend-detail';
-      var html = '<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div style="color:#555;margin-bottom:8px;"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div></div><ul class="trail-list">';
+      var html = '<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div class="region-info"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div></div><ul class="trail-list">';
       for(var j=0; j<trails.length; j++) {
         html += '<li>'+gorge.escapeHTML(trails[j])+'</li>';
       }
