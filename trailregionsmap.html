@@ -260,121 +260,46 @@
       var count = (gorge.TRAILS[i.label] || []).length;
       var half = gorge.baseHalf + gorge.extraHalfHeight(count);
       
-      // Remove old fade/border layers
-      for(var j = 0; j < gorge.regionLayers[k].length; j++) {
-        gorge.map.removeLayer(gorge.regionLayers[k][j]);
+      // Remove ALL old layers for this region
+      if(gorge.regionLayers[k]) {
+        for(var j = 0; j < gorge.regionLayers[k].length; j++) {
+          if(gorge.map.hasLayer(gorge.regionLayers[k][j])) {
+            gorge.map.removeLayer(gorge.regionLayers[k][j]);
+          }
+        }
       }
       gorge.regionLayers[k] = [];
       
-      var borderColor = '#666';
-      var fadeSteps = 5;
-      var fadeExtensionLat = 0.03;
       var centerLat = gorge.REGION_CENTER_LAT[k];
-      var edgeWidth = 0.012; // Width of the colored edge strips
       
-      // Create colored edge strips
-      // Top edge strip
-      var topLayer = L.polygon([
-        [centerLat + half, s.minLon],
-        [centerLat + half, s.maxLon],
-        [centerLat + half - edgeWidth, s.maxLon],
-        [centerLat + half - edgeWidth, s.minLon]
-      ], {
-        color: 'transparent',
-        fillColor: i.color,
-        weight: 0,
-        fillOpacity: 0.35,
-        interactive: false
-      }).addTo(gorge.map);
-      gorge.regionLayers[k].push(topLayer);
+      // Create ONLY 4 thin colored border lines - nothing else
+      var borderLines = [
+        // Top
+        [[centerLat + half, s.minLon], [centerLat + half, s.maxLon]],
+        // Bottom
+        [[centerLat - half, s.minLon], [centerLat - half, s.maxLon]],
+        // Left
+        [[centerLat + half, s.minLon], [centerLat - half, s.minLon]],
+        // Right
+        [[centerLat + half, s.maxLon], [centerLat - half, s.maxLon]]
+      ];
       
-      // Bottom edge strip
-      var bottomLayer = L.polygon([
-        [centerLat - half + edgeWidth, s.minLon],
-        [centerLat - half + edgeWidth, s.maxLon],
-        [centerLat - half, s.maxLon],
-        [centerLat - half, s.minLon]
-      ], {
-        color: 'transparent',
-        fillColor: i.color,
-        weight: 0,
-        fillOpacity: 0.35,
-        interactive: false
-      }).addTo(gorge.map);
-      gorge.regionLayers[k].push(bottomLayer);
-      
-      // Left edge strip
-      var leftLayer = L.polygon([
-        [centerLat + half - edgeWidth, s.minLon],
-        [centerLat + half - edgeWidth, s.minLon + (edgeWidth * 2)],
-        [centerLat - half + edgeWidth, s.minLon + (edgeWidth * 2)],
-        [centerLat - half + edgeWidth, s.minLon]
-      ], {
-        color: 'transparent',
-        fillColor: i.color,
-        weight: 0,
-        fillOpacity: 0.35,
-        interactive: false
-      }).addTo(gorge.map);
-      gorge.regionLayers[k].push(leftLayer);
-      
-      // Right edge strip
-      var rightLayer = L.polygon([
-        [centerLat + half - edgeWidth, s.maxLon - (edgeWidth * 2)],
-        [centerLat + half - edgeWidth, s.maxLon],
-        [centerLat - half + edgeWidth, s.maxLon],
-        [centerLat - half + edgeWidth, s.maxLon - (edgeWidth * 2)]
-      ], {
-        color: 'transparent',
-        fillColor: i.color,
-        weight: 0,
-        fillOpacity: 0.35,
-        interactive: false
-      }).addTo(gorge.map);
-      gorge.regionLayers[k].push(rightLayer);
-      
-      // Recreate border lines (still fade at top/bottom)
-      var borderSteps = 10;
-      var totalHeight = half * 2 + (fadeExtensionLat * fadeSteps * 2);
-      var startLat = centerLat - half - (fadeExtensionLat * fadeSteps);
-      
-      // Left border
-      for(var bstep = 0; bstep < borderSteps; bstep++) {
-        var latStart = startLat + (totalHeight * bstep / borderSteps);
-        var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
-        var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
-        var maxDist = half + (fadeExtensionLat * fadeSteps);
-        var borderOpacity = 1 - (distFromCenter / maxDist);
-        borderOpacity = Math.max(0, Math.min(1, borderOpacity));
-        
-        var layer = L.polyline([[latStart, s.minLon], [latEnd, s.minLon]], {
-          color: borderColor,
+      for(var b = 0; b < borderLines.length; b++) {
+        var line = L.polyline(borderLines[b], {
+          color: i.color,
           weight: 2,
-          opacity: borderOpacity
+          opacity: 0.7
         }).addTo(gorge.map);
-        gorge.regionLayers[k].push(layer);
+        gorge.regionLayers[k].push(line);
       }
       
-      // Right border
-      for(var bstep = 0; bstep < borderSteps; bstep++) {
-        var latStart = startLat + (totalHeight * bstep / borderSteps);
-        var latEnd = startLat + (totalHeight * (bstep + 1) / borderSteps);
-        var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
-        var maxDist = half + (fadeExtensionLat * fadeSteps);
-        var borderOpacity = 1 - (distFromCenter / maxDist);
-        borderOpacity = Math.max(0, Math.min(1, borderOpacity));
-        
-        var layer = L.polyline([[latStart, s.maxLon], [latEnd, s.maxLon]], {
-          color: borderColor,
-          weight: 2,
-          opacity: borderOpacity
-        }).addTo(gorge.map);
-        gorge.regionLayers[k].push(layer);
-      }
-      
-      // Update main region - keep fill transparent
+      // Update main region polygon - completely transparent fill
       gorge.regions[k].setLatLngs(gorge.rectCoordsFor(k, s.minLon, s.maxLon, half));
-      gorge.regions[k].setStyle({fillOpacity: 0});
+      gorge.regions[k].setStyle({
+        fillOpacity: 0,
+        color: 'transparent',
+        weight: 0
+      });
     };
     
     gorge.resetBands = function() {
@@ -528,23 +453,82 @@
     };
 
     gorge.showRegion = function(k) {
-      // Hide all other regions
+      // Hide EVERYTHING first - all regions and all their layers
       for(var rk in gorge.regions) {
-        if(rk !== k) {
+        // Remove main region polygon
+        if(gorge.map.hasLayer(gorge.regions[rk])) {
           gorge.map.removeLayer(gorge.regions[rk]);
+        }
+        // Remove region label
+        if(gorge.map.hasLayer(gorge.regionLabels[rk])) {
           gorge.map.removeLayer(gorge.regionLabels[rk]);
+        }
+        // Remove ALL associated layers for ALL regions
+        if(gorge.regionLayers[rk]) {
           for(var j = 0; j < gorge.regionLayers[rk].length; j++) {
-            gorge.map.removeLayer(gorge.regionLayers[rk][j]);
+            if(gorge.map.hasLayer(gorge.regionLayers[rk][j])) {
+              gorge.map.removeLayer(gorge.regionLayers[rk][j]);
+            }
           }
         }
       }
       
-      gorge.expandRegion(k);
+      // Now create ONLY the simple colored border for region k
+      var i = gorge.REGION_INFO[k];
+      var s = gorge.slices[k];
+      var count = (gorge.TRAILS[i.label] || []).length;
+      var half = gorge.baseHalf + gorge.extraHalfHeight(count);
+      var centerLat = gorge.REGION_CENTER_LAT[k];
+      
+      // Clear any existing expanded layers for this region
+      if(!gorge.expandedLayers) gorge.expandedLayers = {};
+      if(gorge.expandedLayers[k]) {
+        for(var j = 0; j < gorge.expandedLayers[k].length; j++) {
+          if(gorge.map.hasLayer(gorge.expandedLayers[k][j])) {
+            gorge.map.removeLayer(gorge.expandedLayers[k][j]);
+          }
+        }
+      }
+      gorge.expandedLayers[k] = [];
+      
+      // Add ONLY 4 colored border lines
+      var lines = [
+        [[centerLat + half, s.minLon], [centerLat + half, s.maxLon]], // top
+        [[centerLat - half, s.minLon], [centerLat - half, s.maxLon]], // bottom
+        [[centerLat + half, s.minLon], [centerLat - half, s.minLon]], // left
+        [[centerLat + half, s.maxLon], [centerLat - half, s.maxLon]]  // right
+      ];
+      
+      for(var b = 0; b < lines.length; b++) {
+        var line = L.polyline(lines[b], {
+          color: i.color,
+          weight: 3,
+          opacity: 0.8
+        }).addTo(gorge.map);
+        gorge.expandedLayers[k].push(line);
+      }
+      
       gorge.renderRegionDetail(k);
-      gorge.map.fitBounds(gorge.regions[k].getBounds(), {padding: [20, 20]});
+      
+      var bounds = [
+        [centerLat + half, s.minLon],
+        [centerLat - half, s.maxLon]
+      ];
+      gorge.map.fitBounds(bounds, {padding: [20, 20]});
     };
     
     gorge.backToGuide = function() {
+      // Remove any expanded layers
+      if(gorge.expandedLayers) {
+        for(var k in gorge.expandedLayers) {
+          for(var j = 0; j < gorge.expandedLayers[k].length; j++) {
+            if(gorge.map.hasLayer(gorge.expandedLayers[k][j])) {
+              gorge.map.removeLayer(gorge.expandedLayers[k][j]);
+            }
+          }
+        }
+      }
+      
       // Restore all regions
       for(var k in gorge.regions) {
         if(!gorge.map.hasLayer(gorge.regions[k])) {
