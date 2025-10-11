@@ -80,9 +80,9 @@
     };
 
     gorge.TRAILS = {
-      "West":["Angels' Rest","Angels' Rest to Devil's Rest","Bridal Veil Falls","Bridal Veil Loop","Fairy Falls","Gillette Lake","Latourell Falls Trail","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell"],
-      "Central West":["Bell Creek Trail","Cape Horn Loop Trail","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop","Indian Point Loop","John B. Yeon Trailhead","Larch Mt via Multnomah Falls","Multnomah Falls","Multnomah–Wahkeena Loop","Munra Point","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Punchbowl Falls","Triple Falls Trail","Tunnel Falls","Upper McCord Creek Falls","Wahkeena Falls","Wauna Point"],
-      "Central":["Beacon Rock Trail","Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail","Dog Mountain","Dry Creek Falls","Hamilton Mountain Loop","Hardy Ridge Loop","Herman Creek Pinnacles","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Table Mountain Loop","Wahclella Falls"],
+      "West":["Angels' Rest","Angels' Rest to Devil's Rest","Bridal Veil Falls","Bridal Veil Loop","Fairy Falls","Gillette Lake","Larch Mt via Multnomah Falls","Latourell Falls Trail","Multnomah Falls","Multnomah–Wahkeena Loop","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Wahkeena Falls"],
+      "Central West":["Bell Creek Trail","Cape Horn Loop Trail","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop","Indian Point Loop","John B. Yeon Trailhead","Munra Point","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Punchbowl Falls","Triple Falls Trail","Tunnel Falls"],
+      "Central":["Beacon Rock Trail","Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail","Dog Mountain","Dry Creek Falls","Hamilton Mountain Loop","Hardy Ridge Loop","Herman Creek Pinnacles","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Table Mountain Loop","Upper McCord Creek Falls","Wahclella Falls","Wauna Point"],
       "Central East":["Chetwoot Loop Hike","Lancaster Falls","Lower Starvation Loop","Mark O. Hatfield Trailhead","Memaloose Hills","Mitchell Point Trail","Mosier Twin Tunnels","Mt. Defiance Loop","Starvation Creek Trail","Starvation Ridge","Steigerwald Lake Trail","Tooth Rock Loop","Wind Mountain","Wygant Peak"],
       "East":["Augspurger Mountain Trail","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Deschutes River Trail","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Rowena Plateau","Sevenmile Hill","The Dalles Mountain","Tom McCall Point"]
     };
@@ -266,55 +266,13 @@
       }
       gorge.regionLayers[k] = [];
       
-      // Recreate fade and border layers with new height
+      // Recreate border layers only (no fades, no color fill)
       var borderColor = '#666';
       var fadeSteps = 5;
       var fadeExtensionLat = 0.03;
       var centerLat = gorge.REGION_CENTER_LAT[k];
       
-      // Fade above only
-      for(var step = 1; step <= fadeSteps; step++) {
-        var topStart = centerLat + half + (fadeExtensionLat * (step - 1));
-        var topEnd = centerLat + half + (fadeExtensionLat * step);
-        var opacity = 0.35 - (0.35 * (step / fadeSteps));
-        
-        var layer = L.polygon([
-          [topEnd, s.minLon],
-          [topEnd, s.maxLon],
-          [topStart, s.maxLon],
-          [topStart, s.minLon]
-        ], {
-          color: 'transparent',
-          fillColor: i.color,
-          weight: 0,
-          fillOpacity: opacity,
-          interactive: false
-        }).addTo(gorge.map);
-        gorge.regionLayers[k].push(layer);
-      }
-      
-      // Fade below only
-      for(var step = 1; step <= fadeSteps; step++) {
-        var bottomStart = centerLat - half - (fadeExtensionLat * (step - 1));
-        var bottomEnd = centerLat - half - (fadeExtensionLat * step);
-        var opacity = 0.35 - (0.35 * (step / fadeSteps));
-        
-        var layer = L.polygon([
-          [bottomStart, s.minLon],
-          [bottomStart, s.maxLon],
-          [bottomEnd, s.maxLon],
-          [bottomEnd, s.minLon]
-        ], {
-          color: 'transparent',
-          fillColor: i.color,
-          weight: 0,
-          fillOpacity: opacity,
-          interactive: false
-        }).addTo(gorge.map);
-        gorge.regionLayers[k].push(layer);
-      }
-      
-      // No left/right fades when expanded
+      // No fades when expanded - only borders
       
       // Recreate border lines (still fade at top/bottom)
       var borderSteps = 10;
@@ -355,9 +313,9 @@
         gorge.regionLayers[k].push(layer);
       }
       
-      // Update main region
+      // Update main region - hide fill color, show only outline
       gorge.regions[k].setLatLngs(gorge.rectCoordsFor(k, s.minLon, s.maxLon, half));
-      gorge.regions[k].setStyle({fillOpacity: 0.55});
+      gorge.regions[k].setStyle({fillOpacity: 0});
     };
     
     gorge.resetBands = function() {
