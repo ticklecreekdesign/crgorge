@@ -477,9 +477,10 @@
           [centerLat - half, s.maxLon]
         ];
         
-        // For West and Central, force a higher zoom level
+        // For West and Central, manually set view with higher zoom
         if(k === 'west' || k === 'central') {
-          gorge.map.fitBounds(bounds, {padding: [20, 20], maxZoom: 11.5});
+          var centerLng = (s.minLon + s.maxLon) / 2;
+          gorge.map.setView([centerLat, centerLng], 11.5);
         } else {
           gorge.map.fitBounds(bounds, {padding: [20, 20]});
         }
