@@ -442,6 +442,7 @@
         var s = gorge.slices[k];
         var count = (gorge.TRAILS[i.label] || []).length;
         var half = gorge.baseHalf + Math.min(0.12, (count/6)*0.002);
+        var topExtension = 0.06; // Extra extension to the north into Washington
         var centerLat = gorge.REGION_CENTER_LAT[k];
         
         if(!gorge.expandedLayers) gorge.expandedLayers = {};
@@ -451,6 +452,33 @@
               gorge.map.removeLayer(gorge.expandedLayers[k][j]);
             }
           }
+        }
+        gorge.expandedLayers[k] = [];
+        
+        var lines = [
+          [[centerLat + half + topExtension, s.minLon], [centerLat + half + topExtension, s.maxLon]], // top - extended
+          [[centerLat - half, s.minLon], [centerLat - half, s.maxLon]], // bottom
+          [[centerLat + half + topExtension, s.minLon], [centerLat - half, s.minLon]], // left
+          [[centerLat + half + topExtension, s.maxLon], [centerLat - half, s.maxLon]]  // right
+        ];
+        
+        for(var b = 0; b < lines.length; b++) {
+          var line = L.polyline(lines[b], {
+            color: i.color,
+            weight: 3,
+            opacity: 0.8
+          }).addTo(gorge.map);
+          gorge.expandedLayers[k].push(line);
+        }
+        
+        renderRegionDetail(k);
+        
+        var bounds = [
+          [centerLat + half + topExtension, s.minLon],
+          [centerLat - half, s.maxLon]
+        ];
+        gorge.map.fitBounds(bounds, {padding: [20, 20]});
+      }
         }
         gorge.expandedLayers[k] = [];
         
