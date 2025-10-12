@@ -477,15 +477,16 @@
           [centerLat - half, s.maxLon]
         ];
         
-        gorge.map.fitBounds(bounds, {padding: [20, 20]});
-        
-        // Increase zoom for West and Central regions after fitBounds
+        // For West and Central, use tighter bounds to force more zoom
         if(k === 'west' || k === 'central') {
-          setTimeout(function() {
-            var currentZoom = gorge.map.getZoom();
-            gorge.map.setZoom(currentZoom + 0.5);
-          }, 100);
+          var reducedHalf = half * 0.7;
+          bounds = [
+            [centerLat + reducedHalf, s.minLon],
+            [centerLat - reducedHalf, s.maxLon]
+          ];
         }
+        
+        gorge.map.fitBounds(bounds, {padding: [20, 20]});
       }
       
       function backToGuide() {
