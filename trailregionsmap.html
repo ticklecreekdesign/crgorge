@@ -34,7 +34,7 @@
       border:none;
     }
     .legend-column{
-      width:340px;
+      width:380px;
       background:#fff;
       padding:0 14px 14px 14px;
       overflow-y:auto;
@@ -61,8 +61,45 @@
     .legend-detail .region-info{color:#555;margin-bottom:8px;margin-left:2px;}
     .legend-detail .region-info div{margin:0 0 4px 0;line-height:1.5;}
     .legend-detail .region-info div:last-child{margin-bottom:0;}
-    .trail-list{margin:10px 0 0 0;padding-left:18px;list-style-type:disc;}
-    .trail-list li{margin:3px 0;}
+    .trail-item{
+      margin:12px 0;
+      padding:10px;
+      background:#f9f9f9;
+      border-left:3px solid #ddd;
+      border-radius:2px;
+    }
+    .trail-name{
+      font-weight:700;
+      font-size:15px;
+      color:#2e2e2e;
+      margin-bottom:4px;
+    }
+    .trail-meta{
+      display:flex;
+      gap:12px;
+      margin-bottom:6px;
+      font-size:12px;
+      color:#666;
+    }
+    .trail-distance{font-weight:600;}
+    .trail-rating{
+      display:flex;
+      gap:8px;
+      font-size:12px;
+    }
+    .difficulty-badge, .popularity-badge{
+      padding:2px 6px;
+      border-radius:3px;
+      font-weight:600;
+    }
+    .difficulty-badge{background:#e3f2fd;color:#1976d2;}
+    .popularity-badge{background:#fff3e0;color:#f57c00;}
+    .trail-description{
+      font-size:13px;
+      line-height:1.5;
+      color:#555;
+      margin-top:6px;
+    }
     .error-message{
       position:absolute;
       top:50%;
@@ -117,13 +154,7 @@
           highlights:'Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.'}
       };
 
-      gorge.TRAILS = {
-        "West":["Angels' Rest","Angels' Rest to Devil's Rest","Bridal Veil Falls","Bridal Veil Loop","Cape Horn Loop Trail","Coopey Falls","Devils Rest","Fairy Falls","Franklin Ridge","Gorge Trail #400","Larch Mt via Multnomah Falls","Latourell Falls Trail","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Washougal Waterfront Trail"],
-        "Central West":["Aldrich Butte","Bell Creek Trail","Dry Creek Falls","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop","Indian Point Loop","John B. Yeon Trailhead","Multnomah Falls","Multnomah–Wahkeena Loop","Munra Point","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Pool Of The Winds","Punchbowl Falls","Tanner Butte Trail","Tanner Ridge","Triple Falls Trail","Tunnel Falls","Upper McCord Creek Falls","Wahkeena Falls","Wauna Point","Wauna Viewpoint"],
-        "Central":["Beacon Rock Trail","Benson Plateau","Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail","Dog Mountain","Falls Creek Falls","Fort Cascades Loop","Hamilton Mountain Loop","Hardy Ridge Loop","Heartbreak Ridge","Herman Creek Pinnacles","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Strawberry Island","Table Mountain Loop","Tamanous Trail","Tom McCall Point","Wahclella Falls"],
-        "Central East":["Cabin Creek Falls","Chetwoot Loop Hike","Hole-in-the-Wall Falls","Lancaster Falls","Lower Starvation Loop","Mark O. Hatfield Trailhead","Memaloose Hills","Mitchell Point Trail","Mosier Creek Falls","Mosier Plateau","Mosier Twin Tunnels","Mt. Defiance Loop","North Lake","Rowena Plateau","Starvation Creek Trail","Starvation Ridge","Tooth Rock Loop","Wahtum Lake","Wyeth Trail","Wygant Peak"],
-        "East":["Augspurger Mountain Trail","Balfour-Klickitat Loop","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Crawford Oaks","Deschutes River Trail","Dog Creek Falls","Ferry Springs Trail","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","The Dalles Riverfront Trail","Wind Mountain"]
-      };
+      gorge.TRAILS = {"Central West":[{"name":"Aldrich Butte","distance":"4 rt","description":"Hike to former WWII aircraft warning station with views of the Gorge. Parking area. $10 fee at Bonneville Hot Springs.","difficulty":2,"popularity":2},{"name":"Augspurger Mountain Trail","distance":"12.5 rt","description":"Difficult climb to wildflower meadows and ridge views; shares trailhead with Dog Mountain. Parking lot, vault toilets.","difficulty":5,"popularity":2},{"name":"Beacon Rock Trail","distance":"1.8 rt","description":"Switchbacking path to a dramatic overlook on a 848-foot monolith. Parking lot, flush toilets.","difficulty":2,"popularity":5},{"name":"Bell Creek Trail","distance":"3.4 rt","description":"Peaceful forest walk to a small waterfall at Bell Creek. Limited roadside parking.","difficulty":1,"popularity":1},{"name":"Benson Plateau","distance":"15.5 lp","description":"Challenging loop through old-growth forest to a remote, lake-dotted plateau. Parking area, vault toilets.","difficulty":5,"popularity":2},{"name":"Dog Mountain","distance":"7.8 rt","description":"Steep climb to legendary wildflower displays and 360-degree Gorge views. Parking lot, vault toilets.","difficulty":4,"popularity":5},{"name":"Dry Creek Falls","distance":"2.6 rt","description":"Short, family-friendly walk to a 75-foot falls in a lush canyon. Roadside parking.","difficulty":1,"popularity":3},{"name":"Eagle Creek Trail","distance":"12 rt","description":"Iconic riverside trail along Eagle Creek with waterfalls, tunnels, and cliffs. Parking lot, vault toilets.","difficulty":3,"popularity":5},{"name":"Elowah Falls","distance":"1.6 rt","description":"Easy hike to a stunning 289-foot waterfall. Parking lot.","difficulty":1,"popularity":4},{"name":"Falls Creek Falls","distance":"6.5 rt","description":"Moderate hike through forest to a 60-foot waterfall near the Washington side. Parking area.","difficulty":2,"popularity":3},{"name":"Fort Cascades Loop","distance":"1.2 rt","description":"Historical walk exploring remnants of a mid-1800s military fort. Parking lot.","difficulty":1,"popularity":2},{"name":"Hamilton Mountain Loop","distance":"7.8 lp","description":"Popular loop to summit viewpoint via waterfalls and wildflower slopes. Parking lot, vault toilets.","difficulty":4,"popularity":4},{"name":"Hardy Ridge Loop","distance":"9.9 lp","description":"Challenging ridge hike with views over the Gorge and Cascade peaks. Parking area.","difficulty":4,"popularity":2},{"name":"Heartbreak Ridge","distance":"14 rt","description":"Arduous climb to a remote ridge with Gorge and mountain vistas. Parking area, vault toilets.","difficulty":5,"popularity":1},{"name":"Herman Creek Pinnacles","distance":"6.2 rt","description":"Steep ascent to rocky pinnacle with commanding views. Parking area, vault toilets.","difficulty":4,"popularity":2},{"name":"Horsetail Falls Loop","distance":"2.8 lp","description":"Family-friendly loop passing Horsetail and Ponytail Falls. Roadside parking.","difficulty":2,"popularity":5},{"name":"Indian Point Loop","distance":"2.9 lp","description":"Short loop with Gorge views and wildflowers in spring. Parking area.","difficulty":2,"popularity":2},{"name":"John B. Yeon Trailhead","distance":"varies","description":"Access point for trails including Elowah Falls and Nesmith Point. Parking lot.","difficulty":2,"popularity":3},{"name":"Multnomah Falls","distance":"0.5 rt","description":"World-famous 620-foot waterfall; paved trail to Benson Bridge. Large parking lot, visitor center, flush toilets.","difficulty":1,"popularity":5},{"name":"Multnomah–Wahkeena Loop","distance":"5.4 lp","description":"Classic waterfall loop via Multnomah and Wahkeena Falls. Parking lot, visitor center, flush toilets.","difficulty":3,"popularity":5},{"name":"Munra Point","distance":"5.4 rt","description":"Difficult scramble to a rocky summit with sweeping views. Roadside parking.","difficulty":5,"popularity":3},{"name":"Nesmith Point Trail","distance":"9.8 rt","description":"Strenuous climb to a forested summit with Gorge views. Parking lot, vault toilets.","difficulty":5,"popularity":2},{"name":"Nick Eaton Ridge Loop","distance":"13.7 lp","description":"Challenging ridge loop with meadows and viewpoints. Parking area, vault toilets.","difficulty":5,"popularity":2},{"name":"Oneonta Gorge","distance":"0.6 rt","description":"Unique gorge wade to a hidden waterfall (summer only). Roadside parking.","difficulty":2,"popularity":5},{"name":"Ponytail Falls Trail","distance":"0.8 rt","description":"Short walk to Ponytail Falls; trail goes behind the falls. Roadside parking.","difficulty":1,"popularity":5},{"name":"Pool Of The Winds","distance":"4.5 rt","description":"Hike to a grotto behind Punchbowl Falls. Parking area, vault toilets.","difficulty":2,"popularity":3},{"name":"Punchbowl Falls","distance":"4.2 rt","description":"Walk along Eagle Creek to a spectacular amphitheater waterfall. Parking lot, vault toilets.","difficulty":2,"popularity":5},{"name":"Ruckel Ridge Loop","distance":"9.5 lp","description":"Extremely challenging loop with steep climbs and exposed ridges. Parking lot.","difficulty":5,"popularity":3},{"name":"Strawberry Island","distance":"1.5 rt","description":"Easy riverside trail with beach access and wildlife viewing. Parking lot.","difficulty":1,"popularity":3},{"name":"Table Mountain Loop","distance":"15.6 lp","description":"Long, demanding summit loop with wildflowers and Gorge views. Parking lot, vault toilets.","difficulty":5,"popularity":3},{"name":"Tamanous Trail","distance":"8 rt","description":"Moderately difficult forest hike with ridge views. Parking area, vault toilets.","difficulty":3,"popularity":2},{"name":"Tanner Butte Trail","distance":"17.2 rt","description":"Long, rugged trek to a forested summit. Parking area, vault toilets.","difficulty":5,"popularity":1},{"name":"Tanner Ridge","distance":"10.2 rt","description":"Steady climb to a viewpoint on Tanner Ridge. Parking area, vault toilets.","difficulty":4,"popularity":2},{"name":"Tom McCall Point","distance":"3.2 rt","description":"Popular wildflower hike to a grassy viewpoint. Parking area.","difficulty":2,"popularity":5},{"name":"Triple Falls Trail","distance":"5 rt","description":"Moderate forest walk to a three-tiered waterfall. Parking lot, vault toilets.","difficulty":2,"popularity":4},{"name":"Tunnel Falls","distance":"12 rt","description":"Extended hike along Eagle Creek to a waterfall with a trail tunnel behind it. Parking lot, vault toilets.","difficulty":3,"popularity":4},{"name":"Upper McCord Creek Falls","distance":"4.8 rt","description":"Steep climb to a 100-foot waterfall in a hidden canyon. Parking lot.","difficulty":3,"popularity":2},{"name":"Wahclella Falls","distance":"2 rt","description":"Easy, family-friendly hike to a 350-foot waterfall. Parking lot, vault toilets.","difficulty":1,"popularity":5},{"name":"Wahkeena Falls","distance":"0.4 rt","description":"Very short paved walk to a stunning 242-foot waterfall. Parking lot, vault toilets.","difficulty":1,"popularity":5},{"name":"Wauna Point","distance":"6.4 rt","description":"Moderate climb to a viewpoint overlooking the Gorge. Parking lot, vault toilets.","difficulty":3,"popularity":2},{"name":"Wauna Viewpoint","distance":"6.8 rt","description":"Hike to viewpoint with Gorge and waterfall vistas. Parking lot, vault toilets.","difficulty":3,"popularity":2}],"West":[{"name":"Angels' Rest","distance":"4.8 rt","description":"Iconic cliff-edge viewpoint above the western Gorge; mostly forested climb. Parking lot, vault toilets.","difficulty":3,"popularity":5},{"name":"Angels' Rest to Devil's Rest","distance":"10 rt","description":"Extended loop combining two popular viewpoints with Coopey Falls. Parking lot, flush toilets.","difficulty":4,"popularity":3},{"name":"Bridal Veil Falls","distance":"0.6 rt","description":"Short, paved walk to a two-tiered waterfall. Parking lot, flush toilets.","difficulty":1,"popularity":5},{"name":"Bridal Veil Loop","distance":"0.8 lp","description":"Easy interpretive loop through old-growth forest near Bridal Veil Falls. Parking lot, flush toilets.","difficulty":1,"popularity":4},{"name":"Cape Horn Loop Trail","distance":"7.2 lp","description":"Scenic loop with Columbia River views and spring wildflowers. Parking lot, vault toilets.","difficulty":3,"popularity":4},{"name":"Coopey Falls","distance":"1 rt","description":"Short side trail to a secluded waterfall on the Angels Rest route. Parking lot, flush toilets.","difficulty":1,"popularity":2},{"name":"Devils Rest","distance":"8.6 rt","description":"Steady climb to a forested summit viewpoint. Parking lot, flush toilets.","difficulty":4,"popularity":2},{"name":"Fairy Falls","distance":"6.8 rt","description":"Moderate hike to a cascading waterfall in a peaceful canyon. Parking area.","difficulty":3,"popularity":2},{"name":"Franklin Ridge","distance":"7.4 rt","description":"Ridge hike with views of the western Gorge. Parking area.","difficulty":3,"popularity":1},{"name":"Gorge Trail #400","distance":"varies","description":"Historic long-distance trail connecting many waterfalls and viewpoints. Multiple access points.","difficulty":3,"popularity":4},{"name":"Larch Mt via Multnomah Falls","distance":"13.6 rt","description":"Challenging climb from Multnomah Falls to Larch Mountain summit. Parking lot, visitor center, flush toilets.","difficulty":5,"popularity":3},{"name":"Latourell Falls Trail","distance":"2.4 lp","description":"Easy loop to a 249-foot waterfall; includes upper and lower falls. Parking lot, vault toilets.","difficulty":1,"popularity":5},{"name":"Rooster Rock Loop","distance":"1.5 lp","description":"Easy riverside walk with beach and bird-watching. Large parking lot, flush toilets.","difficulty":1,"popularity":3},{"name":"Sandy River Delta","distance":"varies","description":"Flat, easy trails through wetlands and along the Sandy River. Parking lot.","difficulty":1,"popularity":3},{"name":"Shepperd's Dell","distance":"0.3 rt","description":"Very short walk to a hidden waterfall and stone bridge. Roadside parking.","difficulty":1,"popularity":4},{"name":"Washougal Waterfront Trail","distance":"2 rt","description":"Paved riverside trail with picnic areas and river access. Parking lot, flush toilets.","difficulty":1,"popularity":2}],"Central East":[{"name":"Cabin Creek Falls","distance":"2.6 rt","description":"Easy hike to a 100-foot waterfall on Cabin Creek. Parking area.","difficulty":1,"popularity":2},{"name":"Chetwoot Loop Hike","distance":"6.6 lp","description":"Loop through oak woodlands with Gorge views. Parking area.","difficulty":2,"popularity":2},{"name":"Hole-in-the-Wall Falls","distance":"1.6 rt","description":"Short walk to a scenic waterfall that flows through a rock tunnel. Parking area.","difficulty":1,"popularity":3},{"name":"Lancaster Falls","distance":"2 rt","description":"Moderate hike to a 30-foot waterfall. Parking area.","difficulty":2,"popularity":2},{"name":"Lower Starvation Loop","distance":"3.4 lp","description":"Easy loop with waterfalls and forest scenery. Parking area.","difficulty":1,"popularity":3},{"name":"Mark O. Hatfield Trailhead","distance":"varies","description":"Pacific Crest Trail access with connections to multiple routes. Parking area.","difficulty":3,"popularity":3},{"name":"Memaloose Hills","distance":"6 rt","description":"Moderate climb to viewpoints over the Columbia River. Parking area.","difficulty":3,"popularity":2},{"name":"Mitchell Point Trail","distance":"4.8 rt","description":"Challenging climb to a historic viewpoint site. Parking area.","difficulty":4,"popularity":3},{"name":"Mosier Creek Falls","distance":"1.6 rt","description":"Easy walk to a small waterfall on Mosier Creek. Parking area.","difficulty":1,"popularity":2},{"name":"Mosier Plateau","distance":"3.4 rt","description":"Wildflower trail with panoramic Gorge views. Parking area.","difficulty":2,"popularity":4},{"name":"Mosier Twin Tunnels","distance":"4.5 rt","description":"Paved trail through historic tunnels with river views. Parking lot, vault toilets.","difficulty":1,"popularity":5},{"name":"Mt. Defiance Loop","distance":"11.8 lp","description":"Extremely strenuous climb to the highest point in the Gorge. Parking area, vault toilets.","difficulty":5,"popularity":3},{"name":"North Lake","distance":"9.6 rt","description":"Long hike to a remote alpine lake with forest and mountain views. Parking area, vault toilets.","difficulty":4,"popularity":2},{"name":"Rowena Plateau","distance":"2.2 rt","description":"Easy wildflower trail with sweeping Gorge views. Parking area, vault toilets.","difficulty":1,"popularity":5},{"name":"Starvation Creek Trail","distance":"1.8 rt","description":"Short trail to Starvation Creek Falls. Parking area.","difficulty":1,"popularity":3},{"name":"Starvation Ridge","distance":"10.4 rt","description":"Difficult ridge hike with expansive viewpoints. Parking area.","difficulty":5,"popularity":2},{"name":"Tooth Rock Loop","distance":"4.8 lp","description":"Moderate loop with views of Tooth Rock and the Gorge. Parking area.","difficulty":2,"popularity":3},{"name":"Wahtum Lake","distance":"14 rt","description":"Long forest hike to a scenic mountain lake. Parking area, vault toilets.","difficulty":4,"popularity":3},{"name":"Wyeth Trail","distance":"10 rt","description":"Steady climb along Wyeth Creek with waterfalls. Parking area, vault toilets.","difficulty":3,"popularity":2},{"name":"Wygant Peak","distance":"8.6 rt","description":"Challenging climb to a summit with panoramic Gorge views. Parking area.","difficulty":4,"popularity":3}],"Central":[{"name":"Bonneville Dam Trail","distance":"2 rt","description":"Easy interpretive trail along the Columbia River near the dam. Parking lot, flush toilets.","difficulty":1,"popularity":3},{"name":"Bridge Of The Gods Trailhead","distance":"varies","description":"Pacific Crest Trail access near Bridge of the Gods. Parking lot.","difficulty":2,"popularity":3},{"name":"Cascade Locks Trail","distance":"2.5 rt","description":"Historic riverside trail with views of locks and dam. Parking lot, flush toilets.","difficulty":1,"popularity":2}],"East":[{"name":"Balfour-Klickitat Loop","distance":"10.8 lp","description":"Challenging loop through grasslands and oak forests. Parking area.","difficulty":4,"popularity":2},{"name":"Catherine Creek Arch Loop","distance":"3.8 lp","description":"Loop to a natural rock arch with wildflowers and views. Parking area, vault toilets.","difficulty":2,"popularity":5},{"name":"Columbia Hills State Park","distance":"varies","description":"Multiple trails through open grasslands and oak woodlands. Parking area.","difficulty":2,"popularity":3},{"name":"Coyote Wall","distance":"6.6 rt","description":"Wildflower-covered hillside with commanding Gorge views. Parking area.","difficulty":3,"popularity":5},{"name":"Crawford Oaks","distance":"3.6 rt","description":"Easy walk through ancient oak groves with spring wildflowers. Parking area.","difficulty":1,"popularity":3},{"name":"Deschutes River Trail","distance":"varies","description":"Riverside trail along the scenic Deschutes River. Parking area.","difficulty":1,"popularity":4},{"name":"Gillette Lake","distance":"2.8 lp","description":"Easy loop around a serene forest lake. Parking area.","difficulty":1,"popularity":2},{"name":"Labyrinth / Syncline","distance":"6 lp","description":"Loop through dramatic rock formations and wildflower meadows. Parking area.","difficulty":3,"popularity":4},{"name":"Lyle Cherry Orchard","distance":"4.2 rt","description":"Spring wildflower hike through old cherry orchards. Parking area.","difficulty":2,"popularity":4},{"name":"Steigerwald Lake Trail","distance":"3.6 lp","description":"Easy wetland loop with bird-watching and lake views. Parking lot, flush toilets.","difficulty":1,"popularity":3}]};
 
       gorge.REGION_CENTER_LAT = {
         west:45.55,
@@ -186,7 +217,6 @@
         var centerLat = gorge.REGION_CENTER_LAT[k];
         var layers = [];
         
-        // Fade above (top edge only)
         for(var step = 1; step <= FADE_STEPS; step++) {
           var topStart = centerLat + REGION_BASE_HALF + (FADE_EXTENSION_LAT * (step - 1));
           var topEnd = centerLat + REGION_BASE_HALF + (FADE_EXTENSION_LAT * step);
@@ -207,7 +237,6 @@
           layers.push(layer);
         }
         
-        // Fade below (bottom edge only)
         for(var step = 1; step <= FADE_STEPS; step++) {
           var bottomStart = centerLat - REGION_BASE_HALF - (FADE_EXTENSION_LAT * (step - 1));
           var bottomEnd = centerLat - REGION_BASE_HALF - (FADE_EXTENSION_LAT * step);
@@ -228,11 +257,9 @@
           layers.push(layer);
         }
         
-        // Create fading vertical border lines on left and right
         var totalHeight = REGION_BASE_HALF * 2 + (FADE_EXTENSION_LAT * FADE_STEPS * 2);
         var startLat = centerLat - REGION_BASE_HALF - (FADE_EXTENSION_LAT * FADE_STEPS);
         
-        // Left border line
         for(var bstep = 0; bstep < BORDER_STEPS; bstep++) {
           var latStart = startLat + (totalHeight * bstep / BORDER_STEPS);
           var latEnd = startLat + (totalHeight * (bstep + 1) / BORDER_STEPS);
@@ -249,7 +276,6 @@
           layers.push(layer);
         }
         
-        // Right border line
         for(var bstep = 0; bstep < BORDER_STEPS; bstep++) {
           var latStart = startLat + (totalHeight * bstep / BORDER_STEPS);
           var latEnd = startLat + (totalHeight * (bstep + 1) / BORDER_STEPS);
@@ -278,7 +304,6 @@
           
           gorge.regionLayers[k] = createRegionLayers(k, i, s);
           
-          // Main region (interactive, no border)
           gorge.regions[k] = L.polygon(coords, {
             color: 'transparent',
             fillColor: i.color,
@@ -286,7 +311,6 @@
             fillOpacity: 0.35
           }).addTo(gorge.map);
           
-          // Add region label
           var centerLat = gorge.REGION_CENTER_LAT[k];
           var labelIcon = L.divIcon({
             className: 'region-label',
@@ -304,19 +328,16 @@
     
       function resetBands() {
         for(var k in gorge.regions) {
-          // Remove old fade/border layers if they exist
           for(var j = 0; j < gorge.regionLayers[k].length; j++) {
             if(gorge.map.hasLayer(gorge.regionLayers[k][j])) {
               gorge.map.removeLayer(gorge.regionLayers[k][j]);
             }
           }
           
-          // Recreate with original dimensions
           var i = gorge.REGION_INFO[k];
           var s = gorge.slices[k];
           gorge.regionLayers[k] = createRegionLayers(k, i, s);
           
-          // Reset main region
           gorge.regions[k].setLatLngs(gorge.baseCoords[k]);
           gorge.regions[k].setStyle({fillOpacity: 0.35});
         }
@@ -327,13 +348,24 @@
         div.textContent = s;
         return div.innerHTML;
       }
+      
+      function getDifficultyLabel(d) {
+        var labels = ['', 'Easy', 'Moderate', 'Moderate+', 'Hard', 'Very Hard'];
+        return labels[d] || 'Unknown';
+      }
+      
+      function getPopularityLabel(p) {
+        var labels = ['', 'Hidden Gem', 'Quiet', 'Moderate', 'Busy', 'Very Busy'];
+        return labels[p] || 'Unknown';
+      }
 
       function renderGuide(resetView) {
         gorge.legend.className = 'legend-column';
         var html = '<h3>Region Guide</h3>';
         for(var k in gorge.REGION_INFO) {
           var i = gorge.REGION_INFO[k];
-          html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
+          var trailCount = (gorge.TRAILS[i.label] || []).length;
+          html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Trails:</strong> '+trailCount+'</div></div></div>';
         }
         gorge.legend.innerHTML = html;
         
@@ -351,13 +383,25 @@
 
       function renderRegionDetail(k) {
         var i = gorge.REGION_INFO[k];
-        var trails = (gorge.TRAILS[i.label] || []).slice().sort(function(a,b){return a.localeCompare(b);});
+        var trails = (gorge.TRAILS[i.label] || []).slice().sort(function(a,b){return a.name.localeCompare(b.name);});
         gorge.legend.className = 'legend-column legend-detail';
-        var html = '<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div class="region-info"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div></div><ul class="trail-list">';
+        var html = '<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div class="region-info"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div><div><strong>Trails:</strong> '+trails.length+'</div></div>';
+        
         for(var j=0; j<trails.length; j++) {
-          html += '<li>'+escapeHTML(trails[j])+'</li>';
+          var t = trails[j];
+          html += '<div class="trail-item">';
+          html += '<div class="trail-name">'+escapeHTML(t.name)+'</div>';
+          html += '<div class="trail-meta">';
+          html += '<span class="trail-distance">'+escapeHTML(t.distance)+'</span>';
+          html += '<span class="trail-rating">';
+          html += '<span class="difficulty-badge">'+getDifficultyLabel(t.difficulty)+'</span>';
+          html += '<span class="popularity-badge">'+getPopularityLabel(t.popularity)+'</span>';
+          html += '</span>';
+          html += '</div>';
+          html += '<div class="trail-description">'+escapeHTML(t.description)+'</div>';
+          html += '</div>';
         }
-        html += '</ul>';
+        
         gorge.legend.innerHTML = html;
         
         document.getElementById('backLink').onclick = function() {
@@ -366,7 +410,6 @@
       }
 
       function showRegion(k) {
-        // Hide EVERYTHING first - all regions and all their layers
         for(var rk in gorge.regions) {
           if(gorge.map.hasLayer(gorge.regions[rk])) {
             gorge.map.removeLayer(gorge.regions[rk]);
@@ -422,7 +465,6 @@
           [centerLat - half, s.maxLon]
         ];
         
-        // For West and Central, manually set view with higher zoom
         if(k === 'west' || k === 'central') {
           var centerLng = (s.minLon + s.maxLon) / 2;
           gorge.map.setView([centerLat, centerLng], WEST_CENTRAL_ZOOM);
@@ -467,7 +509,6 @@
           })(k);
         }
         
-        // Add ESC key listener only once
         if (!eventListenersInitialized) {
           document.addEventListener('keydown', function(e) {
             if(e.key === 'Escape' || e.keyCode === 27) {
@@ -478,7 +519,6 @@
         }
       }
 
-      // Initialize when Leaflet script loads
       var leafletScript = document.querySelector('script[src*="leaflet"]');
       if (leafletScript) {
         leafletScript.addEventListener('load', function() {
@@ -488,7 +528,6 @@
             initGorge();
           }
         });
-        // If script already loaded
         if (typeof L !== 'undefined') {
           if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initGorge);
@@ -497,7 +536,6 @@
           }
         }
       } else {
-        // Fallback to original method
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', initGorge);
         } else {
