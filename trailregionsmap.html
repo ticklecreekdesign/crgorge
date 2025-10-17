@@ -48,19 +48,34 @@
     /* Mobile layout */
     @media (max-width: 768px) {
       .container {
-        flex-direction: column;
-      }
-      .map-column {
-        width: 100%;
-        height: 400px;
-        flex: none;
-        order: 1;
+        display: grid;
+        grid-template-areas:
+          "header"
+          "map"
+          "entries";
+        grid-template-rows: auto 400px 1fr;
+        height: 100%;
       }
       .legend-column {
+        display: contents;
+      }
+      .legend-column h3 {
+        grid-area: header;
+        padding: 14px 14px 0 14px;
+        background: #fff;
+      }
+      .region-entries-container {
+        grid-area: entries;
+        padding: 0 14px 14px 14px;
+        overflow-y: auto;
+        background: #fff;
+      }
+      .map-column {
+        grid-area: map;
         width: 100%;
-        flex: 1;
-        order: 2;
-        padding: 14px;
+        height: 400px;
+        position: relative;
+        border: 1px solid #ddd;
       }
       #map {
         position: absolute;
@@ -131,7 +146,7 @@
       
       gorge.DEFAULT_CENTER = [45.670, -121.800];
       gorge.DEFAULT_ZOOM = 9.6;
-      gorge.DEFAULT_ZOOM_MOBILE = 8.5;
+      gorge.DEFAULT_ZOOM_MOBILE = 7.5;
       
       function isMobile() {
         return window.innerWidth <= 768;
@@ -364,11 +379,12 @@
 
       function renderGuide(resetView) {
         gorge.legend.className = 'legend-column';
-        var html = '<h3>Region Guide</h3>';
+        var html = '<h3>Region Guide</h3><div class="region-entries-container">';
         for(var k in gorge.REGION_INFO) {
           var i = gorge.REGION_INFO[k];
           html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
         }
+        html += '</div>';
         gorge.legend.innerHTML = html;
         
         var links = gorge.legend.querySelectorAll('.region-link');
