@@ -124,12 +124,18 @@
       var BORDER_STEPS = 10;
       var BORDER_COLOR = '#666';
       var WEST_CENTRAL_ZOOM = 11.5;
+      var WEST_CENTRAL_ZOOM_MOBILE = 10.5;
       
       var gorge = {};
       var eventListenersInitialized = false;
       
       gorge.DEFAULT_CENTER = [45.670, -121.800];
       gorge.DEFAULT_ZOOM = 9.6;
+      gorge.DEFAULT_ZOOM_MOBILE = 8.5;
+      
+      function isMobile() {
+        return window.innerWidth <= 768;
+      }
 
       gorge.REGION_INFO = {
         west:{label:'West',color:'#1B5E20',area:'Portland metro → Bridal Veil',mm:'17–28',
@@ -186,7 +192,8 @@
             throw new Error('Leaflet library failed to load');
           }
           
-          gorge.map = L.map('map').setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
+          var initialZoom = isMobile() ? gorge.DEFAULT_ZOOM_MOBILE : gorge.DEFAULT_ZOOM;
+          gorge.map = L.map('map').setView(gorge.DEFAULT_CENTER, initialZoom);
 
           L.tileLayer(
             'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
@@ -372,7 +379,8 @@
         }
         
         if(resetView) {
-          gorge.map.setView(gorge.DEFAULT_CENTER, gorge.DEFAULT_ZOOM);
+          var resetZoom = isMobile() ? gorge.DEFAULT_ZOOM_MOBILE : gorge.DEFAULT_ZOOM;
+          gorge.map.setView(gorge.DEFAULT_CENTER, resetZoom);
         }
       }
 
@@ -452,9 +460,11 @@
         // For West and Central, manually set view with higher zoom
         if(k === 'west' || k === 'central') {
           var centerLng = (s.minLon + s.maxLon) / 2;
-          gorge.map.setView([centerLat, centerLng], WEST_CENTRAL_ZOOM);
+          var regionZoom = isMobile() ? WEST_CENTRAL_ZOOM_MOBILE : WEST_CENTRAL_ZOOM;
+          gorge.map.setView([centerLat, centerLng], regionZoom);
         } else {
-          gorge.map.fitBounds(bounds, {padding: [20, 20]});
+          var padding = isMobile() ? [10, 10] : [20, 20];
+          gorge.map.fitBounds(bounds, {padding: padding});
         }
       }
       
@@ -501,6 +511,18 @@
               backToGuide();
             }
           });
+          
+          // Handle window resize to adjust zoom
+          var resizeTimeout;
+          window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+              gorge.map.invalidateSize();
+              var currentZoom = isMobile() ? gorge.DEFAULT_ZOOM_MOBILE : gorge.DEFAULT_ZOOM;
+              gorge.map.setView(gorge.DEFAULT_CENTER, currentZoom);
+            }, 250);
+          });
+          
           eventListenersInitialized = true;
         }
       }
