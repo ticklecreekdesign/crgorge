@@ -52,22 +52,32 @@
         grid-template-areas:
           "header"
           "map"
+          "disclaimer"
           "entries";
-        grid-template-rows: auto 400px 1fr;
-        height: 100%;
+        grid-template-rows: auto 400px auto auto;
+        height: auto;
+        min-height: 100%;
       }
       .legend-column {
         display: contents;
       }
       .legend-column h3 {
         grid-area: header;
-        padding: 14px 14px 0 14px;
+        padding: 14px 0 0 14px;
         background: #fff;
+      }
+      .map-disclaimer {
+        grid-area: disclaimer;
+        padding: 8px 14px;
+        background: #f5f5f5;
+        font-size: 11px;
+        color: #666;
+        border-top: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
       }
       .region-entries-container {
         grid-area: entries;
         padding: 0 14px 14px 14px;
-        overflow-y: auto;
         background: #fff;
       }
       .map-column {
@@ -379,7 +389,8 @@
 
       function renderGuide(resetView) {
         gorge.legend.className = 'legend-column';
-        var html = '<h3>Region Guide</h3><div class="region-entries-container">';
+        var disclaimerHtml = isMobile() ? '<div class="map-disclaimer">Tap a region on the map or select from the list below to view trails and details.</div>' : '';
+        var html = '<h3>Region Guide</h3>' + disclaimerHtml + '<div class="region-entries-container">';
         for(var k in gorge.REGION_INFO) {
           var i = gorge.REGION_INFO[k];
           html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
