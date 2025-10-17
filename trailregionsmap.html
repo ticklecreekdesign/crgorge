@@ -44,6 +44,33 @@
       margin:0;
     }
     .legend-column h3{margin:-3px 0 16px 0;font-family:Montserrat,sans-serif;font-style:normal;font-weight:300;font-size:32px;line-height:1;color:#2e2e2e;padding:0;display:block;}
+    
+    /* Mobile layout */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .map-column {
+        width: 100%;
+        height: 400px;
+        flex: none;
+        order: 1;
+      }
+      .legend-column {
+        width: 100%;
+        flex: 1;
+        order: 2;
+        padding: 14px;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+    }
+    
     .region-entry{margin:12px 0 8px 0;padding-bottom:12px;border-bottom:1px solid #ddd;}
     .region-entry:last-child{border-bottom:none;}
     .region-link{
