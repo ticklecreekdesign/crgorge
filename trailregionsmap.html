@@ -145,7 +145,7 @@
     
     /* Mobile-specific adjustments for detail view */
     @media (max-width: 768px) {
-      .legend-detail .back-row{padding:0 0 8px 0;}
+      .legend-detail .back-row{padding:12px 0 8px 0;}
     }
     .legend-detail .region-info{color:#555;margin-bottom:8px;margin-left:2px;}
     .legend-detail .region-info div{margin:0 0 4px 0;line-height:1.5;}
@@ -406,8 +406,18 @@
           
           gorge.regionLabels[k] = L.marker([centerLat, (s.minLon + s.maxLon) / 2], {
             icon: labelIcon,
-            interactive: false
+            interactive: true
           }).addTo(gorge.map);
+          
+          // Make labels clickable on mobile
+          if (isMobile()) {
+            (function(key) {
+              gorge.regionLabels[key].on('click', function(e) {
+                L.DomEvent.stopPropagation(e);
+                showRegion(key);
+              });
+            })(k);
+          }
         }
       }
     
