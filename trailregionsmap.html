@@ -366,8 +366,21 @@
             fillOpacity: 0.35
           }).addTo(gorge.map);
           
-          // Add region label
+          // Add region label with mobile-specific positioning
           var centerLat = gorge.REGION_CENTER_LAT[k];
+          
+          // Adjust label position on mobile to prevent overlap
+          if (isMobile()) {
+            var mobileOffsets = {
+              west: -0.08,
+              centralwest: -0.04,
+              central: 0,
+              centraleast: 0.04,
+              east: 0.08
+            };
+            centerLat += (mobileOffsets[k] || 0);
+          }
+          
           var labelIcon = L.divIcon({
             className: 'region-label',
             html: '<div style="font-size:16px;font-weight:700;color:'+i.color+';text-shadow:1px 1px 2px rgba(255,255,255,0.9), -1px -1px 2px rgba(255,255,255,0.9), 1px -1px 2px rgba(255,255,255,0.9), -1px 1px 2px rgba(255,255,255,0.9);white-space:nowrap;text-align:center;">'+i.label+'</div>',
