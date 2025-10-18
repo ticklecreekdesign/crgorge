@@ -56,6 +56,707 @@
         flex-direction: column;
         height: auto;
       }
+      .map-column {
+        order: 2;
+        width: 100%;
+        height: 400px;
+        position: relative;
+        border: 1px solid #ddd;
+        margin: 0;
+      }
+      .legend-column {
+        order: 1;
+        width: 100%;
+        padding: 0;
+        overflow: visible;
+      }
+      .legend-column h3 {
+        padding: 10px 14px 6px 14px;
+        margin: 0;
+        background: #fff;
+      }
+      .map-disclaimer {
+        padding: 6px 14px;
+        background: #f5f5f5;
+        font-size: 11px;
+        color: #666;
+        border-top: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        line-height: 1.2;
+      }
+      .region-entries-container {
+        padding: 0 14px 14px 14px;
+        background: #fff;
+      }
+      .region-detail-container {
+        background: #fff;
+        padding: 0;
+        height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+      }
+      .legend-detail .back-row {
+        margin-top: 0;
+        padding: 12px 14px 6px 14px;
+      }
+      .legend-detail h3 {
+        padding-left: 14px;
+        padding-right: 14px;
+        margin-top: 0;
+        margin-bottom: 4px;
+      }
+      .legend-detail .region-info {
+        padding-left: 14px;
+        padding-right: 14px;
+        margin-top: 0;
+      }
+      .legend-detail .trail-list {
+        padding-left: 32px;
+        padding-right: 14px;
+        height: auto;
+        max-height: none;
+      }
+      .map-column {
+        grid-area: map;
+        width: 100%;
+        height: 400px;
+        position: relative;
+        border: 1px solid #ddd;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+    }
+    
+    .region-entry{margin:12px 0 8px 0;padding-bottom:12px;border-bottom:1px solid #ddd;}
+    .region-entry:last-child{border-bottom:none;}
+    .region-link{
+      text-decoration:none;font-weight:700;font-size:18px;
+      display:inline-block;margin-bottom:0;cursor:pointer;
+    }
+    .region-link:hover{opacity:0.75;}
+    .region-meta{margin:4px 0 0 2px;color:#555;}
+    .region-meta div{margin:0 0 4px 0;}
+    .region-meta div:last-child{margin-bottom:0;}
+    .legend-detail .back-row{position:sticky;top:0;background:#fff;padding:0 0 28.5px 0;z-index:2;margin-bottom:0;}
+    .legend-detail .back-link{color:#06c;text-decoration:none;font-weight:600;cursor:pointer;}
+    .legend-detail .back-link:hover{text-decoration:underline;}
+    .legend-detail h3{font-size:18px;font-weight:700;margin:0 0 5.5px 0;line-height:1.2;}
+    
+    /* Mobile-specific adjustments for detail view */
+    @media (max-width: 768px) {
+      .legend-detail .back-row{padding:12px 0 8px 0;}
+    }
+    
+    .legend-detail .region-info{color:#555;margin-bottom:8px;margin-left:2px;}
+    .legend-detail .region-info div{margin:0 0 4px 0;line-height:1.5;}
+    .legend-detail .region-info div:last-child{margin-bottom:0;}
+    .trail-list{margin:10px 0 0 0;padding-left:18px;list-style-type:disc;}
+    .trail-list li{margin:3px 0;}
+    .error-message{
+      position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%, -50%);
+      background:#fff;
+      padding:20px;
+      border:2px solid #ef4444;
+      border-radius:8px;
+      text-align:center;
+      z-index:9999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="map-column">
+      <div id="map"></div>
+    </div>
+    <div class="legend-column" id="legend"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    (function() {
+      'use strict';
+      
+      // Constants
+      var REGION_BASE_HALF = 0.045;
+      var FADE_EXTENSION_LAT = 0.03;
+      var FADE_STEPS = 5;
+      var BORDER_STEPS = 10;
+      var BORDER_COLOR = '#666';
+      var WEST_CENTRAL_ZOOM = 11.5;
+      var WEST_CENTRAL_ZOOM_MOBILE = 10.5;
+      
+      var gorge = {};
+      var eventListenersInitialized = false;
+      
+      gorge.DEFAULT_CENTER = [45.670, -121.800];
+      gorge.DEFAULT_ZOOM = 9.6;
+      gorge.DEFAULT_ZOOM_MOBILE = 7.5;
+      
+      function isMobile() {
+        return window.innerWidth <= 768;
+      }
+
+      gorge.REGION_INFO = {
+        west:{label:'West',color:'#1B5E20',area:'Portland metro → Bridal Veil',mm:'17–28',
+          highlights:'Waterfalls and short scenic hikes; historic Columbia River Highway viewpoints; lush mossy forests; easy access from Portland; family-friendly trails like Latourell and Bridal Veil Falls.'},
+        centralwest:{label:'Central West',color:'#2E7D32',area:'Bridal Veil → Elowah Falls',mm:'28–40',
+          highlights:'Iconic waterfall corridor (Multnomah, Wahkeena, Horsetail); steep canyon hikes with sweeping vistas; Benson Bridge photo stops; Gorge Trail 400 connections; picnic areas and visitor centers.'},
+        central:{label:'Central',color:'#558B2F',area:'Bonneville Dam → Dog Mountain',mm:'40–51',
+          highlights:'Forest climbs and summit routes (Hamilton Mountain, Table Mountain, Dog Mountain); panoramic viewpoints; Pacific Crest Trail crossings; Bridge of the Gods; Beacon Rock; spring wildflowers.'},
+        centraleast:{label:'Central East',color:'#9E9D24',area:'Herman Creek → Hood River',mm:'51–64',
+          highlights:'Steep basalt cliffs and open hillsides; scenic drives with river overlooks; lesser-traveled trails like Wyeth and Mitchell Point; spring wildflowers; transition zone between rainforest and grassland.'},
+        east:{label:'East',color:'#C0CA33',area:'Mosier → The Dalles',mm:'64–90',
+          highlights:'Drier climate with high-desert scenery; oak woodlands and wide-open ridges; wildflower plateaus; biking and wine-tasting routes near Rowena and Mosier; sunny weather and sweeping Gorge views.'}
+      };
+
+      gorge.TRAILS = {
+        "West":["Angels' Rest","Angels' Rest to Devil's Rest","Bridal Veil Falls","Bridal Veil Loop","Cape Horn Loop Trail","Coopey Falls","Devils Rest","Fairy Falls","Franklin Ridge","Gorge Trail #400","Larch Mt via Multnomah Falls","Latourell Falls Trail","Rooster Rock Loop","Sandy River Delta","Shepperd's Dell","Washougal Waterfront Trail"],
+        "Central West":["Aldrich Butte","Bell Creek Trail","Dry Creek Falls","Eagle Creek Trail","Elowah Falls","Horsetail Falls Loop","Indian Point Loop","John B. Yeon Trailhead","Multnomah Falls","Multnomah–Wahkeena Loop","Munra Point","Nesmith Point Trail","Oneonta Gorge","Ponytail Falls Trail","Pool Of The Winds","Punchbowl Falls","Tanner Butte Trail","Tanner Ridge","Triple Falls Trail","Tunnel Falls","Upper McCord Creek Falls","Wahkeena Falls","Wauna Point","Wauna Viewpoint"],
+        "Central":["Beacon Rock Trail","Benson Plateau","Bonneville Dam Trail","Bridge Of The Gods Trailhead","Cascade Locks Trail","Dog Mountain","Falls Creek Falls","Fort Cascades Loop","Hamilton Mountain Loop","Hardy Ridge Loop","Heartbreak Ridge","Herman Creek Pinnacles","Nick Eaton Ridge Loop","Ruckel Ridge Loop","Strawberry Island","Table Mountain Loop","Tamanous Trail","Tom McCall Point","Wahclella Falls"],
+        "Central East":["Cabin Creek Falls","Chetwoot Loop Hike","Hole-in-the-Wall Falls","Lancaster Falls","Lower Starvation Loop","Mark O. Hatfield Trailhead","Memaloose Hills","Mitchell Point Trail","Mosier Creek Falls","Mosier Plateau","Mosier Twin Tunnels","Mt. Defiance Loop","North Lake","Rowena Plateau","Starvation Creek Trail","Starvation Ridge","Tooth Rock Loop","Wahtum Lake","Wyeth Trail","Wygant Peak"],
+        "East":["Augspurger Mountain Trail","Balfour-Klickitat Loop","Catherine Creek Arch Loop","Columbia Hills State Park","Coyote Wall","Crawford Oaks","Deschutes River Trail","Dog Creek Falls","Ferry Springs Trail","Gillette Lake","Horsethief Butte Trail","Klickitat Rail Trail","Labyrinth / Syncline","Lyle Cherry Orchard","Sevenmile Hill","Steigerwald Lake Trail","The Dalles Mountain","The Dalles Riverfront Trail","Wind Mountain"]
+      };
+
+      gorge.REGION_CENTER_LAT = {
+        west:45.55,
+        centralwest:45.60,
+        central:45.690,
+        centraleast:45.705,
+        east:45.68
+      };
+
+      gorge.slices = {
+        west:{minLon:-122.50,maxLon:-122.17},
+        centralwest:{minLon:-122.17,maxLon:-121.91},
+        central:{minLon:-121.91,maxLon:-121.60},
+        centraleast:{minLon:-121.60,maxLon:-121.38},
+        east:{minLon:-121.38,maxLon:-121.10}
+      };
+
+      gorge.regions = {};
+      gorge.baseCoords = {};
+      gorge.regionLayers = {};
+      gorge.regionLabels = {};
+      
+      function showError(message) {
+        var errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = '<h3>Map Error</h3><p>' + message + '</p>';
+        document.getElementById('map').appendChild(errorDiv);
+      }
+      
+      function initGorge() {
+        try {
+          if (typeof L === 'undefined') {
+            throw new Error('Leaflet library failed to load');
+          }
+          
+          var initialZoom = isMobile() ? gorge.DEFAULT_ZOOM_MOBILE : gorge.DEFAULT_ZOOM;
+          gorge.map = L.map('map').setView(gorge.DEFAULT_CENTER, initialZoom);
+
+          L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+            { attribution: '&copy; Esri, USGS, NOAA, U.S. Navy, NGA, GEBCO' }
+          ).addTo(gorge.map);
+
+          gorge.legend = document.getElementById('legend');
+          
+          // Ensure map is visible on mobile initially
+          if(isMobile()) {
+            document.querySelector('.map-column').style.display = 'block';
+          }
+          
+          createRegions();
+          setupEventListeners();
+          renderGuide();
+          
+          // Ensure map renders properly on mobile
+          if(isMobile()) {
+            setTimeout(function() {
+              gorge.map.invalidateSize();
+            }, 100);
+          }
+        } catch (e) {
+          console.error('Initialization error:', e);
+          showError('Failed to load map: ' + e.message);
+        }
+      }
+
+      function rectCoordsFor(key, minLon, maxLon, half) {
+        var c = gorge.REGION_CENTER_LAT[key];
+        return [[c+half,minLon],[c+half,maxLon],[c-half,maxLon],[c-half,minLon]];
+      }
+      
+      function createRegionLayers(k, i, s) {
+        var centerLat = gorge.REGION_CENTER_LAT[k];
+        var layers = [];
+        
+        // Fade above (top edge only)
+        for(var step = 1; step <= FADE_STEPS; step++) {
+          var topStart = centerLat + REGION_BASE_HALF + (FADE_EXTENSION_LAT * (step - 1));
+          var topEnd = centerLat + REGION_BASE_HALF + (FADE_EXTENSION_LAT * step);
+          var opacity = 0.35 - (0.35 * (step / FADE_STEPS));
+          
+          var layer = L.polygon([
+            [topEnd, s.minLon],
+            [topEnd, s.maxLon],
+            [topStart, s.maxLon],
+            [topStart, s.minLon]
+          ], {
+            color: 'transparent',
+            fillColor: i.color,
+            weight: 0,
+            fillOpacity: opacity,
+            interactive: false
+          }).addTo(gorge.map);
+          layers.push(layer);
+        }
+        
+        // Fade below (bottom edge only)
+        for(var step = 1; step <= FADE_STEPS; step++) {
+          var bottomStart = centerLat - REGION_BASE_HALF - (FADE_EXTENSION_LAT * (step - 1));
+          var bottomEnd = centerLat - REGION_BASE_HALF - (FADE_EXTENSION_LAT * step);
+          var opacity = 0.35 - (0.35 * (step / FADE_STEPS));
+          
+          var layer = L.polygon([
+            [bottomStart, s.minLon],
+            [bottomStart, s.maxLon],
+            [bottomEnd, s.maxLon],
+            [bottomEnd, s.minLon]
+          ], {
+            color: 'transparent',
+            fillColor: i.color,
+            weight: 0,
+            fillOpacity: opacity,
+            interactive: false
+          }).addTo(gorge.map);
+          layers.push(layer);
+        }
+        
+        // Create fading vertical border lines on left and right
+        var totalHeight = REGION_BASE_HALF * 2 + (FADE_EXTENSION_LAT * FADE_STEPS * 2);
+        var startLat = centerLat - REGION_BASE_HALF - (FADE_EXTENSION_LAT * FADE_STEPS);
+        
+        // Left border line
+        for(var bstep = 0; bstep < BORDER_STEPS; bstep++) {
+          var latStart = startLat + (totalHeight * bstep / BORDER_STEPS);
+          var latEnd = startLat + (totalHeight * (bstep + 1) / BORDER_STEPS);
+          var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
+          var maxDist = REGION_BASE_HALF + (FADE_EXTENSION_LAT * FADE_STEPS);
+          var borderOpacity = 1 - (distFromCenter / maxDist);
+          borderOpacity = Math.max(0, Math.min(1, borderOpacity));
+          
+          var layer = L.polyline([[latStart, s.minLon], [latEnd, s.minLon]], {
+            color: BORDER_COLOR,
+            weight: 2,
+            opacity: borderOpacity
+          }).addTo(gorge.map);
+          layers.push(layer);
+        }
+        
+        // Right border line
+        for(var bstep = 0; bstep < BORDER_STEPS; bstep++) {
+          var latStart = startLat + (totalHeight * bstep / BORDER_STEPS);
+          var latEnd = startLat + (totalHeight * (bstep + 1) / BORDER_STEPS);
+          var distFromCenter = Math.abs((latStart + latEnd) / 2 - centerLat);
+          var maxDist = REGION_BASE_HALF + (FADE_EXTENSION_LAT * FADE_STEPS);
+          var borderOpacity = 1 - (distFromCenter / maxDist);
+          borderOpacity = Math.max(0, Math.min(1, borderOpacity));
+          
+          var layer = L.polyline([[latStart, s.maxLon], [latEnd, s.maxLon]], {
+            color: BORDER_COLOR,
+            weight: 2,
+            opacity: borderOpacity
+          }).addTo(gorge.map);
+          layers.push(layer);
+        }
+        
+        return layers;
+      }
+
+      function createRegions() {
+        for(var k in gorge.slices) {
+          var i = gorge.REGION_INFO[k];
+          var s = gorge.slices[k];
+          var coords = rectCoordsFor(k, s.minLon, s.maxLon, REGION_BASE_HALF);
+          gorge.baseCoords[k] = coords.slice();
+          
+          gorge.regionLayers[k] = createRegionLayers(k, i, s);
+          
+          // Main region (interactive, no border)
+          gorge.regions[k] = L.polygon(coords, {
+            color: 'transparent',
+            fillColor: i.color,
+            weight: 0,
+            fillOpacity: 0.35
+          }).addTo(gorge.map);
+          
+          // Add region label with mobile-specific positioning
+          var centerLat = gorge.REGION_CENTER_LAT[k];
+          
+          // Adjust label position on mobile to prevent overlap
+          if (isMobile()) {
+            var mobileOffsets = {
+              west: -0.08,
+              centralwest: -0.0575,
+              central: -0.075,
+              centraleast: -0.0175,
+              east: 0.08
+            };
+            centerLat += (mobileOffsets[k] || 0);
+          }
+          
+          var labelIcon = L.divIcon({
+            className: 'region-label',
+            html: '<div style="font-size:16px;font-weight:700;color:'+i.color+';text-shadow:1px 1px 2px rgba(255,255,255,0.9), -1px -1px 2px rgba(255,255,255,0.9), 1px -1px 2px rgba(255,255,255,0.9), -1px 1px 2px rgba(255,255,255,0.9);white-space:nowrap;text-align:center;">'+i.label+'</div>',
+            iconSize: [100, 0],
+            iconAnchor: [50, 0]
+          });
+          
+          gorge.regionLabels[k] = L.marker([centerLat, (s.minLon + s.maxLon) / 2], {
+            icon: labelIcon,
+            interactive: true
+          }).addTo(gorge.map);
+          
+          // Make labels clickable on all devices
+          (function(key) {
+            gorge.regionLabels[key].on('click', function(e) {
+              L.DomEvent.stopPropagation(e);
+              showRegion(key);
+            });
+          })(k);
+        }
+      }
+    
+      function resetBands() {
+        for(var k in gorge.regions) {
+          // Remove old fade/border layers if they exist
+          for(var j = 0; j < gorge.regionLayers[k].length; j++) {
+            if(gorge.map.hasLayer(gorge.regionLayers[k][j])) {
+              gorge.map.removeLayer(gorge.regionLayers[k][j]);
+            }
+          }
+          
+          // Recreate with original dimensions
+          var i = gorge.REGION_INFO[k];
+          var s = gorge.slices[k];
+          gorge.regionLayers[k] = createRegionLayers(k, i, s);
+          
+          // Reset main region
+          gorge.regions[k].setLatLngs(gorge.baseCoords[k]);
+          gorge.regions[k].setStyle({fillOpacity: 0.35});
+        }
+      }
+
+      function escapeHTML(s) {
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+      }
+
+      function renderGuide(resetView) {
+        gorge.legend.className = 'legend-column';
+        var html = '<h3>Region Guide</h3>';
+        
+        if (isMobile()) {
+          html += '<div class="map-disclaimer">Tap any region to see available trails in that area</div>';
+        } else {
+          html += '<div class="region-entries-container">';
+          for(var k in gorge.REGION_INFO) {
+            var i = gorge.REGION_INFO[k];
+            html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
+          }
+          html += '</div>';
+        }
+        
+        gorge.legend.innerHTML = html;
+        
+        if (!isMobile()) {
+          var links = gorge.legend.querySelectorAll('.region-link');
+          for(var i=0; i<links.length; i++) {
+            links[i].onclick = function() {
+              showRegion(this.getAttribute('data-region'));
+            };
+          }
+        }
+        
+        if(resetView) {
+          var resetZoom = isMobile() ? gorge.DEFAULT_ZOOM_MOBILE : gorge.DEFAULT_ZOOM;
+          gorge.map.setView(gorge.DEFAULT_CENTER, resetZoom);
+        }
+      }
+
+      function renderRegionDetail(k) {
+        var i = gorge.REGION_INFO[k];
+        var trails = (gorge.TRAILS[i.label] || []).slice().sort(function(a,b){return a.localeCompare(b);});
+        gorge.legend.className = 'legend-column legend-detail';
+        
+        var detailContent = '<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div class="region-info"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div></div><ul class="trail-list">';
+        for(var j=0; j<trails.length; j++) {
+          detailContent += '<li>'+escapeHTML(trails[j])+'</li>';
+        }
+        detailContent += '</ul>';
+        
+        if (isMobile()) {
+          gorge.legend.innerHTML = '<h3>Region Guide</h3><div class="region-detail-container">' + detailContent + '</div>';
+        } else {
+          gorge.legend.innerHTML = detailContent;
+        }
+        
+        document.getElementById('backLink').onclick = function() {
+          backToGuide();
+        };
+      }
+
+      function showRegion(k) {
+        // Hide EVERYTHING first - all regions and all their layers
+        for(var rk in gorge.regions) {
+          if(gorge.map.hasLayer(gorge.regions[rk])) {
+            gorge.map.removeLayer(gorge.regions[rk]);
+          }
+          if(gorge.map.hasLayer(gorge.regionLabels[rk])) {
+            gorge.map.removeLayer(gorge.regionLabels[rk]);
+          }
+          if(gorge.regionLayers[rk]) {
+            for(var j = 0; j < gorge.regionLayers[rk].length; j++) {
+              if(gorge.map.hasLayer(gorge.regionLayers[rk][j])) {
+                gorge.map.removeLayer(gorge.regionLayers[rk][j]);
+              }
+            }
+          }
+        }
+        
+        // On mobile, hide the map completely
+        if(isMobile()) {
+          document.querySelector('.map-column').style.display = 'none';
+        }
+        
+        var i = gorge.REGION_INFO[k];
+        var s = gorge.slices[k];
+        var count = (gorge.TRAILS[i.label] || []).length;
+        var half = REGION_BASE_HALF + Math.min(0.12, (count/6)*0.002);
+        var centerLat = gorge.REGION_CENTER_LAT[k];
+        
+        if(!gorge.expandedLayers) gorge.expandedLayers = {};
+        if(gorge.expandedLayers[k]) {
+          for(var j = 0; j < gorge.expandedLayers[k].length; j++) {
+            if(gorge.map.hasLayer(gorge.expandedLayers[k][j])) {
+              gorge.map.removeLayer(gorge.expandedLayers[k][j]);
+            }
+          }
+        }
+        gorge.expandedLayers[k] = [];
+        
+        var lines = [
+          [[centerLat + half, s.minLon], [centerLat + half, s.maxLon]],
+          [[centerLat - half, s.minLon], [centerLat - half, s.maxLon]],
+          [[centerLat + half, s.minLon], [centerLat - half, s.minLon]],
+          [[centerLat + half, s.maxLon], [centerLat - half, s.maxLon]]
+        ];
+        
+        for(var b = 0; b < lines.length; b++) {
+          var line = L.polyline(lines[b], {
+            color: i.color,
+            weight: 3,
+            opacity: 0.8
+          }).addTo(gorge.map);
+          gorge.expandedLayers[k].push(line);
+        }
+        
+        renderRegionDetail(k);
+        
+        var bounds = [
+          [centerLat + half, s.minLon],
+          [centerLat - half, s.maxLon]
+        ];
+        
+        // Only zoom on desktop
+        if(!isMobile()) {
+          // For West and Central, manually set view with higher zoom
+          if(k === 'west' || k === 'central') {
+            var centerLng = (s.minLon + s.maxLon) / 2;
+            var regionZoom = WEST_CENTRAL_ZOOM;
+            gorge.map.setView([centerLat, centerLng], regionZoom);
+          } else {
+            var padding = [20, 20];
+            gorge.map.fitBounds(bounds, {padding: padding});
+          }
+        }
+      }
+      
+      function backToGuide() {
+        if(gorge.expandedLayers) {
+          for(var k in gorge.expandedLayers) {
+            for(var j = 0; j < gorge.expandedLayers[k].length; j++) {
+              if(gorge.map.hasLayer(gorge.expandedLayers[k][j])) {
+                gorge.map.removeLayer(gorge.expandedLayers[k][j]);
+              }
+            }
+          }
+        }
+        
+        // On mobile, show the map again
+        if(isMobile()) {
+          document.querySelector('.map-column').style.display = 'block';
+        }
+        
+        for(var k in gorge.regions) {
+          if(!gorge.map.hasLayer(gorge.regions[k])) {
+            gorge.map.addLayer(gorge.regions[k]);
+            gorge.map.addLayer(gorge.regionLabels[k]);
+          }
+        }
+        
+        resetBands();
+        renderGuide(true);
+      }
+
+      function setupEventListeners() {
+        gorge.map.on('click', function() {
+          backToGuide();
+        });
+        
+        for(var k in gorge.regions) {
+          (function(key) {
+            gorge.regions[key].on('click', function(e) {
+              L.DomEvent.stopPropagation(e);
+              showRegion(key);
+            });
+          })(k);
+        }
+        
+        // Add ESC key listener only once
+        if (!eventListenersInitialized) {
+          document.addEventListener('keydown', function(e) {
+            if(e.key === 'Escape' || e.keyCode === 27) {
+              backToGuide();
+            }
+          });
+          
+          // Handle window resize to adjust zoom
+          var resizeTimeout;
+          window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+              gorge.map.invalidateSize();
+              var currentZoom = isMobile() ? gorge.DEFAULT_ZOOM_MOBILE : gorge.DEFAULT_ZOOM;
+              gorge.map.setView(gorge.DEFAULT_CENTER, currentZoom);
+            }, 250);
+          });
+          
+          eventListenersInitialized = true;
+        }
+      }
+
+      // Initialize when Leaflet script loads
+      var leafletScript = document.querySelector('script[src*="leaflet"]');
+      if (leafletScript) {
+        leafletScript.addEventListener('load', function() {
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGorge);
+          } else {
+            initGorge();
+          }
+        });
+        // If script already loaded
+        if (typeof L !== 'undefined') {
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGorge);
+          } else {
+            initGorge();
+          }
+        }
+      } else {
+        // Fallback to original method
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initGorge);
+        } else {
+          initGorge();
+        }
+      }
+      
+      // Send height updates to parent frame on mobile
+      function updateParentHeight() {
+        if (isMobile() && window.parent !== window) {
+          var height = document.body.scrollHeight;
+          window.parent.postMessage({ height: height }, '*');
+        }
+      }
+      
+      // Monitor height changes
+      if (isMobile()) {
+        var resizeObserver = new ResizeObserver(updateParentHeight);
+        resizeObserver.observe(document.body);
+      }
+    })();
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Columbia River Gorge — Region Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html,body{
+      height:100%;width:100%;margin:0;padding:0;
+      font-family:Montserrat,sans-serif;color:#333;font-size:13px;
+      border:none;
+    }
+    .container{
+      display:flex;
+      width:100%;
+      height:100%;
+      gap:0;
+      border:none;
+      margin:0;
+      padding:0;
+    }
+    .map-column{
+      flex:1;
+      position:relative;
+      box-sizing:border-box;
+      border:1px solid #ddd;
+      margin:0;
+      padding:0;
+    }
+    #map{
+      position:absolute;
+      top:0;left:0;right:0;bottom:0;
+      border:none;
+    }
+    .legend-column{
+      width:340px;
+      background:#fff;
+      padding:0 14px 14px 14px;
+      overflow-y:auto;
+      line-height:1.45;
+      box-sizing:border-box;
+      border:none;
+      margin:0;
+    }
+    .legend-column h3{margin:-3px 0 16px 0;font-family:Montserrat,sans-serif;font-style:normal;font-weight:300;font-size:32px;line-height:1;color:#2e2e2e;padding:0;display:block;}
+    
+    /* Mobile layout */
+    @media (max-width: 768px) {
+      body, html {
+        height: auto;
+        min-height: 100%;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+      }
       .legend-column {
         order: 1;
         width: 100%;
