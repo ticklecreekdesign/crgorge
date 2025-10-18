@@ -411,15 +411,13 @@
             interactive: true
           }).addTo(gorge.map);
           
-          // Make labels clickable on mobile
-          if (isMobile()) {
-            (function(key) {
-              gorge.regionLabels[key].on('click', function(e) {
-                L.DomEvent.stopPropagation(e);
-                showRegion(key);
-              });
-            })(k);
-          }
+          // Make labels clickable on all devices
+          (function(key) {
+            gorge.regionLabels[key].on('click', function(e) {
+              L.DomEvent.stopPropagation(e);
+              showRegion(key);
+            });
+          })(k);
         }
       }
     
