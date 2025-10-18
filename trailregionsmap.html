@@ -63,7 +63,7 @@
       }
       .legend-column h3 {
         grid-area: header;
-        padding: 14px 0 0 14px;
+        padding: 14px 14px 14px 0;
         background: #fff;
       }
       .map-disclaimer {
@@ -79,6 +79,27 @@
         grid-area: entries;
         padding: 0 14px 14px 14px;
         background: #fff;
+      }
+      .region-detail-container {
+        grid-area: entries;
+        background: #fff;
+      }
+      .legend-detail .back-row {
+        margin-top: 20px;
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+      .legend-detail h3 {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+      .legend-detail .region-info {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+      .legend-detail .trail-list {
+        padding-left: 32px;
+        padding-right: 14px;
       }
       .map-column {
         grid-area: map;
@@ -389,20 +410,28 @@
 
       function renderGuide(resetView) {
         gorge.legend.className = 'legend-column';
-        var disclaimerHtml = isMobile() ? '<div class="map-disclaimer">Tap a region on the map or select from the list below to view trails and details.</div>' : '';
-        var html = '<h3>Region Guide</h3>' + disclaimerHtml + '<div class="region-entries-container">';
-        for(var k in gorge.REGION_INFO) {
-          var i = gorge.REGION_INFO[k];
-          html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
+        var html = '<h3>Region Guide</h3>';
+        
+        if (isMobile()) {
+          html += '<div class="map-disclaimer">Tap a region on the map to view trails and details.</div>';
+        } else {
+          html += '<div class="region-entries-container">';
+          for(var k in gorge.REGION_INFO) {
+            var i = gorge.REGION_INFO[k];
+            html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
+          }
+          html += '</div>';
         }
-        html += '</div>';
+        
         gorge.legend.innerHTML = html;
         
-        var links = gorge.legend.querySelectorAll('.region-link');
-        for(var i=0; i<links.length; i++) {
-          links[i].onclick = function() {
-            showRegion(this.getAttribute('data-region'));
-          };
+        if (!isMobile()) {
+          var links = gorge.legend.querySelectorAll('.region-link');
+          for(var i=0; i<links.length; i++) {
+            links[i].onclick = function() {
+              showRegion(this.getAttribute('data-region'));
+            };
+          }
         }
         
         if(resetView) {
@@ -415,12 +444,18 @@
         var i = gorge.REGION_INFO[k];
         var trails = (gorge.TRAILS[i.label] || []).slice().sort(function(a,b){return a.localeCompare(b);});
         gorge.legend.className = 'legend-column legend-detail';
-        var html = '<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div class="region-info"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div></div><ul class="trail-list">';
+        
+        var detailContent = '<div class="back-row"><a class="back-link" id="backLink">← Back to Region Guide</a></div><h3 style="color:'+i.color+';">'+i.label+'</h3><div class="region-info"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div><div><strong>Highlights:</strong> '+i.highlights+'</div></div><ul class="trail-list">';
         for(var j=0; j<trails.length; j++) {
-          html += '<li>'+escapeHTML(trails[j])+'</li>';
+          detailContent += '<li>'+escapeHTML(trails[j])+'</li>';
         }
-        html += '</ul>';
-        gorge.legend.innerHTML = html;
+        detailContent += '</ul>';
+        
+        if (isMobile()) {
+          gorge.legend.innerHTML = '<h3>Region Guide</h3><div class="region-detail-container">' + detailContent + '</div>';
+        } else {
+          gorge.legend.innerHTML = detailContent;
+        }
         
         document.getElementById('backLink').onclick = function() {
           backToGuide();
