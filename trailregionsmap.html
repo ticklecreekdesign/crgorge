@@ -52,25 +52,28 @@
         min-height: 100%;
       }
       .container {
-        display: block;
+        display: flex;
+        flex-direction: column;
         height: auto;
       }
       .legend-column {
+        order: 1;
         width: 100%;
         padding: 0;
         overflow: visible;
       }
-      .legend-column h3 {
-        padding: 10px 14px 6px 14px;
-        margin: 0;
-        background: #fff;
-      }
       .map-column {
+        order: 2;
         width: 100%;
         height: 400px;
         position: relative;
         border: 1px solid #ddd;
         margin: 0;
+      }
+      .legend-column h3 {
+        padding: 10px 14px 6px 14px;
+        margin: 0;
+        background: #fff;
       }
       .map-disclaimer {
         padding: 6px 14px;
