@@ -50,6 +50,7 @@
       body, html {
         height: auto;
         min-height: 100%;
+        overflow-y: auto;
       }
       .container {
         display: grid;
@@ -88,8 +89,10 @@
       .region-detail-container {
         grid-area: content;
         background: #fff;
-        padding-top: 0;
-        margin-top: 0;
+        padding: 0 0 14px 0;
+        margin: 0;
+        overflow: visible;
+        height: auto;
       }
       .legend-detail .back-row {
         margin-top: 0;
@@ -102,11 +105,9 @@
         margin-bottom: 4px;
       }
       .legend-detail .region-info {
-        margin-top: 0;
-      }
-      .legend-detail .region-info {
         padding-left: 14px;
         padding-right: 14px;
+        margin-top: 0;
       }
       .legend-detail .trail-list {
         padding-left: 32px;
@@ -147,6 +148,7 @@
     @media (max-width: 768px) {
       .legend-detail .back-row{padding:12px 0 8px 0;}
     }
+    
     .legend-detail .region-info{color:#555;margin-bottom:8px;margin-left:2px;}
     .legend-detail .region-info div{margin:0 0 4px 0;line-height:1.5;}
     .legend-detail .region-info div:last-child{margin-bottom:0;}
@@ -653,6 +655,20 @@
         } else {
           initGorge();
         }
+      }
+      
+      // Send height updates to parent frame on mobile
+      function updateParentHeight() {
+        if (isMobile() && window.parent !== window) {
+          var height = document.body.scrollHeight;
+          window.parent.postMessage({ height: height }, '*');
+        }
+      }
+      
+      // Monitor height changes
+      if (isMobile()) {
+        var resizeObserver = new ResizeObserver(updateParentHeight);
+        resizeObserver.observe(document.body);
       }
     })();
   </script>
