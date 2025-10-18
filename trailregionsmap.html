@@ -93,7 +93,7 @@
       }
       .legend-detail .back-row {
         margin-top: 0;
-        padding: 6px 14px 6px 14px;
+        padding: 12px 14px 6px 14px;
       }
       .legend-detail h3 {
         padding-left: 14px;
@@ -389,9 +389,9 @@
           if (isMobile()) {
             var mobileOffsets = {
               west: -0.08,
-              centralwest: -0.04,
-              central: 0.00,
-              centraleast: 0.04,
+              centralwest: -0.0575,
+              central: -0.075,
+              centraleast: -0.0175,
               east: 0.08
             };
             centerLat += (mobileOffsets[k] || 0);
@@ -442,7 +442,7 @@
         var html = '<h3>Region Guide</h3>';
         
         if (isMobile()) {
-          html += '<div class="map-disclaimer">Tap a region to view trails</div>';
+          html += '<div class="map-disclaimer">Tap any region to see available trails in that area</div>';
         } else {
           html += '<div class="region-entries-container">';
           for(var k in gorge.REGION_INFO) {
