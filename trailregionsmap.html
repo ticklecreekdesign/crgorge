@@ -90,7 +90,10 @@
       }
       .region-detail-container {
         background: #fff;
-        padding: 0 0 14px 0;
+        padding: 0;
+        height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
       }
       .legend-detail .back-row {
         margin-top: 0;
@@ -519,6 +522,11 @@
           }
         }
         
+        // On mobile, hide the map completely
+        if(isMobile()) {
+          document.querySelector('.map-column').style.display = 'none';
+        }
+        
         var i = gorge.REGION_INFO[k];
         var s = gorge.slices[k];
         var count = (gorge.TRAILS[i.label] || []).length;
@@ -558,14 +566,17 @@
           [centerLat - half, s.maxLon]
         ];
         
-        // For West and Central, manually set view with higher zoom
-        if(k === 'west' || k === 'central') {
-          var centerLng = (s.minLon + s.maxLon) / 2;
-          var regionZoom = isMobile() ? WEST_CENTRAL_ZOOM_MOBILE : WEST_CENTRAL_ZOOM;
-          gorge.map.setView([centerLat, centerLng], regionZoom);
-        } else {
-          var padding = isMobile() ? [10, 10] : [20, 20];
-          gorge.map.fitBounds(bounds, {padding: padding});
+        // Only zoom on desktop
+        if(!isMobile()) {
+          // For West and Central, manually set view with higher zoom
+          if(k === 'west' || k === 'central') {
+            var centerLng = (s.minLon + s.maxLon) / 2;
+            var regionZoom = WEST_CENTRAL_ZOOM;
+            gorge.map.setView([centerLat, centerLng], regionZoom);
+          } else {
+            var padding = [20, 20];
+            gorge.map.fitBounds(bounds, {padding: padding});
+          }
         }
       }
       
@@ -578,6 +589,11 @@
               }
             }
           }
+        }
+        
+        // On mobile, show the map again
+        if(isMobile()) {
+          document.querySelector('.map-column').style.display = 'block';
         }
         
         for(var k in gorge.regions) {
