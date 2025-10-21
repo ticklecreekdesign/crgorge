@@ -619,11 +619,6 @@
           }
         }
         
-        // On mobile, show the map again
-        if(isMobile()) {
-          document.querySelector('.map-column').style.display = 'block';
-        }
-        
         for(var k in gorge.regions) {
           if(!gorge.map.hasLayer(gorge.regions[k])) {
             gorge.map.addLayer(gorge.regions[k]);
@@ -633,6 +628,17 @@
         
         resetBands();
         renderGuide(true);
+        
+        // On mobile, show the map again AFTER rendering guide
+        if(isMobile()) {
+          document.querySelector('.map-column').style.display = 'block';
+          // Force map to re-render after being hidden
+          setTimeout(function() {
+            if(gorge.map) {
+              gorge.map.invalidateSize();
+            }
+          }, 100);
+        }
       }
 
       function setupEventListeners() {
