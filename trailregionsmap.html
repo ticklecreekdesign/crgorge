@@ -482,26 +482,27 @@
         gorge.legend.className = 'legend-column';
         var html = '<h3>Region Guide</h3>';
         
-        if (isMobile()) {
-          html += '<div class="map-disclaimer">Tap any region to see available trails in that area</div>';
-        } else {
-          html += '<div class="region-entries-container">';
-          for(var k in gorge.REGION_INFO) {
-            var i = gorge.REGION_INFO[k];
-            html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
-          }
-          html += '</div>';
+        // Always show region list on both mobile and desktop
+        html += '<div class="region-entries-container">';
+        for(var k in gorge.REGION_INFO) {
+          var i = gorge.REGION_INFO[k];
+          html += '<div class="region-entry"><a class="region-link" style="color:'+i.color+';" data-region="'+k+'">'+i.label+'</a><div class="region-meta"><div><strong>Area:</strong> '+i.area+'</div><div><strong>I-84 Mile Range:</strong> '+i.mm+'</div></div></div>';
         }
+        html += '</div>';
         
         gorge.legend.innerHTML = html;
         
-        if (!isMobile()) {
-          var links = gorge.legend.querySelectorAll('.region-link');
-          for(var i=0; i<links.length; i++) {
-            links[i].onclick = function() {
-              showRegion(this.getAttribute('data-region'));
-            };
-          }
+        var links = gorge.legend.querySelectorAll('.region-link');
+        for(var i=0; i<links.length; i++) {
+          links[i].onclick = function() {
+            showRegion(this.getAttribute('data-region'));
+          };
+        }
+        
+        // Hide the map on mobile
+        if(isMobile()) {
+          var mapCol = document.querySelector('.map-column');
+          if(mapCol) mapCol.style.display = 'none';
         }
         
         if(resetView) {
