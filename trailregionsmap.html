@@ -550,11 +550,6 @@
           }
         }
         
-        // On mobile, hide the map completely
-        if(isMobile()) {
-          document.querySelector('.map-column').style.display = 'none';
-        }
-        
         var i = gorge.REGION_INFO[k];
         var s = gorge.slices[k];
         var count = (gorge.TRAILS[i.label] || []).length;
@@ -588,6 +583,12 @@
         }
         
         renderRegionDetail(k);
+        
+        // On mobile, hide the map completely
+        if(isMobile()) {
+          var mapCol = document.querySelector('.map-column');
+          if(mapCol) mapCol.style.display = 'none';
+        }
         
         var bounds = [
           [centerLat + half, s.minLon],
@@ -627,17 +628,22 @@
         }
         
         resetBands();
+        
+        // On mobile, show the map again BEFORE rendering guide
+        if(isMobile()) {
+          var mapCol = document.querySelector('.map-column');
+          if(mapCol) {
+            mapCol.style.display = 'block';
+          }
+        }
+        
         renderGuide(true);
         
-        // On mobile, show the map again AFTER rendering guide
-        if(isMobile()) {
-          document.querySelector('.map-column').style.display = 'block';
-          // Force map to re-render after being hidden
+        // Force map to re-render after being hidden
+        if(isMobile() && gorge.map) {
           setTimeout(function() {
-            if(gorge.map) {
-              gorge.map.invalidateSize();
-            }
-          }, 100);
+            gorge.map.invalidateSize();
+          }, 150);
         }
       }
 
