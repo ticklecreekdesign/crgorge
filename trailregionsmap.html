@@ -610,6 +610,12 @@
       }
       
       function backToGuide() {
+        // On mobile, just reload to get back to default state
+        if(isMobile()) {
+          window.location.reload();
+          return;
+        }
+        
         if(gorge.expandedLayers) {
           for(var k in gorge.expandedLayers) {
             for(var j = 0; j < gorge.expandedLayers[k].length; j++) {
@@ -628,23 +634,7 @@
         }
         
         resetBands();
-        
-        // On mobile, show the map again BEFORE rendering guide
-        if(isMobile()) {
-          var mapCol = document.querySelector('.map-column');
-          if(mapCol) {
-            mapCol.style.display = 'block';
-          }
-        }
-        
         renderGuide(true);
-        
-        // Force map to re-render after being hidden
-        if(isMobile() && gorge.map) {
-          setTimeout(function() {
-            gorge.map.invalidateSize();
-          }, 150);
-        }
       }
 
       function setupEventListeners() {
