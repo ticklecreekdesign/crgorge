@@ -22,6 +22,7 @@
         padding: 0 !important;
       }
     }
+    
     .container{
       display:flex;
       width:100%;
@@ -61,11 +62,17 @@
       body, html {
         height: auto;
         min-height: 100%;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
       .container {
         display: flex;
         flex-direction: column;
         height: auto;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
       .map-column {
         order: 2;
@@ -73,41 +80,54 @@
         height: 400px;
         position: relative;
         border: 1px solid #ddd;
-        margin: 0;
+        border-bottom: none;
+        margin: 0 !important;
+        padding: 0 !important;
       }
       .legend-column {
         order: 1;
         width: 100%;
-        padding: 0;
+        padding: 0 !important;
+        margin: 0 !important;
         overflow: visible;
+        border: none;
       }
       .legend-column h3 {
-        padding: 10px 14px 6px 14px;
-        margin: 0;
+        padding: 10px 0 6px 0 !important;
+        margin: 0 !important;
         background: #fff;
+        border: none;
       }
       .map-disclaimer {
-        padding: 6px 14px;
+        padding: 6px 0 10px 0 !important;
         background: #f5f5f5;
         font-size: 11px;
         color: #666;
         border-top: 1px solid #ddd;
-        border-bottom: 1px solid #ddd;
+        border-bottom: none !important;
         line-height: 1.2;
       }
       .region-entries-container {
-        padding: 0 14px 14px 14px;
+        padding: 0 !important;
+        margin: 0 !important;
         background: #fff;
       }
       .region-entry {
-        margin: 12px 0 8px 0;
-        padding-bottom: 12px;
+        margin: 12px 0 8px 0 !important;
+        padding: 0 0 12px 0 !important;
         border-bottom: 1px solid #ddd;
       }
       .region-entry:last-child {
         margin-bottom: 0;
         border-bottom: 1px solid #ddd !important;
         padding-bottom: 12px !important;
+      }
+      .region-link {
+        display: block !important;
+        margin: 0 !important;
+      }
+      .region-meta {
+        margin: 4px 0 0 0 !important;
       }
       .region-detail-container {
         background: #fff;
@@ -120,6 +140,10 @@
       .legend-detail .back-row {
         margin-top: 0;
         padding: 12px 14px 6px 14px;
+        position: sticky;
+        top: 0;
+        background: #fff;
+        z-index: 10;
       }
       .legend-detail h3 {
         padding-left: 14px;
@@ -135,15 +159,7 @@
       .legend-detail .trail-list {
         padding-left: 32px;
         padding-right: 14px;
-        height: auto;
-        max-height: none;
-      }
-      .map-column {
-        grid-area: map;
-        width: 100%;
-        height: 400px;
-        position: relative;
-        border: 1px solid #ddd;
+        padding-bottom: 14px;
       }
       #map {
         position: absolute;
