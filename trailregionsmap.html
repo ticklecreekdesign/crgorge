@@ -9,47 +9,28 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Source Sans 3', sans-serif; background: #1a1a1a; color: #f5f5f0; }
-        header {
-            background: linear-gradient(135deg, #2d4a3e 0%, #1a2f26 100%);
-            padding: 1.5rem 2rem;
-            border-bottom: 3px solid #5d8a6b;
-        }
-        h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: #f5f5f0;
-        }
-        .subtitle { color: #a8c4b0; font-size: 1rem; margin-top: 0.25rem; }
         #map { height: 100vh; width: 100%; }
+
         .region-label-wrapper {
             background: transparent !important;
             border: none !important;
             transform: translate(-50%, -50%);
         }
-        .legend {
-            background: rgba(26, 26, 26, 0.95);
-            padding: 1rem 1.25rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            border: 1px solid #3a3a3a;
-            max-width: 180px;
+
+        /* Button under zoom controls (Leaflet-style) */
+        .leaflet-control-open-full a{
+            width: 34px;
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+            font-size: 18px;
+            display: block;
+            text-decoration: none;
+            color: #333;
+            background: #fff;
         }
-        .legend h4 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
-            color: #f5f5f0;
-            border-bottom: 1px solid #3a3a3a;
-            padding-bottom: 0.5rem;
-        }
-        .legend-item { display: flex; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; }
-        .legend-color {
-            width: 24px;
-            height: 18px;
-            margin-right: 0.6rem;
-            border-radius: 3px;
-            border: 1px solid rgba(255,255,255,0.2);
+        .leaflet-control-open-full a:hover{
+            background: #f4f4f4;
         }
     </style>
 </head>
@@ -58,17 +39,75 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // URL params:
+        // ?unrestricted=1  => no zoom-out restriction
+        // ?lat=..&lng=..&z=.. => preserve view when opening in new window
+        const params = new URLSearchParams(window.location.search);
+        const unrestricted = params.get('unrestricted') === '1';
+
+        const defaultZoom = 10;
+
+        // Parse initial view from URL (if present)
+        const latParam = parseFloat(params.get('lat'));
+        const lngParam = parseFloat(params.get('lng'));
+        const zParam = parseInt(params.get('z'), 10);
+
+        const hasViewParams =
+            Number.isFinite(latParam) &&
+            Number.isFinite(lngParam) &&
+            Number.isFinite(zParam);
+
+        const initialCenter = hasViewParams ? [latParam, lngParam] : [45.62, -121.6];
+        const initialZoom = hasViewParams ? zParam : defaultZoom;
+
         // Initialize map
         const map = L.map('map', {
-            center: [45.62, -121.6],
-            zoom: 10,
+            center: initialCenter,
+            zoom: initialZoom,
+            minZoom: unrestricted ? 0 : defaultZoom, // ✅ prevent zooming out further than default (unless unrestricted)
             zoomControl: true
         });
 
         // Esri World Topo basemap
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri'
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 19
         }).addTo(map);
+
+        // ✅ Button under the +/- that opens unrestricted version in a new window
+        // and preserves the user's current view (center + zoom).
+        if (!unrestricted) {
+            const OpenFullControl = L.Control.extend({
+                options: { position: 'topleft' },
+                onAdd: function() {
+                    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-open-full');
+                    const link = L.DomUtil.create('a', '', container);
+                    link.href = '#';
+                    link.title = 'Open full map in a new window';
+                    link.setAttribute('aria-label', 'Open full map in a new window');
+                    link.innerHTML = '⤢';
+
+                    L.DomEvent.disableClickPropagation(container);
+                    L.DomEvent.on(link, 'click', (e) => {
+                        L.DomEvent.preventDefault(e);
+
+                        const c = map.getCenter();
+                        const z = map.getZoom();
+
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('unrestricted', '1');
+                        url.searchParams.set('lat', c.lat.toFixed(6));
+                        url.searchParams.set('lng', c.lng.toFixed(6));
+                        url.searchParams.set('z', String(z));
+
+                        window.open(url.toString(), '_blank', 'noopener');
+                    });
+
+                    return container;
+                }
+            });
+            new OpenFullControl().addTo(map);
+        }
 
         // Region colors - earthy tones
         const colors = {
@@ -115,15 +154,15 @@
 
         // Draw each region
         regions.forEach(region => {
-            // Use average longitude for straight vertical boundaries (matching the lines)
+            // Use average longitude for straight vertical boundaries
             const leftLng = (region.leftOR[1] + region.leftWA[1]) / 2;
             const rightLng = (region.rightOR[1] + region.rightWA[1]) / 2;
-            
-            // Find the north and south extents for the main fill
+
+            // North/south extents
             const northLat = Math.max(region.leftWA[0], region.rightWA[0], region.leftOR[0], region.rightOR[0]);
             const southLat = Math.min(region.leftWA[0], region.rightWA[0], region.leftOR[0], region.rightOR[0]);
 
-            // Draw the main fill as a simple rectangle with straight vertical sides
+            // Main fill
             L.polygon([
                 [southLat, leftLng],
                 [southLat, rightLng],
@@ -136,12 +175,12 @@
                 fillOpacity: baseOpacity
             }).addTo(map);
 
-            // Draw fade bands extending NORTH
+            // Fade NORTH
             for (let i = 1; i <= fadeSteps; i++) {
                 const fadeStart = northLat + (fadeExtension / fadeSteps) * (i - 1);
                 const fadeEnd = northLat + (fadeExtension / fadeSteps) * i;
                 const opacity = baseOpacity * (1 - i / fadeSteps);
-                
+
                 L.polygon([
                     [fadeStart, leftLng],
                     [fadeStart, rightLng],
@@ -155,12 +194,12 @@
                 }).addTo(map);
             }
 
-            // Draw fade bands extending SOUTH
+            // Fade SOUTH
             for (let i = 1; i <= fadeSteps; i++) {
                 const fadeStart = southLat - (fadeExtension / fadeSteps) * (i - 1);
                 const fadeEnd = southLat - (fadeExtension / fadeSteps) * i;
                 const opacity = baseOpacity * (1 - i / fadeSteps);
-                
+
                 L.polygon([
                     [fadeStart, leftLng],
                     [fadeStart, rightLng],
@@ -174,60 +213,57 @@
                 }).addTo(map);
             }
 
-            // Draw straight vertical boundary lines (north-south)
+            // Vertical boundary lines
             const lineSteps = 20;
-            const verticalExtent = 0.25; // How far north and south the lines extend
-            
-            // Use average of OR and WA latitudes as center point
+            const verticalExtent = 0.25;
+
             const leftCenterLat = (region.leftOR[0] + region.leftWA[0]) / 2;
             const rightCenterLat = (region.rightOR[0] + region.rightWA[0]) / 2;
-            
-            // Left vertical line (uses leftLng already defined above)
+
+            // Left line
             for (let i = 0; i < lineSteps; i++) {
                 const t1 = i / lineSteps;
                 const t2 = (i + 1) / lineSteps;
-                
+
                 const lat1 = (leftCenterLat - verticalExtent) + t1 * (verticalExtent * 2);
                 const lat2 = (leftCenterLat - verticalExtent) + t2 * (verticalExtent * 2);
-                
-                // Opacity fades at top and bottom
+
                 const dist1 = Math.abs(lat1 - leftCenterLat);
                 const dist2 = Math.abs(lat2 - leftCenterLat);
                 const avgDist = (dist1 + dist2) / 2;
                 const opacity = Math.max(0.1, 1 - (avgDist / verticalExtent) * 0.9);
-                
+
                 L.polyline([[lat1, leftLng], [lat2, leftLng]], {
                     color: '#888888',
                     weight: 2,
                     opacity: opacity
                 }).addTo(map);
             }
-            
-            // Right vertical line (uses rightLng already defined above)
+
+            // Right line
             for (let i = 0; i < lineSteps; i++) {
                 const t1 = i / lineSteps;
                 const t2 = (i + 1) / lineSteps;
-                
+
                 const lat1 = (rightCenterLat - verticalExtent) + t1 * (verticalExtent * 2);
                 const lat2 = (rightCenterLat - verticalExtent) + t2 * (verticalExtent * 2);
-                
+
                 const dist1 = Math.abs(lat1 - rightCenterLat);
                 const dist2 = Math.abs(lat2 - rightCenterLat);
                 const avgDist = (dist1 + dist2) / 2;
                 const opacity = Math.max(0.1, 1 - (avgDist / verticalExtent) * 0.9);
-                
+
                 L.polyline([[lat1, rightLng], [lat2, rightLng]], {
                     color: '#888888',
                     weight: 2,
                     opacity: opacity
                 }).addTo(map);
             }
-            
-            // Add region name label in the center of the visible region
-            // Use the same center points as the vertical lines (already calculated above)
+
+            // Labels
             const centerLat = (leftCenterLat + rightCenterLat) / 2;
             const centerLng = (leftLng + rightLng) / 2;
-            
+
             const label = L.divIcon({
                 className: 'region-label-wrapper',
                 html: `<div style="
@@ -245,7 +281,7 @@
                 iconSize: [100, 40],
                 iconAnchor: [50, 20]
             });
-            
+
             L.marker([centerLat, centerLng], { icon: label, interactive: false }).addTo(map);
         });
     </script>
