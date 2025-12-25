@@ -1,289 +1,235 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Columbia River Gorge Regions</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Source Sans 3', sans-serif; background: #1a1a1a; color: #f5f5f0; }
-        #map { height: 100vh; width: 100%; }
+<!-- MAP WRAPPER (Hostinger needs an explicit height) -->
+<div id="crg-map-wrap" style="width:100%; max-width:1400px; margin:0 auto;">
+  <div id="map" style="width:100%; height:770px; border:1px solid #CCCCCC;"></div>
+</div>
 
-        .region-label-wrapper {
-            background: transparent !important;
-            border: none !important;
-            transform: translate(-50%, -50%);
-        }
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        /* Button under zoom controls (Leaflet-style) */
-        .leaflet-control-open-full a{
-            width: 34px;
-            height: 34px;
-            line-height: 34px;
-            text-align: center;
-            font-size: 18px;
-            display: block;
-            text-decoration: none;
-            color: #333;
-            background: #fff;
-        }
-        .leaflet-control-open-full a:hover{
-            background: #f4f4f4;
-        }
-    </style>
-</head>
-<body>
-    <div id="map"></div>
+<style>
+  .region-label-wrapper {
+    background: transparent !important;
+    border: none !important;
+    transform: translate(-50%, -50%);
+  }
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // URL params:
-        // ?unrestricted=1  => no zoom-out restriction
-        // ?lat=..&lng=..&z=.. => preserve view when opening in new window
-        const params = new URLSearchParams(window.location.search);
-        const unrestricted = params.get('unrestricted') === '1';
+  .region-label-text{
+    color:#000;
+    font-family: 'Source Sans 3', sans-serif;
+    text-align:center;
+    line-height:1.18;
+    white-space:nowrap;
+  }
+  .region-label-text .mp{
+    font-size:14px;
+    font-weight:400; /* un-bold mileposts */
+  }
+  .region-label-text .name{
+    font-size:16px;   /* ✅ lowered region name size */
+    font-weight:400;  /* un-bold region name */
+    letter-spacing:0.8px;
+    /* white outline around REGION NAME only */
+    text-shadow:
+      1px 1px 0 #fff,
+     -1px 1px 0 #fff,
+      1px -1px 0 #fff,
+     -1px -1px 0 #fff,
+      0  2px 0 #fff,
+      0 -2px 0 #fff,
+      2px 0  0 #fff,
+     -2px 0  0 #fff;
+  }
 
-        const defaultZoom = 10;
+  /* optional: make the map shorter on mobile */
+  @media (max-width: 768px){
+    #map{ height:545px !important; }
+  }
 
-        // Parse initial view from URL (if present)
-        const latParam = parseFloat(params.get('lat'));
-        const lngParam = parseFloat(params.get('lng'));
-        const zParam = parseInt(params.get('z'), 10);
+  /* Button under zoom controls */
+  .leaflet-control-open-full a{
+    width: 34px;
+    height: 34px;
+    line-height: 34px;
+    text-align: center;
+    font-size: 18px;
+    display: block;
+    text-decoration: none;
+    color: #333;
+    background: #fff;
+  }
+  .leaflet-control-open-full a:hover{
+    background: #f4f4f4;
+  }
+</style>
 
-        const hasViewParams =
-            Number.isFinite(latParam) &&
-            Number.isFinite(lngParam) &&
-            Number.isFinite(zParam);
+<script>
+(function(){
+  // If Hostinger re-renders blocks, prevent double-init
+  if (window.__CRG_MAP_INIT__) return;
+  window.__CRG_MAP_INIT__ = true;
 
-        const initialCenter = hasViewParams ? [latParam, lngParam] : [45.62, -121.6];
-        const initialZoom = hasViewParams ? zParam : defaultZoom;
+  const params = new URLSearchParams(window.location.search);
+  const unrestricted = params.get('unrestricted') === '1';
+  const defaultZoom = 10;
 
-        // Initialize map
-        const map = L.map('map', {
-            center: initialCenter,
-            zoom: initialZoom,
-            minZoom: unrestricted ? 0 : defaultZoom, // ✅ prevent zooming out further than default (unless unrestricted)
-            zoomControl: true
+  const map = L.map('map', {
+    center: [45.62, -121.6],
+    zoom: defaultZoom,
+    minZoom: unrestricted ? 0 : defaultZoom,
+    zoomControl: true
+  });
+
+  // Force proper sizing once the embed block has laid out
+  function fixSize(){ map.invalidateSize(true); }
+  setTimeout(fixSize, 50);
+  setTimeout(fixSize, 200);
+  window.addEventListener('resize', () => setTimeout(fixSize, 100));
+
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
+  ).addTo(map);
+
+  // Open unrestricted map in new window (no restrictions) preserving view
+  if (!unrestricted) {
+    const OpenFullControl = L.Control.extend({
+      options: { position: 'topleft' },
+      onAdd: function() {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-open-full');
+        const link = L.DomUtil.create('a', '', container);
+        link.href = '#';
+        link.title = 'Open full map in a new window';
+        link.setAttribute('aria-label', 'Open full map in a new window');
+        link.innerHTML = '⤢';
+
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.on(link, 'click', (e) => {
+          L.DomEvent.preventDefault(e);
+          const c = map.getCenter();
+          const z = map.getZoom();
+          const url = new URL(window.location.href);
+          url.searchParams.set('unrestricted', '1');
+          url.searchParams.set('lat', c.lat.toFixed(6));
+          url.searchParams.set('lng', c.lng.toFixed(6));
+          url.searchParams.set('z', String(z));
+          window.open(url.toString(), '_blank', 'noopener');
         });
 
-        // Esri World Topo basemap
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri',
-            maxZoom: 19
-        }).addTo(map);
+        return container;
+      }
+    });
+    new OpenFullControl().addTo(map);
+  }
 
-        // ✅ Button under the +/- that opens unrestricted version in a new window
-        // and preserves the user's current view (center + zoom).
-        if (!unrestricted) {
-            const OpenFullControl = L.Control.extend({
-                options: { position: 'topleft' },
-                onAdd: function() {
-                    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-open-full');
-                    const link = L.DomUtil.create('a', '', container);
-                    link.href = '#';
-                    link.title = 'Open full map in a new window';
-                    link.setAttribute('aria-label', 'Open full map in a new window');
-                    link.innerHTML = '⤢';
+  const colors = {
+    west: '#1B5E20',
+    centralWest: '#2E7D32',
+    central: '#558B2F',
+    centralEast: '#9E9D24',
+    east: '#C0CA33'
+  };
 
-                    L.DomEvent.disableClickPropagation(container);
-                    L.DomEvent.on(link, 'click', (e) => {
-                        L.DomEvent.preventDefault(e);
+  const OR = [
+    [45.542793, -122.357188],
+    [45.594439, -122.069067],
+    [45.693033, -121.788757],
+    [45.708906, -121.490056],
+    [45.607299, -121.197596],
+    [45.635525, -120.911525]
+  ];
 
-                        const c = map.getCenter();
-                        const z = map.getZoom();
+  const WA = [
+    [45.57168228259249, -122.31767443196766],
+    [45.59242347354461, -122.07760326175781],
+    [45.61316466449673, -121.83753209154797],
+    [45.63390585544885, -121.59746092133812],
+    [45.65464704640097, -121.35738975112828],
+    [45.67538823737303, -120.87730858090842]
+  ];
 
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('unrestricted', '1');
-                        url.searchParams.set('lat', c.lat.toFixed(6));
-                        url.searchParams.set('lng', c.lng.toFixed(6));
-                        url.searchParams.set('z', String(z));
+  const regions = [
+    { name: 'West',         orMp: '19–34',  waMp: '16–32',  color: colors.west,        leftOR: OR[0], rightOR: OR[1], leftWA: WA[0], rightWA: WA[1] },
+    { name: 'Central West', orMp: '34–50',  waMp: '32–50',  color: colors.centralWest, leftOR: OR[1], rightOR: OR[2], leftWA: WA[1], rightWA: WA[2] },
+    { name: 'Central',      orMp: '50–65',  waMp: '50–65',  color: colors.central,     leftOR: OR[2], rightOR: OR[3], leftWA: WA[2], rightWA: WA[3] },
+    { name: 'Central East', orMp: '65–84',  waMp: '65–81',  color: colors.centralEast, leftOR: OR[3], rightOR: OR[4], leftWA: WA[3], rightWA: WA[4] },
+    { name: 'East',         orMp: '84–100', waMp: '81–96',  color: colors.east,        leftOR: OR[4], rightOR: OR[5], leftWA: WA[4], rightWA: WA[5] }
+  ];
 
-                        window.open(url.toString(), '_blank', 'noopener');
-                    });
+  const fadeSteps = 15;
+  const fadeExtension = 0.15;
+  const baseOpacity = 0.35;
 
-                    return container;
-                }
-            });
-            new OpenFullControl().addTo(map);
-        }
+  regions.forEach(region => {
+    const leftLng = (region.leftOR[1] + region.leftWA[1]) / 2;
+    const rightLng = (region.rightOR[1] + region.rightWA[1]) / 2;
 
-        // Region colors - earthy tones
-        const colors = {
-            west: '#1B5E20',
-            centralWest: '#2E7D32',
-            central: '#558B2F',
-            centralEast: '#9E9D24',
-            east: '#C0CA33'
-        };
+    const northLat = Math.max(region.leftWA[0], region.rightWA[0], region.leftOR[0], region.rightOR[0]);
+    const southLat = Math.min(region.leftWA[0], region.rightWA[0], region.leftOR[0], region.rightOR[0]);
 
-        // Oregon boundary points (1-6)
-        const OR = [
-            [45.542793, -122.357188],  // 1
-            [45.594439, -122.069067],  // 2
-            [45.693033, -121.788757],  // 3
-            [45.708906, -121.490056],  // 4
-            [45.607299, -121.197596],  // 5
-            [45.635525, -120.911525]   // 6
-        ];
+    L.polygon([
+      [southLat, leftLng],
+      [southLat, rightLng],
+      [northLat, rightLng],
+      [northLat, leftLng]
+    ], { color:'transparent', weight:0, fillColor:region.color, fillOpacity:baseOpacity }).addTo(map);
 
-        // Washington boundary points (1-6)
-        const WA = [
-            [45.57168228259249, -122.31767443196766],   // 1
-            [45.59242347354461, -122.07760326175781],   // 2
-            [45.61316466449673, -121.83753209154797],   // 3
-            [45.63390585544885, -121.59746092133812],   // 4
-            [45.65464704640097, -121.35738975112828],   // 5
-            [45.67538823737303, -120.87730858090842]    // 6
-        ];
+    for (let i = 1; i <= fadeSteps; i++) {
+      const fadeStart = northLat + (fadeExtension / fadeSteps) * (i - 1);
+      const fadeEnd = northLat + (fadeExtension / fadeSteps) * i;
+      const opacity = baseOpacity * (1 - i / fadeSteps);
 
-        // Regions defined by their left and right boundary indices
-        const regions = [
-            { name: 'West', color: colors.west, leftOR: OR[0], rightOR: OR[1], leftWA: WA[0], rightWA: WA[1] },
-            { name: 'Central West', color: colors.centralWest, leftOR: OR[1], rightOR: OR[2], leftWA: WA[1], rightWA: WA[2] },
-            { name: 'Central', color: colors.central, leftOR: OR[2], rightOR: OR[3], leftWA: WA[2], rightWA: WA[3] },
-            { name: 'Central East', color: colors.centralEast, leftOR: OR[3], rightOR: OR[4], leftWA: WA[3], rightWA: WA[4] },
-            { name: 'East', color: colors.east, leftOR: OR[4], rightOR: OR[5], leftWA: WA[4], rightWA: WA[5] }
-        ];
+      L.polygon([[fadeStart,leftLng],[fadeStart,rightLng],[fadeEnd,rightLng],[fadeEnd,leftLng]],
+        { color:'transparent', weight:0, fillColor:region.color, fillOpacity:opacity }).addTo(map);
+    }
 
-        // Fade settings
-        const fadeSteps = 15;
-        const fadeExtension = 0.15; // How far north/south to extend fades
-        const baseOpacity = 0.35;
+    for (let i = 1; i <= fadeSteps; i++) {
+      const fadeStart = southLat - (fadeExtension / fadeSteps) * (i - 1);
+      const fadeEnd = southLat - (fadeExtension / fadeSteps) * i;
+      const opacity = baseOpacity * (1 - i / fadeSteps);
 
-        // Draw each region
-        regions.forEach(region => {
-            // Use average longitude for straight vertical boundaries
-            const leftLng = (region.leftOR[1] + region.leftWA[1]) / 2;
-            const rightLng = (region.rightOR[1] + region.rightWA[1]) / 2;
+      L.polygon([[fadeStart,leftLng],[fadeStart,rightLng],[fadeEnd,rightLng],[fadeEnd,leftLng]],
+        { color:'transparent', weight:0, fillColor:region.color, fillOpacity:opacity }).addTo(map);
+    }
 
-            // North/south extents
-            const northLat = Math.max(region.leftWA[0], region.rightWA[0], region.leftOR[0], region.rightOR[0]);
-            const southLat = Math.min(region.leftWA[0], region.rightWA[0], region.leftOR[0], region.rightOR[0]);
+    const lineSteps = 20;
+    const verticalExtent = 0.25;
 
-            // Main fill
-            L.polygon([
-                [southLat, leftLng],
-                [southLat, rightLng],
-                [northLat, rightLng],
-                [northLat, leftLng]
-            ], {
-                color: 'transparent',
-                weight: 0,
-                fillColor: region.color,
-                fillOpacity: baseOpacity
-            }).addTo(map);
+    const leftCenterLat = (region.leftOR[0] + region.leftWA[0]) / 2;
+    const rightCenterLat = (region.rightOR[0] + region.rightWA[0]) / 2;
 
-            // Fade NORTH
-            for (let i = 1; i <= fadeSteps; i++) {
-                const fadeStart = northLat + (fadeExtension / fadeSteps) * (i - 1);
-                const fadeEnd = northLat + (fadeExtension / fadeSteps) * i;
-                const opacity = baseOpacity * (1 - i / fadeSteps);
+    for (let i = 0; i < lineSteps; i++) {
+      const t1 = i / lineSteps, t2 = (i + 1) / lineSteps;
+      const lat1 = (leftCenterLat - verticalExtent) + t1 * (verticalExtent * 2);
+      const lat2 = (leftCenterLat - verticalExtent) + t2 * (verticalExtent * 2);
+      const avgDist = (Math.abs(lat1-leftCenterLat)+Math.abs(lat2-leftCenterLat))/2;
+      const opacity = Math.max(0.1, 1 - (avgDist / verticalExtent) * 0.9);
+      L.polyline([[lat1,leftLng],[lat2,leftLng]], { color:'#888', weight:2, opacity }).addTo(map);
+    }
 
-                L.polygon([
-                    [fadeStart, leftLng],
-                    [fadeStart, rightLng],
-                    [fadeEnd, rightLng],
-                    [fadeEnd, leftLng]
-                ], {
-                    color: 'transparent',
-                    weight: 0,
-                    fillColor: region.color,
-                    fillOpacity: opacity
-                }).addTo(map);
-            }
+    for (let i = 0; i < lineSteps; i++) {
+      const t1 = i / lineSteps, t2 = (i + 1) / lineSteps;
+      const lat1 = (rightCenterLat - verticalExtent) + t1 * (verticalExtent * 2);
+      const lat2 = (rightCenterLat - verticalExtent) + t2 * (verticalExtent * 2);
+      const avgDist = (Math.abs(lat1-rightCenterLat)+Math.abs(lat2-rightCenterLat))/2;
+      const opacity = Math.max(0.1, 1 - (avgDist / verticalExtent) * 0.9);
+      L.polyline([[lat1,rightLng],[lat2,rightLng]], { color:'#888', weight:2, opacity }).addTo(map);
+    }
 
-            // Fade SOUTH
-            for (let i = 1; i <= fadeSteps; i++) {
-                const fadeStart = southLat - (fadeExtension / fadeSteps) * (i - 1);
-                const fadeEnd = southLat - (fadeExtension / fadeSteps) * i;
-                const opacity = baseOpacity * (1 - i / fadeSteps);
+    const centerLat = (leftCenterLat + rightCenterLat) / 2;
+    const centerLng = (leftLng + rightLng) / 2;
 
-                L.polygon([
-                    [fadeStart, leftLng],
-                    [fadeStart, rightLng],
-                    [fadeEnd, rightLng],
-                    [fadeEnd, leftLng]
-                ], {
-                    color: 'transparent',
-                    weight: 0,
-                    fillColor: region.color,
-                    fillOpacity: opacity
-                }).addTo(map);
-            }
+    const label = L.divIcon({
+      className: 'region-label-wrapper',
+      html: `<div class="region-label-text">
+               <div class="mp">WA ${region.waMp}</div>
+               <div class="name">${region.name.toUpperCase()}</div>
+               <div class="mp">OR ${region.orMp}</div>
+             </div>`,
+      iconSize: [170, 64],
+      iconAnchor: [85, 32]
+    });
 
-            // Vertical boundary lines
-            const lineSteps = 20;
-            const verticalExtent = 0.25;
-
-            const leftCenterLat = (region.leftOR[0] + region.leftWA[0]) / 2;
-            const rightCenterLat = (region.rightOR[0] + region.rightWA[0]) / 2;
-
-            // Left line
-            for (let i = 0; i < lineSteps; i++) {
-                const t1 = i / lineSteps;
-                const t2 = (i + 1) / lineSteps;
-
-                const lat1 = (leftCenterLat - verticalExtent) + t1 * (verticalExtent * 2);
-                const lat2 = (leftCenterLat - verticalExtent) + t2 * (verticalExtent * 2);
-
-                const dist1 = Math.abs(lat1 - leftCenterLat);
-                const dist2 = Math.abs(lat2 - leftCenterLat);
-                const avgDist = (dist1 + dist2) / 2;
-                const opacity = Math.max(0.1, 1 - (avgDist / verticalExtent) * 0.9);
-
-                L.polyline([[lat1, leftLng], [lat2, leftLng]], {
-                    color: '#888888',
-                    weight: 2,
-                    opacity: opacity
-                }).addTo(map);
-            }
-
-            // Right line
-            for (let i = 0; i < lineSteps; i++) {
-                const t1 = i / lineSteps;
-                const t2 = (i + 1) / lineSteps;
-
-                const lat1 = (rightCenterLat - verticalExtent) + t1 * (verticalExtent * 2);
-                const lat2 = (rightCenterLat - verticalExtent) + t2 * (verticalExtent * 2);
-
-                const dist1 = Math.abs(lat1 - rightCenterLat);
-                const dist2 = Math.abs(lat2 - rightCenterLat);
-                const avgDist = (dist1 + dist2) / 2;
-                const opacity = Math.max(0.1, 1 - (avgDist / verticalExtent) * 0.9);
-
-                L.polyline([[lat1, rightLng], [lat2, rightLng]], {
-                    color: '#888888',
-                    weight: 2,
-                    opacity: opacity
-                }).addTo(map);
-            }
-
-            // Labels
-            const centerLat = (leftCenterLat + rightCenterLat) / 2;
-            const centerLng = (leftLng + rightLng) / 2;
-
-            const label = L.divIcon({
-                className: 'region-label-wrapper',
-                html: `<div style="
-                    color: #333;
-                    font-family: 'Source Sans 3', sans-serif;
-                    font-size: 14px;
-                    font-weight: 600;
-                    white-space: nowrap;
-                    text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;
-                    position: absolute;
-                    left: 50%;
-                    top: 50%;
-                    transform: translate(-50%, -50%);
-                ">${region.name}</div>`,
-                iconSize: [100, 40],
-                iconAnchor: [50, 20]
-            });
-
-            L.marker([centerLat, centerLng], { icon: label, interactive: false }).addTo(map);
-        });
-    </script>
-</body>
-</html>
+    L.marker([centerLat, centerLng], { icon: label, interactive: false }).addTo(map);
+  });
+})();
+</script>
