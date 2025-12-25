@@ -28,11 +28,11 @@
 
   /* Keep these, but inline styles will enforce size */
   .region-label-text .mp{
-    font-size:13px !important;
+    font-size:12px !important;
     font-weight:400 !important;
   }
   .region-label-text .name{
-    font-size:14px !important;   /* ✅ smaller region name */
+    font-size:12px !important;
     font-weight:400 !important;
     letter-spacing:0.8px;
   }
@@ -230,11 +230,11 @@
       className: 'region-label-wrapper',
       html: `
         <div class="region-label-text" style="text-align:center; line-height:1.12; white-space:nowrap; color:#000;">
-          <div class="mp" style="font-size:13px; font-weight:400;">WA ${region.waMp}</div>
-          <div class="name" style="font-size:14px; font-weight:400; letter-spacing:0.8px; ${outline}">
+          <div class="mp" style="font-size:12px; font-weight:400;">WA ${region.waMp}</div>
+          <div class="name" style="font-size:12px; font-weight:400; letter-spacing:0.8px; ${outline}">
             ${region.name.toUpperCase()}
           </div>
-          <div class="mp" style="font-size:13px; font-weight:400;">OR ${region.orMp}</div>
+          <div class="mp" style="font-size:12px; font-weight:400;">OR ${region.orMp}</div>
         </div>
       `,
       iconSize: [160, 56],
