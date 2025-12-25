@@ -7,7 +7,12 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-  .region-label-wrapper {
+  /* optional: make the map shorter on mobile */
+  @media (max-width: 768px){
+    #map{ height:545px !important; }
+  }
+
+  .region-label-wrapper{
     background: transparent !important;
     border: none !important;
     transform: translate(-50%, -50%);
@@ -15,51 +20,36 @@
 
   .region-label-text{
     color:#000;
-    font-family: 'Source Sans 3', sans-serif;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     text-align:center;
-    line-height:1.18;
+    line-height:1.12;
     white-space:nowrap;
   }
+
+  /* Keep these, but inline styles will enforce size */
   .region-label-text .mp{
-    font-size:14px;
-    font-weight:400; /* un-bold mileposts */
+    font-size:13px !important;
+    font-weight:400 !important;
   }
   .region-label-text .name{
-    font-size:16px;   /* ✅ lowered region name size */
-    font-weight:400;  /* un-bold region name */
+    font-size:14px !important;   /* ✅ smaller region name */
+    font-weight:400 !important;
     letter-spacing:0.8px;
-    /* white outline around REGION NAME only */
-    text-shadow:
-      1px 1px 0 #fff,
-     -1px 1px 0 #fff,
-      1px -1px 0 #fff,
-     -1px -1px 0 #fff,
-      0  2px 0 #fff,
-      0 -2px 0 #fff,
-      2px 0  0 #fff,
-     -2px 0  0 #fff;
-  }
-
-  /* optional: make the map shorter on mobile */
-  @media (max-width: 768px){
-    #map{ height:545px !important; }
   }
 
   /* Button under zoom controls */
   .leaflet-control-open-full a{
-    width: 34px;
-    height: 34px;
-    line-height: 34px;
-    text-align: center;
-    font-size: 18px;
-    display: block;
-    text-decoration: none;
-    color: #333;
-    background: #fff;
+    width:34px;
+    height:34px;
+    line-height:34px;
+    text-align:center;
+    font-size:18px;
+    display:block;
+    text-decoration:none;
+    color:#333;
+    background:#fff;
   }
-  .leaflet-control-open-full a:hover{
-    background: #f4f4f4;
-  }
+  .leaflet-control-open-full a:hover{ background:#f4f4f4; }
 </style>
 
 <script>
@@ -159,6 +149,18 @@
   const fadeExtension = 0.15;
   const baseOpacity = 0.35;
 
+  const outline = `
+    text-shadow:
+      1px 1px 0 #fff,
+     -1px 1px 0 #fff,
+      1px -1px 0 #fff,
+     -1px -1px 0 #fff,
+      0  2px 0 #fff,
+      0 -2px 0 #fff,
+      2px 0  0 #fff,
+     -2px 0  0 #fff;
+  `;
+
   regions.forEach(region => {
     const leftLng = (region.leftOR[1] + region.leftWA[1]) / 2;
     const rightLng = (region.rightOR[1] + region.rightWA[1]) / 2;
@@ -166,6 +168,7 @@
     const northLat = Math.max(region.leftWA[0], region.rightWA[0], region.leftOR[0], region.rightOR[0]);
     const southLat = Math.min(region.leftWA[0], region.rightWA[0], region.leftOR[0], region.rightOR[0]);
 
+    // main fill
     L.polygon([
       [southLat, leftLng],
       [southLat, rightLng],
@@ -173,6 +176,7 @@
       [northLat, leftLng]
     ], { color:'transparent', weight:0, fillColor:region.color, fillOpacity:baseOpacity }).addTo(map);
 
+    // fade north
     for (let i = 1; i <= fadeSteps; i++) {
       const fadeStart = northLat + (fadeExtension / fadeSteps) * (i - 1);
       const fadeEnd = northLat + (fadeExtension / fadeSteps) * i;
@@ -182,6 +186,7 @@
         { color:'transparent', weight:0, fillColor:region.color, fillOpacity:opacity }).addTo(map);
     }
 
+    // fade south
     for (let i = 1; i <= fadeSteps; i++) {
       const fadeStart = southLat - (fadeExtension / fadeSteps) * (i - 1);
       const fadeEnd = southLat - (fadeExtension / fadeSteps) * i;
@@ -191,6 +196,7 @@
         { color:'transparent', weight:0, fillColor:region.color, fillOpacity:opacity }).addTo(map);
     }
 
+    // boundary lines
     const lineSteps = 20;
     const verticalExtent = 0.25;
 
@@ -215,18 +221,24 @@
       L.polyline([[lat1,rightLng],[lat2,rightLng]], { color:'#888', weight:2, opacity }).addTo(map);
     }
 
+    // label placement
     const centerLat = (leftCenterLat + rightCenterLat) / 2;
     const centerLng = (leftLng + rightLng) / 2;
 
+    // ✅ Inline styles guarantee the font size changes apply
     const label = L.divIcon({
       className: 'region-label-wrapper',
-      html: `<div class="region-label-text">
-               <div class="mp">WA ${region.waMp}</div>
-               <div class="name">${region.name.toUpperCase()}</div>
-               <div class="mp">OR ${region.orMp}</div>
-             </div>`,
-      iconSize: [170, 64],
-      iconAnchor: [85, 32]
+      html: `
+        <div class="region-label-text" style="text-align:center; line-height:1.12; white-space:nowrap; color:#000;">
+          <div class="mp" style="font-size:13px; font-weight:400;">WA ${region.waMp}</div>
+          <div class="name" style="font-size:14px; font-weight:400; letter-spacing:0.8px; ${outline}">
+            ${region.name.toUpperCase()}
+          </div>
+          <div class="mp" style="font-size:13px; font-weight:400;">OR ${region.orMp}</div>
+        </div>
+      `,
+      iconSize: [160, 56],
+      iconAnchor: [80, 28]
     });
 
     L.marker([centerLat, centerLng], { icon: label, interactive: false }).addTo(map);
