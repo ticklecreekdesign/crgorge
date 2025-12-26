@@ -77,6 +77,10 @@
   setTimeout(fixSize, 200);
   window.addEventListener('resize', () => setTimeout(fixSize, 100));
 
+  // Create custom pane for milepost dots to appear on top
+  map.createPane('milepostPane');
+  map.getPane('milepostPane').style.zIndex = 650;
+
   L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
     { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
@@ -338,7 +342,8 @@
       color: '#333',
       weight: 1,
       opacity: 0.7,
-      fillOpacity: 0.7
+      fillOpacity: 0.7,
+      pane: 'milepostPane'
     }).addTo(map);
   });
 
@@ -379,7 +384,7 @@
     [45.691140, -121.769114],
     [45.691402, -121.748737],
     [45.690516, -121.728403],
-    [45.687028, -122.708922],
+    [45.687028, -121.708922],
     [45.689882, -121.689176],
     [45.695693, -121.670960],
     [45.698887, -121.651161],
@@ -435,7 +440,8 @@
       color: '#333',
       weight: 1,
       opacity: 0.7,
-      fillOpacity: 0.7
+      fillOpacity: 0.7,
+      pane: 'milepostPane'
     }).addTo(map);
   });
 })();
